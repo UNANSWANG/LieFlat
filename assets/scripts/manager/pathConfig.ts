@@ -1,0 +1,70 @@
+/**游戏页面路径 */
+export enum gamePath {
+    /**游戏页面 */
+    UIGame = "prefabs/UIPage/UIGame",
+}
+
+/**界面路径 */
+export enum UIPath {
+    /**提示 */
+    tips = "prefabs/notice/tips",
+    /**加载提示 */
+    loadTips = "prefabs/notice/loadTips",
+    /**生产提示 */
+    produceTips = "prefabs/notice/produceTips",
+    /**子弹 */
+    bullet = "prefabs/Item/bullet",
+    /**加载页面 */
+    UILoading = "UILoading",
+    /**主页面 */
+    UIMain = "prefabs/UIPage/UIMain",
+    /**成功页面 */
+    UISuccess = "prefabs/UIPage/UISuccess",
+    /**失败页面 */
+    UIFail = "prefabs/UIPage/UIFail",
+    /**设置页面 */
+    UISetting = "prefabs/UIPage/UISetting",
+    /**恭喜获得页面 */
+    UIReward = "prefabs/UIPage/UIReward",
+    /**复访页面 */
+    UIRevisit = "prefabs/UIPage/UIRevisit",
+    /**排行榜 */
+    UIRank = "prefabs/UIPage/UIRank",
+    /**建筑道具页面 */
+    UIBuild = "prefabs/UIPage/UIBuild",
+    /**操作道具界面 */
+    UIProps = "prefabs/UIPage/UIProps",
+}
+
+/**物品路径 */
+export enum ItemPath {
+    
+}
+
+/**物品路径 */
+export enum audioPath {
+    /**背景音乐 */
+    background = "audio/background",
+    /**游戏内点击音效 */
+    click = "audio/click",
+    /**单局胜利音效 */
+    success = "audio/success",
+}
+
+/**图片路径 */
+export enum imgPath {
+    /**道具图片 */
+    props = "texture/reward/props/props_",
+    /**默认头像 */
+    defAvatar = "texture/rank/moren",
+    /**游戏内道具 */
+    gamePprops = "texture/game/props/",
+    /**游戏内道具预览 */
+    gamePpropsPreview = "texture/build/propsPreview/",
+    /**角色皮肤 */
+    roleSkin = "texture/game/roleSkin/role_",
+    /**武器皮肤 */
+    weaponSkin = "texture/game/weapons/weapons_",
+    /**子弹皮肤 */
+    bulletSkin = "texture/game/bullet/bullet_",
+}

@@ -1,0 +1,343 @@
+import { _decorator, Component, Label, sp, Vec2, Vec3 } from 'cc';
+import { pData } from '../manager/playerData';
+import { ccTools } from '../extention/generalTools';
+import { configData, GameEvent } from '../manager/configData';
+import type { UIGame } from '../UIPage/UIGame';
+import { bedProps } from './props/bedProps';
+import { gm } from '../manager/gm';
+import { playerMgr } from '../manager/playerManager';
+import { uiMgr } from '../manager/UIManager';
+import { UIPath } from '../manager/pathConfig';
+const { ccclass, property } = _decorator;
+
+export enum roleState {
+    /**正常 */
+    normal = 0,
+    /**床上 */
+    bed = 1,
+    /**死亡 */
+    dead = 2,
+}
+
+@ccclass('roleController')
+export class roleController extends Component {
+    /**角色当前游戏内id */
+    roleId: number = 0;
+    /**角色皮肤id */
+    skinId: number = 0;
+    /**当前角色所在瓦片位置 */
+    currentPos: Vec2 = Vec2.ZERO;
+    /**角色所在房间号-1：未进入房间，其他值：房间索引 */
+    roomIdx: number = -1;
+    /**游戏脚本 */
+    gameComp: UIGame = null;
+    /**机器人寻路路径 */
+    private movePath: Vec2[] = [];
+    /**当前路径索引 */
+    private movePathIdx: number = 0;
+    /**机器人目标位置 */
+    private targetPos: Vec2 = new Vec2();
+    /**机器人当前是否已经预定床位 */
+    private hasTargetBed: boolean = false;
+
+    /**角色状态 */
+    private _state: roleState = roleState.normal;
+    public get state(): roleState {
+        return this._state;
+    }
+    public set state(value: roleState) {
+        if (value == roleState.dead && this.roleId == playerMgr.playerComp.roleId) {
+            //玩家死亡
+            uiMgr.openPage(UIPath.UIFail);
+        }
+        this._state = value;
+    }
+
+    ///
+    ///节点
+    ///
+    /**角色spine节点 */
+    roleAnim: sp.Skeleton = null;
+    /**角色名称 */
+    roleNameLab: Label = null;
+
+    protected onLoad(): void {
+        this.roleAnim = this.node.getChildByName("roleAnim").getComponent(sp.Skeleton);
+        this.roleNameLab = this.node.getChildByName("roleNameLab").getComponent(Label);
+    }
+
+    init(comp: UIGame, id: number) {
+        this.gameComp = comp;
+        this.roleId = id;
+        this.state = roleState.normal;
+
+        //TODO 名称后续加入配置，先临时写死
+        if (this.roleId == 0) {
+            this.roleNameLab.string = `玩家${this.roleId + 1}`
+        } else {
+            this.roleNameLab.string = `人机${this.roleId}`
+        }
+    }
+
+    /**隐藏角色 */
+    hideRole() {
+        this.state = roleState.bed;
+        for (let i = 0; i < this.node.children.length; i++) {
+            this.node.children[i].active = false;
+        }
+    }
+
+    /**显示角色 */
+    showRole() {
+        for (let i = 0; i < this.node.children.length; i++) {
+            this.node.children[i].active = true;
+        }
+    }
+
+    /**寻找房间 */
+    suchRoom() {
+        if (!this.gameComp || this.roleId == 0 || this.state != roleState.normal) {
+            return;
+        }
+
+        this.clearTargetBedReservation();
+        this.movePath = [];
+        this.movePathIdx = 0;
+
+        let candidates = this.getUsableBedCandidates();
+        ccTools.shuffleArray(candidates);
+
+        for (let i = 0; i < candidates.length; i++) {
+            let candidate = candidates[i];
+            let path = this.findPathToBed(candidate.bedPos);
+            if (path.length == 0) {
+                continue;
+            }
+
+            candidate.bedComp.isRobotOccupied = true;
+            this.hasTargetBed = true;
+            this.targetPos.set(candidate.bedPos.x, candidate.bedPos.y);
+            this.movePath = path;
+            this.movePathIdx = 0;
+            return;
+        }
+    }
+
+    /**如果当前预定的是指定房间，则重新寻找房间 */
+    refreshTargetRoomByOccupiedRoom(roomIdx: number) {
+        if (this.roleId == 0 || this.state != roleState.normal || !this.hasTargetBed || roomIdx <= 0) {
+            return;
+        }
+
+        let targetRoomIdx = this.getTargetRoomIdx();
+        if (targetRoomIdx != roomIdx) {
+            return;
+        }
+
+        this.suchRoom();
+    }
+
+    /**获取机器人当前预定床位所在房间 */
+    private getTargetRoomIdx() {
+        if (!this.hasTargetBed) {
+            return 0;
+        }
+
+        return this.gameComp?.tileMap?.[this.targetPos.x]?.[this.targetPos.y]?.roomIdx || 0;
+    }
+
+    /**清理机器人当前预定床位 */
+    private clearTargetBedReservation() {
+        if (!this.hasTargetBed) {
+            return;
+        }
+
+        let tileData = this.gameComp?.tileMap?.[this.targetPos.x]?.[this.targetPos.y];
+        let bedComp = tileData?.item?.propsComp as any as bedProps;
+        if (bedComp && !bedComp.isOccupied) {
+            bedComp.isRobotOccupied = false;
+        }
+
+        this.hasTargetBed = false;
+    }
+
+    protected update(dt: number): void {
+        if (gm.isGamePause) {
+            return;
+        }
+
+        this.moveByPath(dt);
+    }
+
+    /**获取未被玩家或机器人占用的床 */
+    private getUsableBedCandidates(): { bedPos: Vec2, bedComp: bedProps }[] {
+        let result: { bedPos: Vec2, bedComp: bedProps }[] = [];
+        let roomMap = this.gameComp.roomMap || {};
+        let roomKeys = Object.keys(roomMap);
+
+        for (let i = 0; i < roomKeys.length; i++) {
+            let roomData = roomMap[roomKeys[i]];
+            let bedPos: Vec2 = roomData?.bedPos;
+            if (!bedPos) {
+                continue;
+            }
+
+            let tileData = this.gameComp.tileMap[bedPos.x]?.[bedPos.y];
+            let bedComp = tileData?.item?.propsComp as any as bedProps;
+            if (!bedComp || bedComp.isOccupied || bedComp.isRobotOccupied) {
+                continue;
+            }
+
+            result.push({ bedPos: new Vec2(bedPos.x, bedPos.y), bedComp: bedComp });
+        }
+
+        return result;
+    }
+
+    /**寻路到床，机器人忽略门，目标床本身允许进入 */
+    private findPathToBed(targetPos: Vec2): Vec2[] {
+        if (!pData.mapSize || pData.mapSize.width <= 0 || pData.mapSize.height <= 0) {
+            return [];
+        }
+
+        let startPos = new Vec2(this.currentPos.x, this.currentPos.y);
+        if (startPos.x == targetPos.x && startPos.y == targetPos.y) {
+            return [new Vec2(targetPos.x, targetPos.y)];
+        }
+
+        let queue: Vec2[] = [startPos];
+        let visited: boolean[][] = Array.from(
+            { length: pData.mapSize.width },
+            () => Array.from({ length: pData.mapSize.height }, () => false)
+        );
+        let parent: (Vec2 | null)[][] = Array.from(
+            { length: pData.mapSize.width },
+            () => Array.from({ length: pData.mapSize.height }, () => null)
+        );
+        let dirs = [
+            new Vec2(1, 0),
+            new Vec2(-1, 0),
+            new Vec2(0, 1),
+            new Vec2(0, -1),
+        ];
+        let head = 0;
+        visited[startPos.x][startPos.y] = true;
+
+        while (head < queue.length) {
+            let curPos = queue[head++];
+            if (curPos.x == targetPos.x && curPos.y == targetPos.y) {
+                return this.buildPath(parent, startPos, targetPos);
+            }
+
+            for (let i = 0; i < dirs.length; i++) {
+                let nextPos = new Vec2(curPos.x + dirs[i].x, curPos.y + dirs[i].y);
+                if (!this.canRobotWalk(nextPos, targetPos) || visited[nextPos.x][nextPos.y]) {
+                    continue;
+                }
+
+                visited[nextPos.x][nextPos.y] = true;
+                parent[nextPos.x][nextPos.y] = curPos;
+                queue.push(nextPos);
+            }
+        }
+
+        return [];
+    }
+
+    /**还原路径，返回值不包含起点，包含终点 */
+    private buildPath(parent: (Vec2 | null)[][], startPos: Vec2, targetPos: Vec2): Vec2[] {
+        let path: Vec2[] = [];
+        let curPos = new Vec2(targetPos.x, targetPos.y);
+
+        while (curPos.x != startPos.x || curPos.y != startPos.y) {
+            path.unshift(new Vec2(curPos.x, curPos.y));
+            let prePos = parent[curPos.x][curPos.y];
+            if (!prePos) {
+                return [];
+            }
+            curPos = prePos;
+        }
+
+        return path;
+    }
+
+    /**机器人可通行判断：门可通过，其他障碍不可通过，目标床可进入 */
+    private canRobotWalk(tilePos: Vec2, targetPos: Vec2) {
+        if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= pData.mapSize.width || tilePos.y >= pData.mapSize.height) {
+            return false;
+        }
+
+        if (tilePos.x == targetPos.x && tilePos.y == targetPos.y) {
+            return true;
+        }
+
+        let tileData = this.gameComp.tileMap[tilePos.x]?.[tilePos.y];
+        if (!tileData) {
+            return false;
+        }
+
+        if (tileData.item?.tileType == "door") {
+            return true;
+        }
+
+        return tileData.block != 1;
+    }
+
+    /**按路径移动机器人 */
+    private moveByPath(dt: number) {
+        if (this.movePathIdx >= this.movePath.length) {
+            return;
+        }
+
+        let nextTilePos = this.movePath[this.movePathIdx];
+        let targetNodePos = ccTools.getPosByTileIndex(nextTilePos);
+        let curNodePos = this.node.position;
+        let offsetX = targetNodePos.x - curNodePos.x;
+        let offsetY = targetNodePos.y - curNodePos.y;
+        let distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+        let moveDistance = configData.moveSpeed * dt;
+
+        if (distance <= moveDistance || distance <= 0.001) {
+            this.node.setPosition(targetNodePos);
+            this.currentPos = new Vec2(nextTilePos.x, nextTilePos.y);
+            this.movePathIdx++;
+
+            if (this.movePathIdx >= this.movePath.length) {
+                this.arriveBed();
+            }
+            return;
+        }
+
+        let moveX = offsetX / distance * moveDistance;
+        let moveY = offsetY / distance * moveDistance;
+        this.node.setPosition(new Vec3(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z));
+    }
+
+    /**到达床铺 */
+    private arriveBed() {
+        let tileData = this.gameComp.tileMap[this.targetPos.x]?.[this.targetPos.y];
+        let bedComp = tileData.item.propsComp as any as bedProps;
+        //如果当前床铺被人占用，重新寻找床位
+        if (bedComp.isOccupied) {
+            this.suchRoom();
+            return;
+        }
+
+        this.currentPos.set(this.targetPos);
+        this.movePath = [];
+        this.movePathIdx = 0;
+        this.hasTargetBed = false;
+        this.roomIdx = tileData.roomIdx;
+
+        //床铺占用
+        bedComp.isOccupied = true;
+        bedComp.showRole(this.skinId);
+
+        //关门
+        this.gameComp.closeDoorByRoom(this.roomIdx);
+
+        this.hideRole();
+
+        gm.Event.emit(GameEvent.refreshPlayerPos);
+    }
+}

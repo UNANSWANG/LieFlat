@@ -1,0 +1,1461 @@
+import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween } from 'cc';
+import { uiMgr } from '../manager/UIManager';
+import { pData } from '../manager/playerData';
+import { UIBase } from './UIBase';
+import { UIPath } from '../manager/pathConfig';
+import { configData, enemyCommonConfig, GameEvent } from '../manager/configData';
+import { gm } from '../manager/gm';
+import { zoomButton } from '../extention/zoomButton';
+import { ccTools } from '../extention/generalTools';
+import { playerMgr } from '../manager/playerManager';
+import { tileItemController, tilePropsType } from '../controller/tileItemController';
+import { doorProps } from '../controller/props/doorProps';
+import { bedProps } from '../controller/props/bedProps';
+import { CameraController } from '../controller/CameraController';
+import { roleController, roleState } from '../controller/roleController';
+import { enemyMgr } from '../manager/enemyManager';
+import { enemyBaseController } from '../controller/enemy/enemyBaseController';
+import { produceTips, produceType } from './tips/produceTips';
+import { poolMgr } from '../manager/poolManager';
+const { ccclass, property } = _decorator;
+
+@ccclass('UIGame')
+export class UIGame extends UIBase {
+    @property(Node)
+    setBtn: Node;
+
+    @property(Node)
+    repairBtn: Node;
+
+    @property(Node)
+    roleNode: Node;
+
+    @property(Node)
+    rockerTouchNode: Node;
+
+    @property(Node)
+    slideTouchNode: Node;
+
+    @property(Node)
+    tileObjList: Node;
+
+    @property(Node)
+    UINode: Node;
+
+    @property(Node)
+    gameUINode: Node;
+
+    @property(Prefab)
+    roleBtnPre: Prefab;
+
+    @property(Prefab)
+    rolePre: Prefab;
+
+    @property(Prefab)
+    enemyPre: Prefab;
+
+    @property(Prefab)
+    tileItemPre: Prefab;
+
+    @property(TiledMap)
+    tiledMap: TiledMap;
+
+    @property(Label)
+    coinLab: Label;
+
+    @property(Label)
+    powerLab: Label;
+
+    @property(Node)
+    timeNode: Node;
+
+    @property(Node)
+    roleBtnLayout: Node;
+
+    ///
+    ///需要获取的节点
+    ///
+    oprateBtn: Node = null;
+    touchSelect: Node = null;
+
+    ///
+    ///属性
+    ///
+    /**机器人数组 */
+    robotArr: roleController[] = [];
+    /**剩余倒计时时间 */
+    countDownTime = 0;
+    /**是否开始倒计时 */
+    isCountDownStart = false;
+    /**当前移动方向 */
+    private currentMoveDirection: Vec3 = Vec3.ZERO;
+    /**是否正在移动 */
+    private isMoving = false;
+    /**摇杆初始位置 */
+    private rockerInitPos: Vec3 = new Vec3(0, -650, 0);
+    /**出生点位数组 */
+    private bornPosArr: Vec2[] = [];
+    /**障碍物地图*/
+    tileMap: tileData[][] = [];
+    /**所有房间信息 */
+    roomMap: any = {};
+    /**操作按钮的坐标 */
+    opratePos: Vec2 = Vec2.ZERO;
+    /**地图层相机，用于把瓦片世界坐标转成屏幕坐标 */
+    private gameCamera: Camera = null;
+    /**地图层相机控制器 */
+    private gameCameraComp: CameraController = null;
+    /**UI层相机，用于把屏幕坐标转回UI世界坐标 */
+    private uiCamera: Camera = null;
+    /**选中坐标 */
+    private selectedPos: Vec2 = new Vec2();
+
+    ///
+    ///临时变量，不参与重新开始游戏数据恢复
+    ///
+    /**操作瓦片中心点的世界坐标 */
+    private tempTileCenterWorldPos: Vec3 = new Vec3();
+    /**角色当前世界坐标 */
+    private tempPlayerWorldPos: Vec3 = new Vec3();
+    /**角色当前屏幕坐标 */
+    private tempPlayerScreenPos: Vec3 = new Vec3();
+    /**操作按钮目标屏幕坐标 */
+    private tempScreenPos: Vec3 = new Vec3();
+    /**操作按钮目标UI世界坐标 */
+    private tempUIWorldPos: Vec3 = new Vec3();
+    /**操作按钮目标UI本地坐标 */
+    private tempUILocalPos: Vec3 = new Vec3();
+    /**瓦片中心点在地图节点内的本地坐标 */
+    private tempTileCenterLocalPos: Vec3 = new Vec3();
+    /**游戏相机世界坐标 */
+    private tempCameraWorldPos: Vec3 = new Vec3();
+    /**触摸点对应的地图世界坐标 */
+    private tempTouchWorldPos: Vec3 = new Vec3();
+    /**触摸点对应的地图节点本地坐标 */
+    private tempTouchMapLocalPos: Vec3 = new Vec3();
+    /**滑动区域移动距离 */
+    private tempSlideDelta: Vec2 = new Vec2();
+    /**滑动区域开始触摸UI坐标 */
+    private slideStartUILocation: Vec2 = new Vec2();
+    /**滑动区域上一帧UI坐标 */
+    private slideLastUILocation: Vec2 = new Vec2();
+    /**是否在滑动区域移动 */
+    private isSlideMoving = false;
+    /**游戏开始倒计时时间 */
+    private gameStartCountDownTime = 0;
+    /**游戏开始倒计时是否已结束 */
+    private isGameStartCountDownEnd = false;
+    /**游戏是否暂停 */
+    private isGamePause = false;
+    /**修复按钮冷却剩余时间 */
+    private repairCoolDownTime = 0;
+    /**修复按钮冷却遮罩 */
+    private repairMask: Sprite = null;
+    /**机器人开始找房间剩余时间 */
+    private robotSuchRoomDelayTime = 0;
+    /**玩家上一帧所在房间 */
+    private playerLastRoomIdx = 0;
+
+
+    protected onLoad(): void {
+        this.oprateBtn = this.UINode.getChildByName('oprateBtn');
+        this.touchSelect = this.UINode.getChildByName('touchSelect');
+        this.repairMask = this.repairBtn.getChildByName("mask").getComponent(Sprite);
+
+        this.bindBtn();
+        this.initCamera();
+    }
+
+    onUI_Open(data?: any): void {
+        this.addListener();
+        this.initData();
+    }
+
+    onUI_Close(): void {
+        this.removeListener();
+    }
+
+    /**添加监听 */
+    addListener() {
+        gm.Event.on(GameEvent.refreshGameLevel, this.initData, this);
+        gm.Event.on(GameEvent.refreshGameCamera, this.refreshGameCamera, this);
+        gm.Event.on(GameEvent.refreshGameMonetary, this.refreshMonetaryLab, this);
+        gm.Event.on(GameEvent.refreshPlayerPos, this.checkPlayerPos, this);
+        gm.Event.on(GameEvent.createProps, this.createProps, this);
+        gm.Event.on(GameEvent.upgradeProps, this.upgradeProps, this);
+        gm.Event.on(GameEvent.gamePause, this.onGamePause, this);
+        gm.Event.on(GameEvent.gameResume, this.onGameResume, this);
+        // 监听键盘按下
+        input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        // 监听触摸事件
+        this.rockerTouchNode.on(NodeEventType.TOUCH_START, this.onTouchRockerStart, this);
+        this.rockerTouchNode.on(NodeEventType.TOUCH_MOVE, this.onTouchRockerMove, this);
+        this.rockerTouchNode.on(NodeEventType.TOUCH_END, this.onTouchRockerEnd, this);
+        this.rockerTouchNode.on(NodeEventType.TOUCH_CANCEL, this.onTouchRockerEnd, this);
+        this.slideTouchNode.on(NodeEventType.TOUCH_START, this.onTouchSlideStart, this);
+        this.slideTouchNode.on(NodeEventType.TOUCH_MOVE, this.onTouchSlideMove, this);
+        this.slideTouchNode.on(NodeEventType.TOUCH_END, this.onTouchSlideEnd, this);
+        this.slideTouchNode.on(NodeEventType.TOUCH_CANCEL, this.onTouchSlideEnd, this);
+    }
+
+    /**删除监听 */
+    removeListener() {
+        gm.Event.off(GameEvent.refreshGameLevel, this.initData, this);
+        gm.Event.off(GameEvent.refreshGameCamera, this.refreshGameCamera, this);
+        gm.Event.off(GameEvent.refreshGameMonetary, this.refreshMonetaryLab, this);
+        gm.Event.off(GameEvent.refreshPlayerPos, this.checkPlayerPos, this);
+        gm.Event.off(GameEvent.createProps, this.createProps, this);
+        gm.Event.off(GameEvent.upgradeProps, this.upgradeProps, this);
+        gm.Event.off(GameEvent.gamePause, this.onGamePause, this);
+        gm.Event.off(GameEvent.gameResume, this.onGameResume, this);
+        // 监听键盘按下
+        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        // 监听触摸事件
+        this.rockerTouchNode.off(NodeEventType.TOUCH_START, this.onTouchRockerStart, this);
+        this.rockerTouchNode.off(NodeEventType.TOUCH_MOVE, this.onTouchRockerMove, this);
+        this.rockerTouchNode.off(NodeEventType.TOUCH_END, this.onTouchRockerEnd, this);
+        this.rockerTouchNode.off(NodeEventType.TOUCH_CANCEL, this.onTouchRockerEnd, this);
+        this.slideTouchNode.off(NodeEventType.TOUCH_START, this.onTouchSlideStart, this);
+        this.slideTouchNode.off(NodeEventType.TOUCH_MOVE, this.onTouchSlideMove, this);
+        this.slideTouchNode.off(NodeEventType.TOUCH_END, this.onTouchSlideEnd, this);
+        this.slideTouchNode.off(NodeEventType.TOUCH_CANCEL, this.onTouchSlideEnd, this);
+    }
+
+    bindBtn() {
+        this.setBtn.addComponent(zoomButton).onClick = this.clickSetBtn.bind(this);
+        this.oprateBtn.on(NodeEventType.TOUCH_END, this.clickOprateBtn, this);
+        this.repairBtn.addComponent(zoomButton).onClick = this.clickRepairBtn.bind(this);
+    }
+
+    initCamera() {
+        let gameCamera = this.node.getChildByName("gameCamera");
+        this.gameCameraComp = gameCamera?.getComponent(CameraController);
+        this.gameCamera = gameCamera?.getComponent(Camera);
+
+        let canvas = director.getScene()?.getChildByName("Canvas")?.getComponent(Canvas);
+        this.uiCamera = canvas?.cameraComponent;
+    }
+
+    initData() {
+        pData.levelInit();
+
+        /**清除数据 */
+        this.clearData();
+
+        this.rockerTouchNode.active = true;
+        this.refreshMonetaryLab();
+
+        this.initMapLayer();
+        this.getMapObjectLayer();
+
+        this.initRobot();
+        this.initPlayer();
+        this.initRoleBtnList();
+
+        this.initEnemy();
+
+        //TODO 暂时关闭倒计时
+        this.startGameCountDown();
+
+        //等待一段时间后，机器人开始房间寻找
+        this.robotSuchRoomDelayTime = 2;
+    }
+
+    clearData() {
+        this.unscheduleAllCallbacks();
+        this.rockerTouchNode.active = false;
+        this.slideTouchNode.active = false;
+        this.oprateBtn.active = false;
+        this.closeTouchSelect();
+        this.timeNode.active = false;
+        this.repairBtn.active = false;
+        this.isGameStartCountDownEnd = false;
+        this.isGamePause = false;
+        this.repairCoolDownTime = 0;
+        this.robotSuchRoomDelayTime = 0;
+        this.playerLastRoomIdx = 0;
+        Tween.stopAllByTarget(this.repairMask);
+        this.repairMask.fillRange = 0;
+        this.repairMask.node.active = false;
+
+        this.stopGameCountDown();
+
+        ccTools.destroyAllChild(this.tileObjList);
+        ccTools.destroyAllChild(this.roleNode);
+        ccTools.destroyAllChild(this.roleBtnLayout);
+
+        //TODO 后续加入对象池管理
+        playerMgr.player = null;
+        enemyMgr.enemyArr = [];
+        enemyMgr.enemyId = 0;
+        this.robotArr = [];
+        this.roomMap = {};
+        this.bornPosArr = [];
+        this.tileMap = [];
+        this.rockerReset();
+    }
+
+    /**初始化地图图块层数据 */
+    initMapLayer() {
+        pData.mapSize = this.tiledMap.getMapSize();
+        pData.mapHalfSize = new Vec2((pData.mapSize.width * configData.tileSize) / 2, (pData.mapSize.height * configData.tileSize) / 2);
+
+        // 初始化障碍物地图
+        this.tileMap = Array.from(
+            { length: pData.mapSize.width },
+            () => Array.from(
+                { length: pData.mapSize.height },
+                () => ({ block: 0 })
+            )
+        );
+
+        let mapLayer = this.tiledMap.getLayer("map");
+
+        for (let i = 0; i < pData.mapSize.width; i++) {
+            for (let j = 0; j < pData.mapSize.height; j++) {
+                let gid = mapLayer.getTileGIDAt(i, j);
+
+                let tileSet = this.tiledMap.getPropertiesForGID(gid);
+                if (tileSet && tileSet["block"]) {
+                    this.tileMap[i][j].block = 1;
+                }
+            }
+        }
+    }
+
+    /**获取地图对象层数据 */
+    getMapObjectLayer() {
+        let objGroupData: TiledObjectGroup = this.tiledMap.getObjectGroup("obj");
+        let objList = objGroupData.getObjects();
+        console.warn("----------->地图对象层数据：\n", objList);
+        for (let i = 0; i < objList.length; i++) {
+            let objItem = objList[i];
+
+            //通用属性
+            if (objItem.properties) {
+                let tilePos = ccTools.getTileIndexByPos(objItem.offset.x, objItem.offset.y);
+                if (objItem.properties["born"]) {
+                    this.bornPosArr.push(tilePos);
+                } else if (objItem.properties["monsterBorn"]) {
+                    enemyMgr.enemyBornPosArr.push(tilePos);
+                }
+            }
+        }
+
+        //处理房间数据
+        let roomIdx = 1;
+        while (true) {
+            let roomObjData: TiledObjectGroup = this.tiledMap.getObjectGroup("room" + roomIdx);
+            if (!roomObjData) {
+                break;
+            }
+
+            //单房间数据
+            let roomArr = [];
+            //门数据
+            let doorPos = null;
+            //床数据
+            let bedPos = null;
+            let roomTileList = roomObjData.getObjects();
+
+            for (let i = 0; i < roomTileList.length; i++) {
+                let tileObjItem = roomTileList[i];
+                let tilePos = ccTools.getTileIndexByPos(tileObjItem.offset.x, tileObjItem.offset.y);
+                roomArr.push(tilePos);
+                this.tileMap[tilePos.x][tilePos.y].roomIdx = roomIdx;
+
+                if (tileObjItem.name) {
+                    let nameData = ccTools.getNameData(tileObjItem.name);
+                    let str = nameData[0];
+
+                    let createItem = () => {
+                        let tilePos = ccTools.getTileIndexByPos(tileObjItem.offset.x, tileObjItem.offset.y);
+                        let tileItem = instantiate(this.tileItemPre);
+                        this.tileObjList.addChild(tileItem);
+                        let tileComp: tileItemController = tileItem.getComponent(tileItemController);
+                        tileItem.position = ccTools.getPosByTileIndex(tilePos);
+                        tileComp.roomIdx = Number(roomIdx);
+                        tileComp.pos = tilePos;
+                        tileComp.bindGameComp(this);
+                        this.tileMap[tilePos.x][tilePos.y].item = tileComp;
+                        return tileComp;
+                    }
+
+                    if (str == "door") {
+                        let tileComp = createItem();
+                        tileComp.addProps(tilePropsType.door);
+
+                        //处理门的数据
+                        let dir = 0;
+                        let offsetDir = 0;
+                        if (tileObjItem.properties) {
+                            if (tileObjItem.properties["direction"]) {
+                                dir = Number(tileObjItem.properties["direction"]);
+                            }
+
+                            if (tileObjItem.properties["offset"]) {
+                                offsetDir = Number(tileObjItem.properties["offset"]);
+                            }
+                        }
+                        doorPos = tileComp.pos;
+                        tileComp.setDoorPos(offsetDir, dir);
+
+                    } else if (str == "bed") {
+                        let tileComp = createItem();
+                        this.tileMap[tileComp.pos.x][tileComp.pos.y].block = 1;
+                        bedPos = tileComp.pos;
+                        tileComp.addProps(tilePropsType.bed);
+                    }
+                }
+            }
+
+            this.roomMap[roomIdx] = {
+                roomArr: roomArr,
+                doorPos: doorPos,
+                bedPos: bedPos,
+            }
+            // console.warn("房间数据", roomArr);
+            roomIdx++;
+        }
+    }
+
+    /**初始化玩家 */
+    initPlayer() {
+        playerMgr.player = instantiate(this.rolePre);
+        this.roleNode.addChild(playerMgr.player);
+        playerMgr.cameraFollow = true;
+        this.initRolePos(playerMgr.player);
+        playerMgr.playerComp.init(this, 0);
+        this.playerLastRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp.currentPos);
+    }
+
+    /**初始化机器人 */
+    initRobot() {
+        for (let i = 0; i < 5; i++) {
+            let robot = instantiate(this.rolePre);
+            this.roleNode.addChild(robot);
+            let robotComp: roleController = robot.getComponent(roleController);
+            this.robotArr.push(robotComp);
+            this.initRolePos(robot);
+            robotComp.init(this, i + 1);
+        }
+    }
+
+    /**初始化角色定位按钮 */
+    initRoleBtnList() {
+        if (!this.roleBtnLayout || !this.roleBtnPre) {
+            return;
+        }
+
+        ccTools.destroyAllChild(this.roleBtnLayout);
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            this.createRoleBtn(this.robotArr[i]);
+        }
+
+        if (playerMgr.playerComp) {
+            this.createRoleBtn(playerMgr.playerComp);
+        }
+    }
+
+    /**创建角色定位按钮 */
+    createRoleBtn(roleComp: roleController) {
+        if (!roleComp || !roleComp.node) {
+            return;
+        }
+
+        let roleBtn = instantiate(this.roleBtnPre);
+        this.roleBtnLayout.addChild(roleBtn);
+
+        let nameLab = roleBtn.getChildByName("Label")?.getComponent(Label);
+        if (nameLab) {
+            nameLab.string = roleComp.roleId == 0 ? "玩家" : "人机" + roleComp.roleId;
+        }
+
+        let btnComp = roleBtn.getComponent(zoomButton);
+        if (!btnComp) {
+            btnComp = roleBtn.addComponent(zoomButton);
+        }
+        btnComp.onClick = this.clickRoleBtn.bind(this, roleComp.roleId);
+    }
+
+    /**通过角色id获取角色组件 */
+    getRoleCompById(roleId: number): roleController {
+        if (playerMgr.playerComp && playerMgr.playerComp.roleId == roleId) {
+            return playerMgr.playerComp;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let roleComp = this.robotArr[i];
+            if (roleComp && roleComp.roleId == roleId) {
+                return roleComp;
+            }
+        }
+
+        return null;
+    }
+
+    /**初始化敌人 */
+    initEnemy() {
+        let enemyNode = instantiate(this.enemyPre);
+        this.roleNode.addChild(enemyNode);
+        let enemyComp: enemyBaseController = enemyNode.getComponent(enemyBaseController);
+        enemyMgr.enemyArr.push(enemyComp);
+        enemyComp.init(this, enemyMgr.enemyId);
+        enemyMgr.enemyId++;
+
+        let randomIdx = Math.floor(Math.random() * enemyMgr.enemyBornPosArr.length);
+        let pos = ccTools.getPosByTileIndex(enemyMgr.enemyBornPosArr[randomIdx]);
+        enemyNode.setPosition(pos);
+    }
+
+    /**初始化角色位置 */
+    initRolePos(node) {
+        if (this.bornPosArr.length == 0) {
+            console.warn("没有出生位置了");
+            return;
+        }
+        let roleComp: roleController = node.getComponent(roleController);
+        let randomIdx = Math.floor(Math.random() * this.bornPosArr.length);
+        roleComp.currentPos = this.bornPosArr[randomIdx];
+        this.bornPosArr.splice(randomIdx, 1);
+        let pos = ccTools.getPosByTileIndex(roleComp.currentPos);
+        node.setPosition(pos);
+    }
+
+    /**生成建筑道具 */
+    createProps(tilePos, propsType: tilePropsType, level: number = 0) {
+        let tileData = this.tileMap[tilePos.x][tilePos.y];
+        let tileComp = tileData.item;
+        if (!tileComp) {
+            //不存在瓦片就添加瓦片
+            let tileItem = instantiate(this.tileItemPre);
+            this.tileObjList.addChild(tileItem);
+            tileComp = tileItem.getComponent(tileItemController);
+            tileItem.position = ccTools.getPosByTileIndex(tilePos);
+            tileComp.roomIdx = tileData.roomIdx;
+            tileComp.pos = tilePos;
+            tileComp.bindGameComp(this);
+            this.tileMap[tilePos.x][tilePos.y].item = tileComp;
+        }
+        tileComp.addProps(propsType, level);
+    }
+
+    /**升级建筑道具 */
+    upgradeProps(tilePos) {
+        let tileData = this.tileMap[tilePos.x][tilePos.y];
+        let tileComp = tileData.item;
+        if (!tileComp) {
+            return;
+        }
+        let propComp = tileComp.propsComp;
+        if (!propComp) {
+            return;
+        }
+        propComp.upgradeProps();
+    }
+
+    /**机器人寻找房间 */
+    robotSuchRoom() {
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let robotComp = this.robotArr[i];
+            robotComp.suchRoom();
+        }
+    }
+
+    /**倒计时结束 */
+    countDownEnd() {
+        this.timeNode.active = false;
+        this.isGameStartCountDownEnd = true;
+        this.stopGameCountDown();
+        this.refreshRepairBtnVisible();
+
+        uiMgr.showTips("猎梦者开始行动");
+        enemyMgr.enemyArr[0].chooseTargetAndFindPath();
+    }
+
+    /**刷新倒计时 */
+    refreshCountDown() {
+        if (this.isGamePause) {
+            return;
+        }
+
+        this.gameStartCountDownTime--;
+        if (this.gameStartCountDownTime <= 0) {
+            this.countDownEnd();
+            return;
+        }
+        let timeLabel = this.timeNode.getChildByName("timeLab").getComponent(Label);
+        timeLabel.string = this.gameStartCountDownTime.toString();
+    }
+
+    /**停止游戏开始倒计时 */
+    stopGameCountDown() {
+        this.unschedule(this.refreshCountDown);
+    }
+
+    /**开始游戏倒计时 */
+    startGameCountDown() {
+        this.isGameStartCountDownEnd = false;
+        this.refreshRepairBtnVisible();
+        this.gameStartCountDownTime = enemyCommonConfig.enemyStartTime;
+        let timeLabel = this.timeNode.getChildByName("timeLab").getComponent(Label);
+        timeLabel.string = this.gameStartCountDownTime.toString();
+        this.timeNode.active = true;
+
+        this.schedule(this.refreshCountDown, 1);
+    }
+
+    /**刷新修复按钮显隐 */
+    private refreshRepairBtnVisible() {
+        this.repairBtn.active = this.isGameStartCountDownEnd && playerMgr.playerComp?.roomIdx > 0;
+    }
+
+    /**游戏开始倒计时是否已结束 */
+    get isEnemyCanMove() {
+        return this.isGameStartCountDownEnd && !this.isGamePause;
+    }
+
+    /**响应全局游戏暂停 */
+    private onGamePause() {
+        this.isGamePause = true;
+        this.rockerTouchNode.active = false;
+        this.slideTouchNode.active = false;
+        this.rockerReset();
+    }
+
+    /**响应全局游戏继续 */
+    private onGameResume() {
+        this.isGamePause = false;
+
+        if (playerMgr.playerComp?.roomIdx > 0) {
+            this.rockerTouchNode.active = false;
+            this.slideTouchNode.active = true;
+        } else {
+            this.rockerTouchNode.active = true;
+            this.slideTouchNode.active = false;
+        }
+
+        this.refreshRepairBtnVisible();
+    }
+
+    /**刷新修复按钮冷却遮罩 */
+    private refreshRepairMask(dt: number) {
+        if (this.repairCoolDownTime <= 0) {
+            this.repairCoolDownTime = 0;
+            this.repairMask.fillRange = 0;
+            this.repairMask.node.active = false;
+            return;
+        }
+
+        this.repairMask.node.active = true;
+        this.repairCoolDownTime = Math.max(0, this.repairCoolDownTime - dt);
+        this.repairMask.fillRange = -this.repairCoolDownTime / configData.repairCoolDown;
+    }
+
+    /**摇杆归位 */
+    rockerReset() {
+        let rockerNode = this.rockerTouchNode.getChildByName("rockerNode");
+        let rockerPoint = rockerNode.getChildByName("rockerPoint");
+        rockerNode.setPosition(this.rockerInitPos);
+        rockerPoint.position = Vec3.ZERO;
+
+        this.isMoving = false;
+    }
+
+    /**限制坐标移动 */
+    limitMovePos(offsetPos: Vec3) {
+        //预测玩家移动
+        let prePlayerPos = new Vec3(playerMgr.player.position.x + offsetPos.x, playerMgr.player.position.y + offsetPos.y, 0);
+
+        let limitPos = new Vec3(prePlayerPos.x, prePlayerPos.y, 0);
+        let preTilePos = ccTools.getTileIndexByNodePos(prePlayerPos);
+        if (preTilePos != playerMgr.playerComp.currentPos) {
+            //当要换瓦片时，需要判断是否可移动
+            if (this.tileMap[preTilePos.x][preTilePos.y].block == 1) {
+                let overX = false;
+                let overY = false;
+                let ridus = configData.tileSize / 2;
+                let curPos = ccTools.getPosByTileIndex(playerMgr.playerComp.currentPos);
+                //限制x
+                if (prePlayerPos.x < curPos.x - ridus) {
+                    limitPos.x = curPos.x - ridus;
+                    overX = true;
+                } else if (prePlayerPos.x > curPos.x + ridus) {
+                    limitPos.x = curPos.x + ridus;
+                    overX = true;
+                }
+
+                //限制y
+                if (prePlayerPos.y < curPos.y - ridus) {
+                    limitPos.y = curPos.y - ridus;
+                    overY = true;
+                } else if (prePlayerPos.y > curPos.y + ridus) {
+                    limitPos.y = curPos.y + ridus;
+                    overY = true;
+                }
+
+                let canMove = false;
+                //检测是否可以向x轴或者y轴移动
+                if (overX && offsetPos.x != 0) {
+                    //可以向x轴移动
+                    let xAdd = offsetPos.x > 0 ? 1 : -1;
+                    if (this.tileMap[playerMgr.playerComp.currentPos.x + xAdd][playerMgr.playerComp.currentPos.y].block != 1) {
+                        canMove = true;
+                        playerMgr.playerComp.currentPos.x += xAdd;
+                    }
+                }
+
+                //不可向x轴移动，检测是否可以向y轴移动
+                if (!canMove && overY && offsetPos.y != 0) {
+                    //可以向y轴移动
+                    let yAdd = offsetPos.y > 0 ? -1 : 1;
+                    if (this.tileMap[playerMgr.playerComp.currentPos.x][playerMgr.playerComp.currentPos.y + yAdd].block != 1) {
+                        playerMgr.playerComp.currentPos.y += yAdd;
+                    }
+                }
+            } else {
+                playerMgr.playerComp.currentPos = preTilePos;
+            }
+        }
+
+        return limitPos;
+    }
+
+    /**检测单个瓦片是否不可走，越界也按不可走处理 */
+    private isBlockTile(tileX: number, tileY: number) {
+        if (tileX < 0 || tileY < 0 || tileX >= pData.mapSize.width || tileY >= pData.mapSize.height) {
+            return true;
+        }
+
+        return this.tileMap[tileX][tileY].block == 1;
+    }
+
+    /**检测单个瓦片是否不可走，角色脚下当前瓦片即使被关门改成block也允许离开 */
+    private isBlockTileForMove(tileX: number, tileY: number, currentTilePos: Vec2) {
+        if (tileX == currentTilePos.x && tileY == currentTilePos.y) {
+            return false;
+        }
+
+        return this.isBlockTile(tileX, tileY);
+    }
+
+    /**通过本地坐标x获取瓦片索引 */
+    private getTileXByNodeX(nodeX: number) {
+        return Math.floor((nodeX + pData.mapHalfSize.x) / configData.tileSize);
+    }
+
+    /**通过本地坐标y获取瓦片索引 */
+    private getTileYByNodeY(nodeY: number) {
+        return Math.floor((pData.mapHalfSize.y - nodeY) / configData.tileSize);
+    }
+
+    /**通过瓦片x索引获取瓦片左边界的本地坐标 */
+    private getTileLeftByTileX(tileX: number) {
+        return tileX * configData.tileSize - pData.mapHalfSize.x;
+    }
+
+    /**通过瓦片x索引获取瓦片右边界的本地坐标 */
+    private getTileRightByTileX(tileX: number) {
+        return (tileX + 1) * configData.tileSize - pData.mapHalfSize.x;
+    }
+
+    /**通过瓦片y索引获取瓦片上边界的本地坐标 */
+    private getTileTopByTileY(tileY: number) {
+        return pData.mapHalfSize.y - tileY * configData.tileSize;
+    }
+
+    /**通过瓦片y索引获取瓦片下边界的本地坐标 */
+    private getTileBottomByTileY(tileY: number) {
+        return pData.mapHalfSize.y - (tileY + 1) * configData.tileSize;
+    }
+
+    /**限制矩形区域移动，默认检测宽20高25且比玩家节点y坐标高8的矩形 */
+    limitMoveMatrixPos(offsetPos: Vec3, matrixWidth = 20, matrixHeight = 25, matrixOffsetPos: Vec2 = new Vec2(0, 8)) {
+        let limitPos = new Vec3(playerMgr.player.position.x, playerMgr.player.position.y, 0);
+        let halfWidth = matrixWidth / 2;
+        let halfHeight = matrixHeight / 2;
+        let edgeOffset = 0.001;
+        let currentTilePos = ccTools.getTileIndexByNodePos(playerMgr.player.position);
+
+        if (offsetPos.x != 0) {
+            limitPos.x += offsetPos.x;
+
+            let matrixCenterX = limitPos.x + matrixOffsetPos.x;
+            let matrixCenterY = limitPos.y + matrixOffsetPos.y;
+            let left = matrixCenterX - halfWidth;
+            let right = matrixCenterX + halfWidth;
+            let top = matrixCenterY + halfHeight;
+            let bottom = matrixCenterY - halfHeight;
+            let startTileY = this.getTileYByNodeY(top);
+            let endTileY = this.getTileYByNodeY(bottom + edgeOffset);
+
+            if (offsetPos.x > 0) {
+                let checkTileX = this.getTileXByNodeX(right - edgeOffset);
+                for (let y = startTileY; y <= endTileY; y++) {
+                    if (this.isBlockTileForMove(checkTileX, y, currentTilePos)) {
+                        limitPos.x = this.getTileLeftByTileX(checkTileX) - halfWidth - matrixOffsetPos.x;
+                        break;
+                    }
+                }
+            } else {
+                let checkTileX = this.getTileXByNodeX(left);
+                for (let y = startTileY; y <= endTileY; y++) {
+                    if (this.isBlockTileForMove(checkTileX, y, currentTilePos)) {
+                        limitPos.x = this.getTileRightByTileX(checkTileX) + halfWidth - matrixOffsetPos.x;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (offsetPos.y != 0) {
+            limitPos.y += offsetPos.y;
+
+            let matrixCenterX = limitPos.x + matrixOffsetPos.x;
+            let matrixCenterY = limitPos.y + matrixOffsetPos.y;
+            let left = matrixCenterX - halfWidth;
+            let right = matrixCenterX + halfWidth;
+            let top = matrixCenterY + halfHeight;
+            let bottom = matrixCenterY - halfHeight;
+            let startTileX = this.getTileXByNodeX(left);
+            let endTileX = this.getTileXByNodeX(right - edgeOffset);
+
+            if (offsetPos.y > 0) {
+                let checkTileY = this.getTileYByNodeY(top);
+                for (let x = startTileX; x <= endTileX; x++) {
+                    if (this.isBlockTileForMove(x, checkTileY, currentTilePos)) {
+                        limitPos.y = this.getTileBottomByTileY(checkTileY) - halfHeight - matrixOffsetPos.y;
+                        break;
+                    }
+                }
+            } else {
+                let checkTileY = this.getTileYByNodeY(bottom + edgeOffset);
+                for (let x = startTileX; x <= endTileX; x++) {
+                    if (this.isBlockTileForMove(x, checkTileY, currentTilePos)) {
+                        limitPos.y = this.getTileTopByTileY(checkTileY) + halfHeight - matrixOffsetPos.y;
+                        break;
+                    }
+                }
+            }
+        }
+
+        playerMgr.playerComp.currentPos = ccTools.getTileIndexByNodePos(limitPos);
+        return limitPos;
+    }
+
+    /**检测人物坐标事件 */
+    checkPlayerPos() {
+        let roomIdx = this.tileMap[playerMgr.playerComp.currentPos.x][playerMgr.playerComp.currentPos.y].roomIdx;
+        let showOprateBtn = false;
+        this.opratePos = null;
+        if (roomIdx) {
+            //检测在房间的道具
+            let data: roomData = this.roomMap[roomIdx];
+            let bedPos = null;
+            let doorPos = null;
+            //门是否关闭
+            let isClose = false;
+
+            let prePos = new Vec2(playerMgr.playerComp.currentPos.x, playerMgr.playerComp.currentPos.y);
+            //遍历周围九宫格，检测是否有障碍物
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    prePos.set(playerMgr.playerComp.currentPos.x + i, playerMgr.playerComp.currentPos.y + j);
+                    if(!this.tileMap[prePos.x][prePos.y].item || !this.tileMap[prePos.x][prePos.y].item.propsItem || !this.tileMap[prePos.x][prePos.y].item.propsItem.isValid){
+                        continue;
+                    }
+                    if (prePos.x == data.doorPos.x && prePos.y == data.doorPos.y) {
+                        doorPos = new Vec2(prePos);
+                        let comp: doorProps = this.tileMap[prePos.x][prePos.y].item.propsItem.getComponent(doorProps);
+                        isClose = comp.isClose;
+                    }
+                    if (prePos.x == data.bedPos.x && prePos.y == data.bedPos.y) {
+                        let bedComp: bedProps = this.tileMap[prePos.x][prePos.y].item.propsItem.getComponent(bedProps);
+                        if (bedComp && !bedComp.isOccupied) {
+                            bedPos = new Vec2(prePos);
+                        }
+                    }
+                }
+            }
+
+            let opetateLab = this.oprateBtn.getChildByName("lab").getComponent(Label);
+
+            //按照优先级检测道具
+            if (doorPos && !isClose) {
+                //检测没关的门
+                opetateLab.string = "关门";
+                showOprateBtn = true;
+                this.opratePos = doorPos;
+            } else if (bedPos) {
+                //检测床
+                opetateLab.string = "上床";
+                showOprateBtn = true;
+                this.opratePos = bedPos;
+            } else if (doorPos && isClose) {
+                //检测关的门
+                opetateLab.string = "开门";
+                showOprateBtn = true;
+                this.opratePos = doorPos;
+            }
+        }
+
+        if (showOprateBtn && this.opratePos) {
+            this.updateOprateBtnPos(this.opratePos);
+        }
+        this.oprateBtn.active = showOprateBtn;
+    }
+
+    /**根据地图瓦片位置更新操作按钮在UI层的位置 */
+    private updateOprateBtnPos(tilePos: Vec2) {
+        if (!this.gameCamera || !this.UINode) {
+            return;
+        }
+
+        let tileItem = this.tileMap[tilePos.x]?.[tilePos.y]?.item;
+        if (tileItem) {
+            tileItem.node.getWorldPosition(this.tempTileCenterWorldPos);
+        } else {
+            this.tempTileCenterWorldPos.set(ccTools.getPosByTileIndex(tilePos));
+        }
+
+        playerMgr.player.getWorldPosition(this.tempPlayerWorldPos);
+
+        this.gameCamera.worldToScreen(this.tempPlayerWorldPos, this.tempPlayerScreenPos);
+        this.gameCamera.worldToScreen(this.tempTileCenterWorldPos, this.tempScreenPos);
+
+        let screenDirX = this.tempScreenPos.x - this.tempPlayerScreenPos.x;
+        let screenDirY = this.tempScreenPos.y - this.tempPlayerScreenPos.y;
+        let screenDirLength = Math.sqrt(screenDirX * screenDirX + screenDirY * screenDirY);
+        if (screenDirLength <= 0) {
+            screenDirX = 1;
+            screenDirY = 0;
+            screenDirLength = 1;
+        }
+
+        this.tempScreenPos.x += screenDirX / screenDirLength * 60;
+        this.tempScreenPos.y += screenDirY / screenDirLength * 60;
+
+        let uiTransform = this.UINode.getComponent(UITransform);
+        if (!uiTransform) {
+            return;
+        }
+
+        if (this.uiCamera) {
+            this.uiCamera.screenToWorld(this.tempScreenPos, this.tempUIWorldPos);
+            uiTransform.convertToNodeSpaceAR(this.tempUIWorldPos, this.tempUILocalPos);
+        } else {
+            uiTransform.convertToNodeSpaceAR(this.tempScreenPos, this.tempUILocalPos);
+        }
+
+        this.oprateBtn.setPosition(this.tempUILocalPos);
+    }
+
+    /**获取瓦片中心点的世界坐标 */
+    private getTileCenterWorldPos(tilePos: Vec2, out: Vec3) {
+        this.tempTileCenterLocalPos.set(ccTools.getPosByTileIndex(tilePos));
+
+        let mapTransform = this.tiledMap?.node?.getComponent(UITransform);
+        if (mapTransform) {
+            mapTransform.convertToWorldSpaceAR(this.tempTileCenterLocalPos, out);
+        } else {
+            out.set(this.tempTileCenterLocalPos);
+        }
+    }
+
+    /**关闭触摸点和界面 */
+    private closeTouchSelect() {
+        this.touchSelect.active = false;
+        uiMgr.closePage(UIPath.UIBuild);
+        uiMgr.closePage(UIPath.UIProps);
+    }
+
+    /**根据地图瓦片位置更新触摸选择节点在UI层的位置 */
+    private updateTouchSelectPos(tilePos: Vec2) {
+        if (!this.gameCamera || !this.UINode || !this.touchSelect) {
+            return;
+        }
+
+        this.getTileCenterWorldPos(tilePos, this.tempTileCenterWorldPos);
+        this.gameCamera.worldToScreen(this.tempTileCenterWorldPos, this.tempScreenPos);
+
+        let uiTransform = this.UINode.getComponent(UITransform);
+        if (!uiTransform) {
+            return;
+        }
+
+        if (this.uiCamera) {
+            this.uiCamera.screenToWorld(this.tempScreenPos, this.tempUIWorldPos);
+            uiTransform.convertToNodeSpaceAR(this.tempUIWorldPos, this.tempUILocalPos);
+        } else {
+            uiTransform.convertToNodeSpaceAR(this.tempScreenPos, this.tempUILocalPos);
+        }
+
+        this.touchSelect.setPosition(this.tempUILocalPos);
+        this.touchSelect.active = true;
+
+
+        //道具处理
+        let tileItem: tileItemController = this.tileMap[tilePos.x]?.[tilePos.y]?.item;
+        if (tileItem && tileItem.propsItem) {
+            let propComp = tileItem.propsComp;
+            if(propComp.isMaxLevel && (propComp.propsType == tilePropsType.bed || propComp.propsType == tilePropsType.door)){
+                uiMgr.showTips("已达最大等级");
+            }else{
+                uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });
+            }
+        } else {
+            uiMgr.openPage(UIPath.UIBuild, { pos: this.tempUILocalPos, tilePos: tilePos });
+        }
+    }
+
+    /**获取触摸点所在地图瓦片 */
+    private getTouchTilePos(event: EventTouch) {
+        if (!this.gameCamera) {
+            return null;
+        }
+
+        let visibleSize = view.getVisibleSize();
+        if (visibleSize.width <= 0 || visibleSize.height <= 0) {
+            return null;
+        }
+
+        let touchPos = event.getUILocation();
+        let worldPerPixel = this.gameCamera.orthoHeight * 2 / visibleSize.height;
+        this.gameCamera.node.getWorldPosition(this.tempCameraWorldPos);
+        this.tempTouchWorldPos.set(
+            this.tempCameraWorldPos.x + (touchPos.x - visibleSize.width / 2) * worldPerPixel,
+            this.tempCameraWorldPos.y + (touchPos.y - visibleSize.height / 2) * worldPerPixel,
+            0
+        );
+
+        let mapTransform = this.tiledMap?.node?.getComponent(UITransform);
+        if (mapTransform) {
+            mapTransform.convertToNodeSpaceAR(this.tempTouchWorldPos, this.tempTouchMapLocalPos);
+        } else {
+            this.tempTouchMapLocalPos.set(this.tempTouchWorldPos);
+        }
+
+        let tilePos = ccTools.getTileIndexByNodePos(this.tempTouchMapLocalPos);
+        if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= pData.mapSize.width || tilePos.y >= pData.mapSize.height) {
+            return null;
+        }
+
+        return tilePos;
+    }
+
+    protected update(dt: number): void {
+        if (this.isGamePause) {
+            return;
+        }
+
+        this.refreshRobotSuchRoomDelay(dt);
+        this.refreshRepairMask(dt);
+
+        // 移动玩家（不使用vec3计算）
+        if (this.isMoving) {
+            let speed = this.isEnemyCanMove ? configData.moveSpeedGame : configData.moveSpeed;
+            //玩家移动
+            let playerPos = this.limitMoveMatrixPos(new Vec3(this.currentMoveDirection.x * speed * dt, this.currentMoveDirection.y * speed * dt, 0));
+
+            let roleAnim = playerMgr.player.getChildByName("roleAnim");
+            //人物左右反向
+            if (this.currentMoveDirection.x < 0) {
+                roleAnim.setScale(new Vec3(-1, 1, 1));
+            } else {
+                roleAnim.setScale(new Vec3(1, 1, 1));
+            }
+            playerMgr.player.setPosition(playerPos);
+
+            this.refreshPlayerRoomChange();
+
+            //检测人物坐标事件
+            this.checkPlayerPos();
+        }
+    }
+
+    /**刷新机器人寻找房间延迟 */
+    private refreshRobotSuchRoomDelay(dt: number) {
+        if (this.robotSuchRoomDelayTime <= 0) {
+            return;
+        }
+
+        this.robotSuchRoomDelayTime = Math.max(0, this.robotSuchRoomDelayTime - dt);
+        if (this.robotSuchRoomDelayTime <= 0) {
+            this.robotSuchRoom();
+        }
+    }
+
+    /**修改地图内的行走区域 */
+    fixTileMapBlock(pos, flag) {
+        this.tileMap[pos.x][pos.y].block = flag;
+    }
+
+    /**关闭指定房间的门 */
+    closeDoorByRoom(roomId: number) {
+        let doorTile = this.getDoorByRoom(roomId);
+        if (doorTile && !doorTile.isClose) {
+            doorTile.tileItemComp.operateProps();
+        }
+    }
+
+    /**获取瓦片所在房间 */
+    private getRoomIdxByTilePos(tilePos: Vec2) {
+        if (!tilePos) {
+            return 0;
+        }
+
+        return this.tileMap[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+    }
+
+    /**刷新玩家进出房间状态，离开房间后自动关门 */
+    private refreshPlayerRoomChange() {
+        let curRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp?.currentPos);
+        if (this.playerLastRoomIdx > 0 && curRoomIdx != this.playerLastRoomIdx && this.hasSleepingRoleInRoom(this.playerLastRoomIdx)) {
+            this.closeDoorByRoom(this.playerLastRoomIdx);
+        }
+
+        this.playerLastRoomIdx = curRoomIdx;
+        if (playerMgr.playerComp && playerMgr.playerComp.state != roleState.bed) {
+            playerMgr.playerComp.roomIdx = curRoomIdx > 0 ? curRoomIdx : -1;
+        }
+        this.refreshRepairBtnVisible();
+    }
+
+    /**房间内是否有角色正在睡觉 */
+    private hasSleepingRoleInRoom(roomId: number) {
+        let playerComp = playerMgr.playerComp;
+        if (playerComp && playerComp.roomIdx == roomId && playerComp.state == roleState.bed) {
+            return true;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let robotComp = this.robotArr[i];
+            if (robotComp && robotComp.roomIdx == roomId && robotComp.state == roleState.bed) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**获取指定房间的门 */
+    private getDoorByRoom(roomId: number): doorProps {
+        let roomData = this.roomMap[roomId];
+        if (!roomData || !roomData.doorPos) {
+            return null;
+        }
+
+        let doorPos = roomData.doorPos;
+        let tileComp = this.tileMap[doorPos.x]?.[doorPos.y]?.item;
+        return tileComp?.propsComp as doorProps;
+    }
+
+    /**玩家上床回调 */
+    playerToBedCall() {
+        playerMgr.cameraFollow = false;
+        this.rockerTouchNode.active = false;
+        this.slideTouchNode.active = true;
+
+        let data: roomData = this.roomMap[playerMgr.playerComp.roomIdx];
+        if (!data || !data.roomArr) {
+            return;
+        }
+
+        //将除了门和床以外的道具节点增加进地图并打开可选框
+        for (let i = 0; i < data.roomArr.length; i++) {
+            let tilePos = data.roomArr[i];
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            if (!tileData) {
+                continue;
+            }
+
+            let tileComp = tileData.item;
+            if (!tileComp) {
+                let tileItem = instantiate(this.tileItemPre);
+                this.tileObjList.addChild(tileItem);
+                tileItem.position = ccTools.getPosByTileIndex(tilePos);
+
+                tileComp = tileItem.getComponent(tileItemController);
+                tileComp.roomIdx = playerMgr.playerComp.roomIdx;
+                tileComp.pos = tilePos;
+                tileComp.bindGameComp(this);
+                tileData.item = tileComp;
+            } else {
+                let type = tileComp.tileType;
+                if (type == tilePropsType.door) {
+                    //关门
+                    let doorTile: doorProps = tileComp?.propsComp as doorProps;
+                    if (doorTile && !doorTile.isClose) {
+                        tileComp.operateProps();
+                    }
+                } else if (type == tilePropsType.bed) {
+                    let bedTile: bedProps = tileComp?.propsComp as bedProps;
+                    bedTile.showRole(playerMgr.playerComp.skinId);
+                    //玩家需要到床上
+                    playerMgr.playerComp.currentPos = new Vec2(tileComp.pos.x, tileComp.pos.y);
+                    playerMgr.player.setPosition(tileComp.node.position);
+                }
+            }
+
+            tileComp.showSelectBox();
+        }
+
+        playerMgr.playerComp.hideRole();
+    }
+
+    /**玩家占用房间后，刷新预定该房间的人机目标 */
+    private refreshRobotTargetByPlayerRoom(roomIdx: number) {
+        if (roomIdx <= 0) {
+            return;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let robotComp = this.robotArr[i];
+            robotComp?.refreshTargetRoomByOccupiedRoom(roomIdx);
+        }
+    }
+
+    /**添加生产动画 */
+    addProduceAnim(type: produceType, num: number, worldPos: Vec3) {
+        let tipsNode = poolMgr.produceTipsPool.get();
+        if (!tipsNode) {
+            tipsNode = instantiate(uiMgr.produceTipsPrefab);
+        }
+        tipsNode.active = true;
+        this.gameUINode.addChild(tipsNode);
+        let localPos = this.gameUINode.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
+        tipsNode.position = localPos;
+        let comp = tipsNode.getComponent(produceTips);
+        comp.initNum(type, num);
+    }
+
+    /**刷新游戏货币显示 */
+    refreshMonetaryLab() {
+        this.coinLab.string = pData.gameCoin.toString();
+        this.powerLab.string = pData.gamePower.toString();
+    }
+
+    /**摇杆区域点击开始 */
+    onTouchRockerStart(event: EventTouch) {
+        let rockerNode = this.rockerTouchNode.getChildByName("rockerNode");
+        let rockerPoint = rockerNode.getChildByName("rockerPoint");
+
+        this.currentMoveDirection = Vec3.ZERO;
+        let worldPos = event.getUILocation();
+        let localPos = this.rockerTouchNode.getComponent(UITransform).convertToNodeSpaceAR(new Vec3(worldPos.x, worldPos.y, 0));
+        rockerNode.setPosition(localPos);
+        rockerPoint.position = Vec3.ZERO;
+    }
+
+    /**摇杆区域移动 */
+    onTouchRockerMove(event: EventTouch) {
+        const maxDistance = 96;
+        const moveMultiplier = 4; // 移动倍数，可以根据需要调整
+        let rockerNode = this.rockerTouchNode.getChildByName("rockerNode");
+        let rockerPoint = rockerNode.getChildByName("rockerPoint");
+
+        let worldPos = event.getUILocation();
+        let localPos = rockerNode.getComponent(UITransform).convertToNodeSpaceAR(new Vec3(worldPos.x, worldPos.y, 0));
+
+        // 计算从基础点到触摸点的向量
+        let direction: Vec3 = localPos.subtract(Vec3.ZERO);
+
+        // 应用移动倍数
+        let extendedDirection = direction.clone().multiplyScalar(moveMultiplier);
+
+
+        // 限制摇杆点在最大距离内
+        let clampedDirection = extendedDirection.clone();
+        if (extendedDirection.length() > maxDistance) {
+            clampedDirection = extendedDirection.normalize().multiplyScalar(maxDistance);
+        }
+
+        // 获取当前比例（0到1之间）
+        let currentRatio = Math.min(extendedDirection.length() / maxDistance, 1.0);
+
+        this.isMoving = true;
+        this.currentMoveDirection = direction.clone().normalize().multiplyScalar(currentRatio);
+
+        // 设置摇杆点的位置
+        rockerPoint.setPosition(clampedDirection);
+    }
+
+    /**摇杆区域点击结束 */
+    onTouchRockerEnd(event: any) {
+        this.rockerReset();
+    }
+
+    /**滑动区域点击开始 */
+    onTouchSlideStart(event: EventTouch) {
+        let touchPos = event.getUILocation();
+        this.slideStartUILocation.set(touchPos.x, touchPos.y);
+        this.slideLastUILocation.set(touchPos.x, touchPos.y);
+        this.isSlideMoving = false;
+    }
+
+    /**滑动区域移动 */
+    onTouchSlideMove(event: EventTouch) {
+        if (!this.gameCameraComp) {
+            return;
+        }
+
+        let touchPos = event.getUILocation();
+        if (!this.isSlideMoving) {
+            let startDeltaX = touchPos.x - this.slideStartUILocation.x;
+            let startDeltaY = touchPos.y - this.slideStartUILocation.y;
+            //移动不超过10像素不算移动
+            if (startDeltaX * startDeltaX + startDeltaY * startDeltaY <= 100) {
+                return;
+            }
+
+            this.isSlideMoving = true;
+            this.closeTouchSelect();
+        }
+
+        this.tempSlideDelta.set(touchPos.x - this.slideLastUILocation.x, touchPos.y - this.slideLastUILocation.y);
+        this.slideLastUILocation.set(touchPos.x, touchPos.y);
+        this.gameCameraComp.moveCameraByScreenDelta(this.tempSlideDelta);
+    }
+
+    /**滑动区域点击结束 */
+    onTouchSlideEnd(event: EventTouch) {
+        if (!this.isSlideMoving) {
+            let touchTilePos = this.getTouchTilePos(event);
+            this.closeTouchSelect();
+            if (!touchTilePos) {
+                return;
+            }
+
+            let playerRoomIdx = playerMgr.playerComp.roomIdx;
+            if (playerRoomIdx <= 0) {
+                let playerTilePos = playerMgr.playerComp.currentPos;
+                playerRoomIdx = this.tileMap[playerTilePos.x]?.[playerTilePos.y]?.roomIdx || 0;
+            }
+
+            let touchRoomIdx = this.tileMap[touchTilePos.x]?.[touchTilePos.y]?.roomIdx || 0;
+            if (touchRoomIdx > 0 && touchRoomIdx == playerRoomIdx) {
+                this.selectedPos.set(touchTilePos);
+                this.updateTouchSelectPos(touchTilePos);
+            }
+        }
+    }
+
+    /**刷新游戏摄像机视角 */
+    refreshGameCamera() {
+        let scale = this.uiCamera.orthoHeight / this.gameCamera.orthoHeight;
+        let uitrans = this.touchSelect.getComponent(UITransform);
+        uitrans.setContentSize(configData.tileSize * scale, configData.tileSize * scale);
+    }
+    ///
+    ///点击函数
+    ///
+
+    /**监听按钮点击事件 */
+    onKeyDown(event: EventKeyboard) {
+        switch (event.keyCode) {
+            case KeyCode.KEY_S:
+                pData.addLevel();
+                this.initData();
+                // uiMgr.openPage(UIPath.UISuccess);
+                break;
+        }
+    }
+
+    /**点击操作按钮 */
+    clickOprateBtn() {
+        if (!this.opratePos) {
+            console.warn("没有操作目标");
+            return;
+        }
+
+        let tileItem: tileItemController = this.tileMap[this.opratePos.x][this.opratePos.y].item;
+        if (!tileItem) {
+            console.warn("没有找到操作道具");
+            return;
+        }
+
+        //操作道具
+        tileItem.operateProps();
+        this.checkPlayerPos();
+
+        if (tileItem.tileType == tilePropsType.bed) {
+            playerMgr.playerComp.roomIdx = tileItem.roomIdx;
+            //床需要操作玩家
+            this.playerToBedCall();
+            this.refreshRobotTargetByPlayerRoom(playerMgr.playerComp.roomIdx);
+            this.refreshRepairBtnVisible();
+            //金币补偿
+            let offset = enemyCommonConfig.enemyStartTime - this.gameStartCountDownTime;
+            pData.fixGameCoin(offset);
+        }
+    }
+
+    /**点击回归自身视角按钮 */
+    clickSelfBtn() {
+        if (playerMgr.cameraFollow) {
+            return;
+        }
+
+        this.gameCameraComp.setCameraPos(playerMgr.player.getPosition(), true);
+    }
+
+    /**点击角色定位按钮 */
+    clickRoleBtn(roleId: number) {
+        if (!playerMgr.playerComp || playerMgr.playerComp.roomIdx <= 0) {
+            return;
+        }
+
+        let roleComp = this.getRoleCompById(roleId);
+        if (!roleComp || !roleComp.node) {
+            return;
+        }
+
+        this.gameCameraComp.setCameraPos(roleComp.node.getPosition(), true);
+    }
+
+    /**点击设置按钮 */
+    clickSetBtn() {
+        uiMgr.openPage(UIPath.UISetting, { mode: 1 });
+        gm.gamePause();
+    }
+
+    /**点击修复按钮 */
+    clickRepairBtn() {
+        if (playerMgr.playerComp.roomIdx <= 0) {
+            console.warn("没有进入房间");
+            return;
+        }
+
+        if (this.repairCoolDownTime > 0) {
+            return;
+        }
+
+        let doorTile = this.getDoorByRoom(playerMgr.playerComp.roomIdx);
+        if (!doorTile) {
+            console.warn("没有找到房间门");
+            return;
+        }
+
+        doorTile.startRepairAdd(configData.repairTime);
+        this.repairCoolDownTime = configData.repairCoolDown;
+        this.repairMask.node.active = true;
+        this.repairMask.fillRange = -1;
+    }
+}
+
+interface tileData {
+    /**0:可走，1：障碍物（都不可走），2：道具（人物可以走） */
+    block: number;
+    /**道具节点 */
+    item?: tileItemController;
+    /**房间索引 */
+    roomIdx?: number;
+}
+
+interface roomData {
+    /**房间数组 */
+    roomArr: Vec2[],
+    doorPos: Vec2,
+    bedPos: Vec2,
+}

@@ -414,9 +414,9 @@ export class UIGame extends UIBase {
                 doorPos: doorPos,
                 bedPos: bedPos,
             }
-            // console.warn("房间数据", roomArr);
             roomIdx++;
         }
+        console.warn("房间数据", this.roomMap);
     }
 
     /**初始化玩家 */
@@ -553,6 +553,53 @@ export class UIGame extends UIBase {
             return;
         }
         propComp.upgradeProps();
+    }
+
+    /**升级指定房间内的指定类型道具 */
+    upgradeRoomPropsByType(roomIdx: number, propsType: string) {
+        if (roomIdx <= 0 || !propsType) {
+            return false;
+        }
+
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData) {
+            return false;
+        }
+
+        let tilePos: Vec2 = null;
+        if (propsType == tilePropsType.bed) {
+            tilePos = roomData.bedPos;
+        } else if (propsType == tilePropsType.door) {
+            tilePos = roomData.doorPos;
+        } else {
+            tilePos = this.getRoomPropsPosByType(roomData, propsType);
+        }
+
+        if (!tilePos) {
+            return false;
+        }
+
+        let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+        if (!propComp || propComp.isMaxLevel) {
+            return false;
+        }
+
+        propComp.upgradeProps();
+        return true;
+    }
+
+    /**获取房间内指定类型道具坐标 */
+    private getRoomPropsPosByType(roomData: roomData, propsType: string) {
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let tileComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item;
+            if (tileComp?.tileType == propsType && tileComp.propsComp) {
+                return tilePos;
+            }
+        }
+
+        return null;
     }
 
     /**机器人寻找房间 */
@@ -793,6 +840,7 @@ export class UIGame extends UIBase {
             if (offsetPos.x > 0) {
                 let checkTileX = this.getTileXByNodeX(right - edgeOffset);
                 for (let y = startTileY; y <= endTileY; y++) {
+                    //为true就是不可走
                     if (this.isBlockTileForMove(checkTileX, y, currentTilePos)) {
                         limitPos.x = this.getTileLeftByTileX(checkTileX) - halfWidth - matrixOffsetPos.x;
                         break;

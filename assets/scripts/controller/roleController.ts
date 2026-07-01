@@ -8,6 +8,7 @@ import { gm } from '../manager/gm';
 import { playerMgr } from '../manager/playerManager';
 import { uiMgr } from '../manager/UIManager';
 import { UIPath } from '../manager/pathConfig';
+import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 const { ccclass, property } = _decorator;
 
 export enum roleState {
@@ -39,6 +40,14 @@ export class roleController extends Component {
     private targetPos: Vec2 = new Vec2();
     /**机器人当前是否已经预定床位 */
     private hasTargetBed: boolean = false;
+    /**机器人上床后的升级配置索引 */
+    private robotUpgradeIdx: number = 0;
+    /**机器人当前升级计时 */
+    private robotUpgradeTimer: number = 0;
+    /**机器人当前升级所需时间 */
+    private robotUpgradeTime: number = 0;
+    /**机器人是否正在按配置升级房间道具 */
+    private isRobotUpgrading: boolean = false;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -49,6 +58,9 @@ export class roleController extends Component {
         if (value == roleState.dead && this.roleId == playerMgr.playerComp.roleId) {
             //玩家死亡
             uiMgr.openPage(UIPath.UIFail);
+        }
+        if (value != roleState.bed) {
+            this.stopRobotUpgrade();
         }
         this._state = value;
     }
@@ -70,6 +82,7 @@ export class roleController extends Component {
         this.gameComp = comp;
         this.roleId = id;
         this.state = roleState.normal;
+        this.stopRobotUpgrade();
 
         //TODO 名称后续加入配置，先临时写死
         if (this.roleId == 0) {
@@ -167,6 +180,7 @@ export class roleController extends Component {
         }
 
         this.moveByPath(dt);
+        this.refreshRobotUpgrade(dt);
     }
 
     /**获取未被玩家或机器人占用的床 */
@@ -337,7 +351,77 @@ export class roleController extends Component {
         this.gameComp.closeDoorByRoom(this.roomIdx);
 
         this.hideRole();
+        this.startRobotUpgrade();
 
         gm.Event.emit(GameEvent.refreshPlayerPos);
+    }
+
+    /**开始机器人上床后的常规升级曲线 */
+    private startRobotUpgrade() {
+        if (this.roleId == 0 || this.roomIdx <= 0) {
+            return;
+        }
+
+        this.robotUpgradeIdx = 0;
+        this.isRobotUpgrading = true;
+        this.setNextRobotUpgradeTime();
+    }
+
+    /**停止机器人升级曲线 */
+    private stopRobotUpgrade() {
+        this.robotUpgradeIdx = 0;
+        this.robotUpgradeTimer = 0;
+        this.robotUpgradeTime = 0;
+        this.isRobotUpgrading = false;
+    }
+
+    /**刷新机器人升级计时 */
+    private refreshRobotUpgrade(dt: number) {
+        if (!this.isRobotUpgrading || this.roleId == 0 || this.state != roleState.bed) {
+            return;
+        }
+
+        if (this.robotUpgradeTime <= 0) {
+            this.stopRobotUpgrade();
+            return;
+        }
+
+        this.robotUpgradeTimer += dt;
+        if (this.robotUpgradeTimer < this.robotUpgradeTime) {
+            return;
+        }
+
+        let upgradeData = robotUpgradeConfig.getData(this.robotUpgradeIdx);
+        if (upgradeData) {
+            this.gameComp?.upgradeRoomPropsByType(this.roomIdx, upgradeData.propsType);
+        }
+
+        this.robotUpgradeIdx++;
+        this.setNextRobotUpgradeTime();
+    }
+
+    /**设置下一次机器人升级所需时间 */
+    private setNextRobotUpgradeTime() {
+        if (this.robotUpgradeIdx >= robotUpgradeConfig.dataLength) {
+            this.stopRobotUpgrade();
+            return;
+        }
+
+        let upgradeData = robotUpgradeConfig.getData(this.robotUpgradeIdx);
+        if (!upgradeData) {
+            this.stopRobotUpgrade();
+            return;
+        }
+
+        let timeMin = Number(upgradeData.timeMin) || 0;
+        let timeMax = Number(upgradeData.timeMax) || timeMin;
+        if (timeMax < timeMin) {
+            let temp = timeMin;
+            timeMin = timeMax;
+            timeMax = temp;
+        }
+
+        this.robotUpgradeTimer = 0;
+        this.robotUpgradeTime = timeMin + Math.random() * (timeMax - timeMin);
     }
 }

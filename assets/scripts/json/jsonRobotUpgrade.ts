@@ -34,7 +34,7 @@ export class jsonRobotUpgrade extends jsonBase {
 }
 export let robotUpgradeConfig = new jsonRobotUpgrade();
 
-interface JsonRobotUpgradeData {
+export interface JsonRobotUpgradeData {
     /**升级的道具类型 */
     propsType: string;
     /**时间下限 */

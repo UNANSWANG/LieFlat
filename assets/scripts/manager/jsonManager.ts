@@ -4,12 +4,13 @@ import { GameEvent } from './configData';
 import { propsConfig } from '../json/jsonProps';
 import { commonConfig } from '../json/jsonCommon';
 import { enemyConfig } from '../json/jsonEnemy';
+import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonManager')
 export class jsonManager  {
     /**表格数量 */
-    tableNum = 3;
+    tableNum = 4;
     /**已加载的表格数量 */
     tableLoadNum = 0;
 
@@ -23,6 +24,7 @@ export class jsonManager  {
         propsConfig.initTable();
         commonConfig.initTable();
         enemyConfig.initTable();
+        robotUpgradeConfig.initTable();
     }
 
     loadCall(name: string){

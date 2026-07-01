@@ -153,7 +153,7 @@ export class cannonProps extends gamePropsBase {
             bulletNode = instantiate(uiMgr.bulletPrefab);
         }
 
-        bulletNode.active = true;
+        bulletNode.active = false;
         this.gameComp.gameUINode.addChild(bulletNode);
 
         this.getBulletStartWorldPos(this.tempWorldPos);
@@ -170,6 +170,7 @@ export class cannonProps extends gamePropsBase {
             bulletComp = bulletNode.addComponent(bulletController);
         }
         bulletComp.init(target, this.attack, this.level);
+        bulletNode.active = true;
     }
 
     /**受到震慑，暂停攻击 */

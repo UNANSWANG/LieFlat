@@ -32,6 +32,7 @@ export class bulletController extends Component {
         this.target = target;
         this.damage = damage;
         this.refreshBulletImg(level);
+        this.refreshDirection();
     }
 
     /**刷新子弹图片 */
@@ -58,6 +59,32 @@ export class bulletController extends Component {
             return;
         }
 
+        let distance = this.refreshDirection();
+        if (distance <= this.hitDistance) {
+            this.hitTarget();
+            return;
+        }
+
+        let moveDistance = configData.bulletSpeed * dt;
+        if (distance <= moveDistance) {
+            this.hitTarget();
+            return;
+        }
+
+        let curPos = this.node.position;
+        this.node.setPosition(
+            curPos.x + (this.tempLocalPos.x - curPos.x) / distance * moveDistance,
+            curPos.y + (this.tempLocalPos.y - curPos.y) / distance * moveDistance,
+            curPos.z
+        );
+    }
+
+    /**刷新子弹朝向，返回与目标的距离 */
+    private refreshDirection() {
+        if (!this.isTargetValid()) {
+            return 0;
+        }
+
         this.target.node.getWorldPosition(this.tempWorldPos);
         let parentTransform = this.node.parent?.getComponent(UITransform);
         if (parentTransform) {
@@ -70,25 +97,13 @@ export class bulletController extends Component {
         let offsetX = this.tempLocalPos.x - curPos.x;
         let offsetY = this.tempLocalPos.y - curPos.y;
         let distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-        if (distance <= this.hitDistance) {
-            this.hitTarget();
-            return;
+        if (distance <= 0) {
+            return distance;
         }
 
         let angle = Math.atan2(offsetY, offsetX) * 180 / Math.PI;
         this.node.angle = angle - 90;
-
-        let moveDistance = configData.bulletSpeed * dt;
-        if (distance <= moveDistance) {
-            this.hitTarget();
-            return;
-        }
-
-        this.node.setPosition(
-            curPos.x + offsetX / distance * moveDistance,
-            curPos.y + offsetY / distance * moveDistance,
-            curPos.z
-        );
+        return distance;
     }
 
     /**目标是否有效 */

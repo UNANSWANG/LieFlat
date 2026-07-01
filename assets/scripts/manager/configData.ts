@@ -66,7 +66,26 @@ export const enemyCommonConfig = {
 
 /**人机通用配置 */
 export const robotCommonConfig = {
-    
+    /**发电机建造前提（时间线等级） */
+    generatorBuildLevel: 5,
+    /**发电机上限（个数） */
+    generatorMax: 4,
+    /**发电机建造间隔（秒） */
+    generatorBuildInterval: [15, 25],
+    /**升级发电机前提条件（床等级） */
+    generatorBuildBedLevel: 8,
+    /**升级发电机间隔（秒） */
+    generatorUpgradeInterval: [30, 60],
+    /**发电机最高等级 */
+    generatorMaxLevel: 5,
+    /**印钞机的建造前提（发电机最高等级） */
+    printerBuildLevel: 3,
+    /**印钞机的建造间隔（秒） */
+    printerBuildInterval: [30, 60],
+    /**印钞机的最大上限（个数） */
+    printerMax: 2,
+    /**印钞机各等级建造权重 */
+    printerBuildWeight: [0.95, 0.03, 0.02, 0.01],
 }
 
 

@@ -556,7 +556,7 @@ export class UIGame extends UIBase {
     }
 
     /**升级指定房间内的指定类型道具 */
-    upgradeRoomPropsByType(roomIdx: number, propsType: string) {
+    upgradeRoomPropsByType(roomIdx: number, propsType: string, maxLevel: number = -1) {
         if (roomIdx <= 0 || !propsType) {
             return false;
         }
@@ -572,7 +572,7 @@ export class UIGame extends UIBase {
         } else if (propsType == tilePropsType.door) {
             tilePos = roomData.doorPos;
         } else {
-            tilePos = this.getRoomPropsPosByType(roomData, propsType);
+            tilePos = this.getRoomUpgradeablePropsPosByType(roomData, propsType, maxLevel);
         }
 
         if (!tilePos) {
@@ -580,7 +580,7 @@ export class UIGame extends UIBase {
         }
 
         let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
-        if (!propComp || propComp.isMaxLevel) {
+        if (!propComp || propComp.isMaxLevel || (maxLevel >= 0 && propComp.level >= maxLevel)) {
             return false;
         }
 
@@ -588,18 +588,131 @@ export class UIGame extends UIBase {
         return true;
     }
 
-    /**获取房间内指定类型道具坐标 */
-    private getRoomPropsPosByType(roomData: roomData, propsType: string) {
+    /**获取房间内可升级的指定类型道具坐标 */
+    private getRoomUpgradeablePropsPosByType(roomData: roomData, propsType: string, maxLevel: number = -1) {
         let roomArr = roomData.roomArr || [];
+        let result: Vec2 = null;
+        let resultLevel = Number.MAX_SAFE_INTEGER;
+
         for (let i = 0; i < roomArr.length; i++) {
             let tilePos = roomArr[i];
-            let tileComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item;
-            if (tileComp?.tileType == propsType && tileComp.propsComp) {
-                return tilePos;
+            let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (!propComp || propComp.propsType != propsType || propComp.isMaxLevel || (maxLevel >= 0 && propComp.level >= maxLevel)) {
+                continue;
+            }
+
+            if (propComp.level < resultLevel) {
+                result = tilePos;
+                resultLevel = propComp.level;
             }
         }
 
-        return null;
+        return result;
+    }
+
+    /**获取房间内指定类型道具数量 */
+    getRoomPropsCountByType(roomIdx: number, propsType: string) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData || !propsType) {
+            return 0;
+        }
+
+        let count = 0;
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == propsType) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /**获取房间内指定类型道具最高等级 */
+    getRoomPropsMaxLevelByType(roomIdx: number, propsType: string) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData || !propsType) {
+            return -1;
+        }
+
+        let maxLevel = -1;
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == propsType) {
+                maxLevel = Math.max(maxLevel, propComp.level);
+            }
+        }
+
+        return maxLevel;
+    }
+
+    /**获取房间内指定类型道具最低等级 */
+    getRoomPropsMinLevelByType(roomIdx: number, propsType: string) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData || !propsType) {
+            return -1;
+        }
+
+        let minLevel = Number.MAX_SAFE_INTEGER;
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == propsType) {
+                minLevel = Math.min(minLevel, propComp.level);
+            }
+        }
+
+        return minLevel == Number.MAX_SAFE_INTEGER ? -1 : minLevel;
+    }
+
+    /**获取房间床等级 */
+    getRoomBedLevel(roomIdx: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        let bedPos = roomData?.bedPos;
+        if (!bedPos) {
+            return -1;
+        }
+
+        return this.tileMap[bedPos.x]?.[bedPos.y]?.item?.propsComp?.level ?? -1;
+    }
+
+    /**在房间空位建造指定类型道具 */
+    buildRoomPropsByType(roomIdx: number, propsType: tilePropsType, level: number = 0) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData || !propsType) {
+            return false;
+        }
+
+        let emptyPosArr: Vec2[] = [];
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            let tileComp = tileData?.item;
+            if (!tileData || this.isSameTilePos(tilePos, roomData.bedPos) || this.isSameTilePos(tilePos, roomData.doorPos) || (tileComp && tileComp.tileType != tilePropsType.none)) {
+                continue;
+            }
+
+            emptyPosArr.push(tilePos);
+        }
+
+        if (emptyPosArr.length == 0) {
+            return false;
+        }
+
+        let randomIdx = Math.floor(Math.random() * emptyPosArr.length);
+        this.createProps(emptyPosArr[randomIdx], propsType, level);
+        return true;
+    }
+
+    /**判断两个瓦片坐标是否相同 */
+    private isSameTilePos(posA: Vec2, posB: Vec2) {
+        return !!posA && !!posB && posA.x == posB.x && posA.y == posB.y;
     }
 
     /**机器人寻找房间 */

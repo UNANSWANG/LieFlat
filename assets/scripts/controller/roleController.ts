@@ -1,7 +1,7 @@
 import { _decorator, Component, Label, sp, Vec2, Vec3 } from 'cc';
 import { pData } from '../manager/playerData';
 import { ccTools } from '../extention/generalTools';
-import { configData, GameEvent } from '../manager/configData';
+import { configData, GameEvent, robotCommonConfig } from '../manager/configData';
 import type { UIGame } from '../UIPage/UIGame';
 import { bedProps } from './props/bedProps';
 import { gm } from '../manager/gm';
@@ -9,6 +9,7 @@ import { playerMgr } from '../manager/playerManager';
 import { uiMgr } from '../manager/UIManager';
 import { UIPath } from '../manager/pathConfig';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
+import { tilePropsType } from './tileItemController';
 const { ccclass, property } = _decorator;
 
 export enum roleState {
@@ -48,6 +49,18 @@ export class roleController extends Component {
     private robotUpgradeTime: number = 0;
     /**机器人是否正在按配置升级房间道具 */
     private isRobotUpgrading: boolean = false;
+    /**机器人发电机建造计时 */
+    private generatorBuildTimer: number = 0;
+    /**机器人发电机建造所需时间 */
+    private generatorBuildTime: number = 0;
+    /**机器人发电机升级计时 */
+    private generatorUpgradeTimer: number = 0;
+    /**机器人发电机升级所需时间 */
+    private generatorUpgradeTime: number = 0;
+    /**机器人印钞机建造计时 */
+    private printerBuildTimer: number = 0;
+    /**机器人印钞机建造所需时间 */
+    private printerBuildTime: number = 0;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -363,6 +376,14 @@ export class roleController extends Component {
         }
 
         this.robotUpgradeIdx = 0;
+        this.robotUpgradeTimer = 0;
+        this.robotUpgradeTime = 0;
+        this.generatorBuildTimer = 0;
+        this.generatorBuildTime = 0;
+        this.generatorUpgradeTimer = 0;
+        this.generatorUpgradeTime = 0;
+        this.printerBuildTimer = 0;
+        this.printerBuildTime = 0;
         this.isRobotUpgrading = true;
         this.setNextRobotUpgradeTime();
     }
@@ -373,6 +394,12 @@ export class roleController extends Component {
         this.robotUpgradeTimer = 0;
         this.robotUpgradeTime = 0;
         this.isRobotUpgrading = false;
+        this.generatorBuildTimer = 0;
+        this.generatorBuildTime = 0;
+        this.generatorUpgradeTimer = 0;
+        this.generatorUpgradeTime = 0;
+        this.printerBuildTimer = 0;
+        this.printerBuildTime = 0;
     }
 
     /**刷新机器人升级计时 */
@@ -381,8 +408,15 @@ export class roleController extends Component {
             return;
         }
 
+        this.refreshRobotNormalUpgrade(dt);
+        this.refreshRobotGeneratorBuild(dt);
+        this.refreshRobotGeneratorUpgrade(dt);
+        this.refreshRobotPrinterBuild(dt);
+    }
+
+    /**刷新机器人常规升级计时 */
+    private refreshRobotNormalUpgrade(dt: number) {
         if (this.robotUpgradeTime <= 0) {
-            this.stopRobotUpgrade();
             return;
         }
 
@@ -400,16 +434,115 @@ export class roleController extends Component {
         this.setNextRobotUpgradeTime();
     }
 
+    /**刷新机器人发电机建造计时 */
+    private refreshRobotGeneratorBuild(dt: number) {
+        if (this.robotUpgradeIdx < robotCommonConfig.generatorBuildLevel) {
+            return;
+        }
+
+        let generatorCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.generator) || 0;
+        if (generatorCount >= robotCommonConfig.generatorMax) {
+            this.generatorBuildTimer = 0;
+            this.generatorBuildTime = 0;
+            return;
+        }
+
+        if (this.generatorBuildTime <= 0) {
+            this.generatorBuildTime = this.getRandomInterval(robotCommonConfig.generatorBuildInterval);
+            this.generatorBuildTimer = 0;
+            return;
+        }
+
+        this.generatorBuildTimer += dt;
+        if (this.generatorBuildTimer < this.generatorBuildTime) {
+            return;
+        }
+
+        this.gameComp?.buildRoomPropsByType(this.roomIdx, tilePropsType.generator);
+        this.generatorBuildTimer = 0;
+        this.generatorBuildTime = 0;
+    }
+
+    /**刷新机器人发电机升级计时 */
+    private refreshRobotGeneratorUpgrade(dt: number) {
+        if (this.robotUpgradeIdx < robotCommonConfig.generatorBuildLevel) {
+            return;
+        }
+
+        let bedLevel = this.gameComp?.getRoomBedLevel(this.roomIdx) ?? -1;
+        if (bedLevel < robotCommonConfig.generatorBuildBedLevel) {
+            this.generatorUpgradeTimer = 0;
+            this.generatorUpgradeTime = 0;
+            return;
+        }
+
+        let generatorMinLevel = this.gameComp?.getRoomPropsMinLevelByType(this.roomIdx, tilePropsType.generator) ?? -1;
+        if (generatorMinLevel < 0 || generatorMinLevel >= robotCommonConfig.generatorMaxLevel) {
+            this.generatorUpgradeTimer = 0;
+            this.generatorUpgradeTime = 0;
+            return;
+        }
+
+        if (this.generatorUpgradeTime <= 0) {
+            this.generatorUpgradeTime = this.getRandomInterval(robotCommonConfig.generatorUpgradeInterval);
+            this.generatorUpgradeTimer = 0;
+            return;
+        }
+
+        this.generatorUpgradeTimer += dt;
+        if (this.generatorUpgradeTimer < this.generatorUpgradeTime) {
+            return;
+        }
+
+        this.gameComp?.upgradeRoomPropsByType(this.roomIdx, tilePropsType.generator, robotCommonConfig.generatorMaxLevel);
+        this.generatorUpgradeTimer = 0;
+        this.generatorUpgradeTime = 0;
+    }
+
+    /**刷新机器人印钞机建造计时 */
+    private refreshRobotPrinterBuild(dt: number) {
+        let generatorMaxLevel = this.gameComp?.getRoomPropsMaxLevelByType(this.roomIdx, tilePropsType.generator) ?? -1;
+        if (generatorMaxLevel < robotCommonConfig.printerBuildLevel) {
+            this.printerBuildTimer = 0;
+            this.printerBuildTime = 0;
+            return;
+        }
+
+        let printerCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.printer) || 0;
+        if (printerCount >= robotCommonConfig.printerMax) {
+            this.printerBuildTimer = 0;
+            this.printerBuildTime = 0;
+            return;
+        }
+
+        if (this.printerBuildTime <= 0) {
+            this.printerBuildTime = this.getRandomInterval(robotCommonConfig.printerBuildInterval);
+            this.printerBuildTimer = 0;
+            return;
+        }
+
+        this.printerBuildTimer += dt;
+        if (this.printerBuildTimer < this.printerBuildTime) {
+            return;
+        }
+
+        this.gameComp?.buildRoomPropsByType(this.roomIdx, tilePropsType.printer, this.getRandomPrinterLevel());
+        this.printerBuildTimer = 0;
+        this.printerBuildTime = 0;
+    }
+
     /**设置下一次机器人升级所需时间 */
     private setNextRobotUpgradeTime() {
         if (this.robotUpgradeIdx >= robotUpgradeConfig.dataLength) {
-            this.stopRobotUpgrade();
+            this.robotUpgradeTimer = 0;
+            this.robotUpgradeTime = 0;
             return;
         }
 
         let upgradeData = robotUpgradeConfig.getData(this.robotUpgradeIdx);
         if (!upgradeData) {
-            this.stopRobotUpgrade();
+            this.robotUpgradeTimer = 0;
+            this.robotUpgradeTime = 0;
             return;
         }
 
@@ -423,5 +556,41 @@ export class roleController extends Component {
 
         this.robotUpgradeTimer = 0;
         this.robotUpgradeTime = timeMin + Math.random() * (timeMax - timeMin);
+    }
+
+    /**获取区间随机时间 */
+    private getRandomInterval(interval: number[]) {
+        let timeMin = Number(interval?.[0]) || 0;
+        let timeMax = Number(interval?.[1]) || timeMin;
+        if (timeMax < timeMin) {
+            let temp = timeMin;
+            timeMin = timeMax;
+            timeMax = temp;
+        }
+
+        return timeMin + Math.random() * (timeMax - timeMin);
+    }
+
+    /**按配置权重随机印钞机建造等级 */
+    private getRandomPrinterLevel() {
+        let weights = robotCommonConfig.printerBuildWeight || [];
+        let totalWeight = 0;
+        for (let i = 0; i < weights.length; i++) {
+            totalWeight += Math.max(0, Number(weights[i]) || 0);
+        }
+
+        if (totalWeight <= 0) {
+            return 0;
+        }
+
+        let randomValue = Math.random() * totalWeight;
+        for (let i = 0; i < weights.length; i++) {
+            randomValue -= Math.max(0, Number(weights[i]) || 0);
+            if (randomValue <= 0) {
+                return i;
+            }
+        }
+
+        return 0;
     }
 }

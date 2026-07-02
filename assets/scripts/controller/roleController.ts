@@ -67,6 +67,12 @@ export class roleController extends Component {
     private doorAttackUpgradeCoolDown: number = 0;
     /**房间主动建造炮台升级冷却 */
     private cannonBuildUpgradeCoolDown: number = 0;
+    /**后期高伤房门升级是否已使用 */
+    private laterHighDamageDoorUpgradeUsed: boolean = false;
+    /**当前是否有敌人正在连续攻击房门 */
+    private isDoorAttackSessionActive: boolean = false;
+    /**当前敌人连续攻击房门时间 */
+    private doorAttackSessionElapsedTime: number = 0;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -203,6 +209,7 @@ export class roleController extends Component {
         this.refreshRobotUpgrade(dt);
         this.refreshDoorAttackUpgradeCoolDown(dt);
         this.refreshCannonBuildUpgradeCoolDown(dt);
+        this.refreshDoorAttackSessionTime(dt);
     }
 
     /**获取未被玩家或机器人占用的床 */
@@ -418,6 +425,9 @@ export class roleController extends Component {
         this.doorAttackUpgradeCount = 0;
         this.doorAttackUpgradeCoolDown = 0;
         this.cannonBuildUpgradeCoolDown = 0;
+        this.laterHighDamageDoorUpgradeUsed = false;
+        this.isDoorAttackSessionActive = false;
+        this.doorAttackSessionElapsedTime = 0;
     }
 
     /**刷新房门受攻击升级冷却 */
@@ -436,6 +446,15 @@ export class roleController extends Component {
         }
 
         this.cannonBuildUpgradeCoolDown = Math.max(0, this.cannonBuildUpgradeCoolDown - dt);
+    }
+
+    /**刷新当前敌人连续攻击房门时间 */
+    private refreshDoorAttackSessionTime(dt: number) {
+        if (!this.isDoorAttackSessionActive) {
+            return;
+        }
+
+        this.doorAttackSessionElapsedTime += dt;
     }
 
     /**门受到敌人攻击时尝试升级房门 */
@@ -460,13 +479,27 @@ export class roleController extends Component {
         this.doorAttackUpgradeCoolDown = robotCommonConfig.enemyAttackTimeUpgrade;
     }
 
-    /**门受到敌人攻击时尝试建造或升级炮台 */
-    tryBuildOrUpgradeCannonByEnemyAttack(damagePercent: number, gameStartElapsedTime: number) {
-        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+    /**敌人开始攻击房门 */
+    onDoorAttackStart() {
+        this.isDoorAttackSessionActive = true;
+        this.doorAttackSessionElapsedTime = 0;
+    }
+
+    /**后期门受到敌人攻击 */
+    tryHandleDoorAttackLater(damagePercent: number, gameStartElapsedTime: number) {
+        if (damagePercent > robotCommonConfig.doorHpAttackPercent) {
+            this.tryHandleLaterHighDamageDoorAttack(gameStartElapsedTime);
             return;
         }
 
-        if (damagePercent >= robotCommonConfig.doorHpAttackPercent) {
+        if (damagePercent < robotCommonConfig.doorHpAttackPercent) {
+            this.tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime);
+        }
+    }
+
+    /**门受到敌人低伤攻击时尝试建造或升级炮台 */
+    private tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime: number) {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
             return;
         }
 
@@ -476,6 +509,34 @@ export class roleController extends Component {
         }
 
         this.cannonBuildUpgradeCoolDown = this.getCannonBuildUpgradeCoolDown(gameStartElapsedTime);
+    }
+
+    /**后期门受到敌人高伤攻击 */
+    private tryHandleLaterHighDamageDoorAttack(gameStartElapsedTime: number) {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            return;
+        }
+
+        if (!this.laterHighDamageDoorUpgradeUsed) {
+            this.laterHighDamageDoorUpgradeUsed = true;
+            this.gameComp?.upgradeRoomPropsByType(this.roomIdx, tilePropsType.door);
+            return;
+        }
+
+        if (!this.canBuildCannonByLaterHighDamage()) {
+            return;
+        }
+
+        this.tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime);
+    }
+
+    /**后期高伤是否允许生成炮台 */
+    private canBuildCannonByLaterHighDamage() {
+        if (!this.isDoorAttackSessionActive) {
+            return false;
+        }
+
+        return this.doorAttackSessionElapsedTime <= robotCommonConfig.cannonBuildTimedLater;
     }
 
     /**获取当前时间段炮台主动升级冷却 */

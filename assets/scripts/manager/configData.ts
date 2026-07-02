@@ -109,6 +109,8 @@ export const robotCommonConfig = {
     cannonBuildLevelLater: 5,
     /**后半段炮台的升级冷却时间（秒） */
     cannonBuildUpgradeCoolDownLater: 10,
+    /**后期门掉血速度过快时，生成炮台的的时间 */
+    cannonBuildTimedLater: 20,
 }
 
 

@@ -879,6 +879,9 @@ export class enemyBaseController extends Component {
             this.hasFearCurAttackDoor = false;
             this.isForceAttackingDoor = false;
             this.resetDoorAttackTimeCheck();
+            if (propComp.propsType == tilePropsType.door) {
+                this.gameComp?.onDoorAttackStartedByEnemy(nextTilePos);
+            }
             this.startAttackProps();
         }
 

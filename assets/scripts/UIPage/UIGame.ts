@@ -1455,11 +1455,26 @@ export class UIGame extends UIBase {
         }
 
         if (this.gameStartElapsedTime > robotCommonConfig.enemyAttackTimeThreshold) {
-            robotComp.tryBuildOrUpgradeCannonByEnemyAttack(damagePercent, this.gameStartElapsedTime);
+            robotComp.tryHandleDoorAttackLater(damagePercent, this.gameStartElapsedTime);
             return;
         }
 
         robotComp.tryUpgradeDoorByEnemyAttack();
+    }
+
+    /**敌人开始攻击房门 */
+    onDoorAttackStartedByEnemy(tilePos: Vec2) {
+        if (!tilePos || !this.isGameStartCountDownEnd) {
+            return;
+        }
+
+        let roomIdx = this.getRoomIdxByTilePos(tilePos);
+        let robotComp = this.getSleepingRobotInRoom(roomIdx);
+        if (roomIdx <= 0 || !robotComp) {
+            return;
+        }
+
+        robotComp.onDoorAttackStart();
     }
 
     /**修改地图内的行走区域 */

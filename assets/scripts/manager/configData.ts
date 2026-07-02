@@ -72,13 +72,13 @@ export const robotCommonConfig = {
     generatorMax: 4,
     /**发电机建造间隔（秒） */
     generatorBuildInterval: [15, 25],
-    /**升级发电机前提条件（床等级） */
+    /**升级发电机前提条件（床等级，实际8级的时候level=7因为从0开始） */
     generatorBuildBedLevel: 8,
     /**升级发电机间隔（秒） */
     generatorUpgradeInterval: [30, 60],
     /**发电机最高等级 */
     generatorMaxLevel: 5,
-    /**印钞机的建造前提（发电机最高等级） */
+    /**印钞机的建造前提（发电机最高等级，实际3级的时候level=2因为从0开始） */
     printerBuildLevel: 3,
     /**印钞机的建造间隔（秒） */
     printerBuildInterval: [30, 60],

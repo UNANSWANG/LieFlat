@@ -470,7 +470,7 @@ export class roleController extends Component {
         }
 
         let bedLevel = this.gameComp?.getRoomBedLevel(this.roomIdx) ?? -1;
-        if (bedLevel < robotCommonConfig.generatorBuildBedLevel) {
+        if ((bedLevel + 1) < robotCommonConfig.generatorBuildBedLevel) {
             this.generatorUpgradeTimer = 0;
             this.generatorUpgradeTime = 0;
             return;
@@ -502,7 +502,7 @@ export class roleController extends Component {
     /**刷新机器人印钞机建造计时 */
     private refreshRobotPrinterBuild(dt: number) {
         let generatorMaxLevel = this.gameComp?.getRoomPropsMaxLevelByType(this.roomIdx, tilePropsType.generator) ?? -1;
-        if (generatorMaxLevel < robotCommonConfig.printerBuildLevel) {
+        if ((generatorMaxLevel + 1) < robotCommonConfig.printerBuildLevel) {
             this.printerBuildTimer = 0;
             this.printerBuildTime = 0;
             return;

@@ -4,7 +4,7 @@ import { gamePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { jsonMgr } from '../manager/jsonManager';
 import { gm, PlatType } from '../manager/gm';
-import { configData, enemyCommonConfig, GameEvent, SaveKey } from '../manager/configData';
+import { configData, enemyCommonConfig, GameEvent, robotCommonConfig, SaveKey } from '../manager/configData';
 import { ccStorageTools } from '../extention/storageTools';
 import { pData } from '../manager/playerData';
 import { audioMgr } from '../manager/audioManager';
@@ -155,6 +155,7 @@ export class UILoading extends Component {
 
     /**通用配置表加载完成 */
     commonTableFinish() {
+        //通用
         configData.moveSpeed = Number(commonConfig.getValue("moveSpeed"));
         configData.moveSpeedGame = Number(commonConfig.getValue("moveSpeedGame"));
         configData.enemyMoveSpeed = Number(commonConfig.getValue("enemyMoveSpeed"));
@@ -163,6 +164,7 @@ export class UILoading extends Component {
         configData.repairCoolDown = Number(commonConfig.getValue("repairCoolDown"));
         configData.doorRepairSpeed = Number(commonConfig.getValue("doorRepairSpeed"));
         configData.doorRepairSpeedAdd = Number(commonConfig.getValue("doorRepairSpeedAdd"));
+        //敌人
         enemyCommonConfig.enemyHpRepairSpeed = Number(commonConfig.getValue("enemyHpRepairSpeed"));
         enemyCommonConfig.enemyStartTime = Number(commonConfig.getValue("enemyStartTime"));
         enemyCommonConfig.enemyEscapeHpPercent = Number(commonConfig.getValue("enemyEscapeHpPercent")) / 100;
@@ -180,6 +182,17 @@ export class UILoading extends Component {
         enemyCommonConfig.goalHpThresholdPercent = Number(commonConfig.getValue("goalHpThresholdPercent")) / 100;   
         enemyCommonConfig.doorAttackTimeDamagePercent = Number(commonConfig.getValue("doorAttackTimeDamagePercent")) / 100;
         enemyCommonConfig.returnStartTime = Number(commonConfig.getValue("returnStartTime"));
+        //人机
+        robotCommonConfig.generatorBuildBedLevel = Number(commonConfig.getValue("generatorBuildBedLevel"));
+        robotCommonConfig.generatorBuildLevel = Number(commonConfig.getValue("generatorBuildLevel"));
+        robotCommonConfig.generatorMax = Number(commonConfig.getValue("generatorMax"));
+        robotCommonConfig.generatorBuildInterval = JSON.parse(commonConfig.getValue("generatorBuildInterval"));
+        robotCommonConfig.generatorUpgradeInterval = JSON.parse(commonConfig.getValue("generatorUpgradeInterval"));
+        robotCommonConfig.generatorMaxLevel = Number(commonConfig.getValue("generatorMaxLevel"));
+        robotCommonConfig.printerBuildLevel = Number(commonConfig.getValue("printerBuildLevel"));
+        robotCommonConfig.printerBuildInterval = JSON.parse(commonConfig.getValue("printerBuildInterval"));
+        robotCommonConfig.printerMax = Number(commonConfig.getValue("printerMax"));
+        robotCommonConfig.printerBuildWeight = JSON.parse(commonConfig.getValue("printerBuildWeight"));
         console.log("------------>公共配置表数据同步完毕");
     }
 

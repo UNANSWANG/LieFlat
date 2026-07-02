@@ -98,15 +98,17 @@ export const robotCommonConfig = {
     /** 炮台建造的距离（格数） */
     cannonBuildDistance: 4,
     /**炮台建造的时间阈值（用以区分炮台的前半段时间） */
-    cannonBuildTimeThreshold: 100,
+    cannonBuildTimeThreshold: [10, 100],
     /**前半段炮台的最高等级 */
     cannonBuildLevel: 3,
     /**前半段炮台的升级冷却时间（秒） */
     cannonBuildUpgradeCoolDown: 5,
+    /**炮台后半段建造的时间阈值（用以区分炮台的后半段时间） */
+    cannonBuildTimeThresholdLater: 120,
     /**后半段炮台的最高等级 */
     cannonBuildLevelAdd: 5,
     /**后半段炮台的升级冷却时间（秒） */
-    cannonBuildUpgradeCoolDownAdd: 10,
+    cannonBuildUpgradeCoolDownLater: 10,
 }
 
 

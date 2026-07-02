@@ -157,12 +157,6 @@ export class UIGame extends UIBase {
     private playerLastRoomIdx = 0;
     /**倒计时结束后的游戏经过时间 */
     private gameStartElapsedTime = 0;
-    /**人机房门受攻击后升级次数记录 */
-    private robotDoorAttackUpgradeCountMap: { [roomIdx: number]: number } = {};
-    /**人机房门受攻击后升级冷却记录 */
-    private robotDoorAttackUpgradeCoolDownMap: { [roomIdx: number]: number } = {};
-
-
     protected onLoad(): void {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
@@ -281,8 +275,6 @@ export class UIGame extends UIBase {
         this.robotSuchRoomDelayTime = 0;
         this.playerLastRoomIdx = 0;
         this.gameStartElapsedTime = 0;
-        this.robotDoorAttackUpgradeCountMap = {};
-        this.robotDoorAttackUpgradeCoolDownMap = {};
         Tween.stopAllByTarget(this.repairMask);
         this.repairMask.fillRange = 0;
         this.repairMask.node.active = false;
@@ -1221,7 +1213,6 @@ export class UIGame extends UIBase {
 
         this.refreshGameStartElapsedTime(dt);
         this.refreshRobotSuchRoomDelay(dt);
-        this.refreshRobotDoorAttackUpgradeCoolDown(dt);
         this.refreshRepairMask(dt);
 
         // 移动玩家（不使用vec3计算）
@@ -1267,18 +1258,6 @@ export class UIGame extends UIBase {
         }
     }
 
-    /**刷新人机房门受攻击升级冷却 */
-    private refreshRobotDoorAttackUpgradeCoolDown(dt: number) {
-        for (let roomIdx in this.robotDoorAttackUpgradeCoolDownMap) {
-            let coolDown = this.robotDoorAttackUpgradeCoolDownMap[roomIdx];
-            if (coolDown <= 0) {
-                continue;
-            }
-
-            this.robotDoorAttackUpgradeCoolDownMap[roomIdx] = Math.max(0, coolDown - dt);
-        }
-    }
-
     /**房门受到敌人攻击 */
     onDoorAttackedByEnemy(tilePos: Vec2) {
         if (!tilePos || !this.isGameStartCountDownEnd) {
@@ -1286,7 +1265,8 @@ export class UIGame extends UIBase {
         }
 
         let roomIdx = this.getRoomIdxByTilePos(tilePos);
-        if (roomIdx <= 0 || !this.hasSleepingRobotInRoom(roomIdx)) {
+        let robotComp = this.getSleepingRobotInRoom(roomIdx);
+        if (roomIdx <= 0 || !robotComp) {
             return;
         }
 
@@ -1294,21 +1274,7 @@ export class UIGame extends UIBase {
             return;
         }
 
-        let upgradeCount = this.robotDoorAttackUpgradeCountMap[roomIdx] || 0;
-        if (upgradeCount >= robotCommonConfig.enemyUpgradeDoorMax) {
-            return;
-        }
-
-        if ((this.robotDoorAttackUpgradeCoolDownMap[roomIdx] || 0) > 0) {
-            return;
-        }
-
-        if (!this.upgradeRoomPropsByType(roomIdx, tilePropsType.door)) {
-            return;
-        }
-
-        this.robotDoorAttackUpgradeCountMap[roomIdx] = upgradeCount + 1;
-        this.robotDoorAttackUpgradeCoolDownMap[roomIdx] = robotCommonConfig.enemyAttackTimeUpgrade;
+        robotComp.tryUpgradeDoorByEnemyAttack();
     }
 
     /**修改地图内的行走区域 */
@@ -1364,16 +1330,16 @@ export class UIGame extends UIBase {
         return false;
     }
 
-    /**房间内是否有正在睡觉的人机 */
-    private hasSleepingRobotInRoom(roomId: number) {
+    /**获取房间内正在睡觉的人机 */
+    private getSleepingRobotInRoom(roomId: number) {
         for (let i = 0; i < this.robotArr.length; i++) {
             let robotComp = this.robotArr[i];
             if (robotComp && robotComp.roleId != 0 && robotComp.roomIdx == roomId && robotComp.state == roleState.bed) {
-                return true;
+                return robotComp;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**获取指定房间的门 */

@@ -61,6 +61,10 @@ export class roleController extends Component {
     private printerBuildTimer: number = 0;
     /**机器人印钞机建造所需时间 */
     private printerBuildTime: number = 0;
+    /**房门受攻击后升级次数 */
+    private doorAttackUpgradeCount: number = 0;
+    /**房门受攻击后升级冷却 */
+    private doorAttackUpgradeCoolDown: number = 0;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -96,6 +100,7 @@ export class roleController extends Component {
         this.roleId = id;
         this.state = roleState.normal;
         this.stopRobotUpgrade();
+        this.resetDoorAttackUpgradeData();
 
         //TODO 名称后续加入配置，先临时写死
         if (this.roleId == 0) {
@@ -194,6 +199,7 @@ export class roleController extends Component {
 
         this.moveByPath(dt);
         this.refreshRobotUpgrade(dt);
+        this.refreshDoorAttackUpgradeCoolDown(dt);
     }
 
     /**获取未被玩家或机器人占用的床 */
@@ -385,6 +391,7 @@ export class roleController extends Component {
         this.printerBuildTimer = 0;
         this.printerBuildTime = 0;
         this.isRobotUpgrading = true;
+        this.resetDoorAttackUpgradeData();
         this.setNextRobotUpgradeTime();
     }
 
@@ -400,6 +407,44 @@ export class roleController extends Component {
         this.generatorUpgradeTime = 0;
         this.printerBuildTimer = 0;
         this.printerBuildTime = 0;
+        this.resetDoorAttackUpgradeData();
+    }
+
+    /**重置房门受攻击升级数据 */
+    private resetDoorAttackUpgradeData() {
+        this.doorAttackUpgradeCount = 0;
+        this.doorAttackUpgradeCoolDown = 0;
+    }
+
+    /**刷新房门受攻击升级冷却 */
+    private refreshDoorAttackUpgradeCoolDown(dt: number) {
+        if (this.doorAttackUpgradeCoolDown <= 0) {
+            return;
+        }
+
+        this.doorAttackUpgradeCoolDown = Math.max(0, this.doorAttackUpgradeCoolDown - dt);
+    }
+
+    /**门受到敌人攻击时尝试升级房门 */
+    tryUpgradeDoorByEnemyAttack() {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            return;
+        }
+
+        if (this.doorAttackUpgradeCount >= robotCommonConfig.enemyUpgradeDoorMax) {
+            return;
+        }
+
+        if (this.doorAttackUpgradeCoolDown > 0) {
+            return;
+        }
+
+        if (!this.gameComp?.upgradeRoomPropsByType(this.roomIdx, tilePropsType.door)) {
+            return;
+        }
+
+        this.doorAttackUpgradeCount++;
+        this.doorAttackUpgradeCoolDown = robotCommonConfig.enemyAttackTimeUpgrade;
     }
 
     /**刷新机器人升级计时 */

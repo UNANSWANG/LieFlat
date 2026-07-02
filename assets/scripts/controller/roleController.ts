@@ -65,6 +65,8 @@ export class roleController extends Component {
     private doorAttackUpgradeCount: number = 0;
     /**房门受攻击后升级冷却 */
     private doorAttackUpgradeCoolDown: number = 0;
+    /**房间主动建造炮台升级冷却 */
+    private cannonBuildUpgradeCoolDown: number = 0;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -200,6 +202,7 @@ export class roleController extends Component {
         this.moveByPath(dt);
         this.refreshRobotUpgrade(dt);
         this.refreshDoorAttackUpgradeCoolDown(dt);
+        this.refreshCannonBuildUpgradeCoolDown(dt);
     }
 
     /**获取未被玩家或机器人占用的床 */
@@ -414,6 +417,7 @@ export class roleController extends Component {
     private resetDoorAttackUpgradeData() {
         this.doorAttackUpgradeCount = 0;
         this.doorAttackUpgradeCoolDown = 0;
+        this.cannonBuildUpgradeCoolDown = 0;
     }
 
     /**刷新房门受攻击升级冷却 */
@@ -423,6 +427,15 @@ export class roleController extends Component {
         }
 
         this.doorAttackUpgradeCoolDown = Math.max(0, this.doorAttackUpgradeCoolDown - dt);
+    }
+
+    /**刷新房间主动建造炮台升级冷却 */
+    private refreshCannonBuildUpgradeCoolDown(dt: number) {
+        if (this.cannonBuildUpgradeCoolDown <= 0) {
+            return;
+        }
+
+        this.cannonBuildUpgradeCoolDown = Math.max(0, this.cannonBuildUpgradeCoolDown - dt);
     }
 
     /**门受到敌人攻击时尝试升级房门 */
@@ -445,6 +458,33 @@ export class roleController extends Component {
 
         this.doorAttackUpgradeCount++;
         this.doorAttackUpgradeCoolDown = robotCommonConfig.enemyAttackTimeUpgrade;
+    }
+
+    /**门受到敌人攻击时尝试建造或升级炮台 */
+    tryBuildOrUpgradeCannonByEnemyAttack(damagePercent: number, gameStartElapsedTime: number) {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            return;
+        }
+
+        if (damagePercent >= robotCommonConfig.doorHpAttackPercent) {
+            return;
+        }
+
+        let result = this.gameComp?.buildOrUpgradeCannonByDoor(this.roomIdx, gameStartElapsedTime, this.cannonBuildUpgradeCoolDown <= 0) || 0;
+        if (result != 2) {
+            return;
+        }
+
+        this.cannonBuildUpgradeCoolDown = this.getCannonBuildUpgradeCoolDown(gameStartElapsedTime);
+    }
+
+    /**获取当前时间段炮台主动升级冷却 */
+    private getCannonBuildUpgradeCoolDown(gameStartElapsedTime: number) {
+        if (gameStartElapsedTime > robotCommonConfig.cannonBuildTimeThresholdLater) {
+            return robotCommonConfig.cannonBuildUpgradeCoolDownLater;
+        }
+
+        return robotCommonConfig.cannonBuildUpgradeCoolDown;
     }
 
     /**刷新机器人升级计时 */

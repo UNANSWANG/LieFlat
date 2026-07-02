@@ -1354,10 +1354,11 @@ export class enemyBaseController extends Component {
     private attackProps(propComp: gamePropsBase, tilePos: Vec2) {
         let isAttackDoor = propComp.propsType == tilePropsType.door;
         let actualDamage = Math.min(this.attackDamage, propComp.hp);
+        let actualDamagePercent = propComp.getDamagePercent(actualDamage);
         let isDestroyed = propComp.takeDamage(this.attackDamage);
         if (isAttackDoor) {
             this.recordDoorAttackTimeDamage(actualDamage);
-            this.gameComp?.onDoorAttackedByEnemy(tilePos);
+            this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
         }
         this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
         if (isDestroyed) {

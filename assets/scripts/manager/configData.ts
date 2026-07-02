@@ -106,7 +106,7 @@ export const robotCommonConfig = {
     /**炮台后半段建造的时间阈值（用以区分炮台的后半段时间） */
     cannonBuildTimeThresholdLater: 120,
     /**后半段炮台的最高等级 */
-    cannonBuildLevelAdd: 5,
+    cannonBuildLevelLater: 5,
     /**后半段炮台的升级冷却时间（秒） */
     cannonBuildUpgradeCoolDownLater: 10,
 }

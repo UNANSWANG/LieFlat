@@ -86,6 +86,27 @@ export const robotCommonConfig = {
     printerMax: 2,
     /**印钞机各等级建造权重 */
     printerBuildWeight: [0.95, 0.03, 0.02, 0.01],
+
+    /**被怪物攻击时检测的时间阈值（从倒计时结束后开始计时，区分前期和后期） */
+    enemyAttackTimeThreshold: 40,
+    /**前期升级门的次数上限 */
+    enemyUpgradeDoorMax: 2,
+    /**前期被攻击时升级门的时间间隔（秒） */
+    enemyAttackTimeUpgrade: 20,
+    /**门掉血速率阈值(单次伤害百分比) */
+    doorHpAttackPercent: 0.05,
+    /** 炮台建造的距离（格数） */
+    cannonBuildDistance: 4,
+    /**炮台建造的时间阈值（用以区分炮台的前半段时间） */
+    cannonBuildTimeThreshold: 100,
+    /**前半段炮台的最高等级 */
+    cannonBuildLevel: 3,
+    /**前半段炮台的升级冷却时间（秒） */
+    cannonBuildUpgradeCoolDown: 5,
+    /**后半段炮台的最高等级 */
+    cannonBuildLevelAdd: 5,
+    /**后半段炮台的升级冷却时间（秒） */
+    cannonBuildUpgradeCoolDownAdd: 10,
 }
 
 

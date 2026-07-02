@@ -1357,6 +1357,7 @@ export class enemyBaseController extends Component {
         let isDestroyed = propComp.takeDamage(this.attackDamage);
         if (isAttackDoor) {
             this.recordDoorAttackTimeDamage(actualDamage);
+            this.gameComp?.onDoorAttackedByEnemy(tilePos);
         }
         this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
         if (isDestroyed) {

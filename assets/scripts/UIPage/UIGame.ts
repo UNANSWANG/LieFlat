@@ -712,7 +712,7 @@ export class UIGame extends UIBase {
     }
 
     /**按房门范围主动建造或升级炮台，返回0无操作、1建造、2升级 */
-    buildOrUpgradeCannonByDoor(roomIdx: number, gameStartElapsedTime: number, canUpgrade: boolean) {
+    buildOrUpgradeCannonByDoor(roomIdx: number, canUpgrade: boolean) {
         let roomData: roomData = this.roomMap[roomIdx];
         if (!roomData || !roomData.doorPos) {
             return 0;
@@ -732,7 +732,7 @@ export class UIGame extends UIBase {
             return 0;
         }
 
-        let maxLevel = this.getCannonBuildMaxLevel(gameStartElapsedTime);
+        let maxLevel = this.getCannonBuildMaxLevel();
         if (maxLevel < 0) {
             return 0;
         }
@@ -844,7 +844,7 @@ export class UIGame extends UIBase {
     }
 
     /**获取当前时间段炮台主动升级最大等级 */
-    private getCannonBuildMaxLevel(gameStartElapsedTime: number) {
+    private getCannonBuildMaxLevel() {
         let threshold = robotCommonConfig.cannonBuildTimeThreshold || [];
         let timeMin = Number(threshold[0]) || 0;
         let timeMax = Number(threshold[1]) || timeMin;
@@ -854,11 +854,11 @@ export class UIGame extends UIBase {
             timeMax = temp;
         }
 
-        if (gameStartElapsedTime >= timeMin && gameStartElapsedTime <= timeMax) {
+        if (this.gameStartElapsedTime >= timeMin && this.gameStartElapsedTime <= timeMax) {
             return robotCommonConfig.cannonBuildLevel;
         }
 
-        if (gameStartElapsedTime > robotCommonConfig.cannonBuildTimeThresholdLater) {
+        if (this.gameStartElapsedTime > robotCommonConfig.cannonBuildTimeThresholdLater) {
             return robotCommonConfig.cannonBuildLevelLater;
         }
 

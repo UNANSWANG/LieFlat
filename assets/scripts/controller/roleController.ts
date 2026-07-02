@@ -470,7 +470,7 @@ export class roleController extends Component {
             return;
         }
 
-        let result = this.gameComp?.buildOrUpgradeCannonByDoor(this.roomIdx, gameStartElapsedTime, this.cannonBuildUpgradeCoolDown <= 0) || 0;
+        let result = this.gameComp?.buildOrUpgradeCannonByDoor(this.roomIdx, this.cannonBuildUpgradeCoolDown <= 0) || 0;
         if (result != 2) {
             return;
         }

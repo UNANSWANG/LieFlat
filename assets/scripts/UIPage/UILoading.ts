@@ -193,6 +193,20 @@ export class UILoading extends Component {
         robotCommonConfig.printerBuildInterval = JSON.parse(commonConfig.getValue("printerBuildInterval"));
         robotCommonConfig.printerMax = Number(commonConfig.getValue("printerMax"));
         robotCommonConfig.printerBuildWeight = JSON.parse(commonConfig.getValue("printerBuildWeight"));
+
+        robotCommonConfig.enemyAttackTimeThreshold = Number(commonConfig.getValue("enemyAttackTimeThreshold"));
+        robotCommonConfig.enemyUpgradeDoorMax = Number(commonConfig.getValue("enemyUpgradeDoorMax"));
+        robotCommonConfig.enemyAttackTimeUpgrade = Number(commonConfig.getValue("enemyAttackTimeUpgrade"));
+        robotCommonConfig.doorHpAttackPercent = Number(commonConfig.getValue("doorHpAttackPercent")) / 100;
+        robotCommonConfig.cannonBuildDistance = Number(commonConfig.getValue("cannonBuildDistance"));
+        robotCommonConfig.cannonBuildTimeThreshold = JSON.parse(commonConfig.getValue("cannonBuildTimeThreshold"));
+        robotCommonConfig.cannonBuildLevel = Number(commonConfig.getValue("cannonBuildLevel"));
+        robotCommonConfig.cannonBuildUpgradeCoolDown = Number(commonConfig.getValue("cannonBuildUpgradeCoolDown"));
+        robotCommonConfig.cannonBuildTimeThresholdLater = Number(commonConfig.getValue("cannonBuildTimeThresholdLater"));
+        robotCommonConfig.cannonBuildLevelLater = Number(commonConfig.getValue("cannonBuildLevelLater"));
+        robotCommonConfig.cannonBuildUpgradeCoolDownLater = Number(commonConfig.getValue("cannonBuildUpgradeCoolDownLater"));
+        robotCommonConfig.cannonBuildTimedLater = Number(commonConfig.getValue("cannonBuildTimedLater"));
+
         console.log("------------>公共配置表数据同步完毕");
     }
 

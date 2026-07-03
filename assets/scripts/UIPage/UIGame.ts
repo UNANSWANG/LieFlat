@@ -711,6 +711,16 @@ export class UIGame extends UIBase {
         return true;
     }
 
+    /**房间内不存在指定道具时，在房间空位建造指定类型道具 */
+    buildRoomPropsByTypeIfAbsent(roomIdx: number, propsType: tilePropsType, level: number = 0) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData || !propsType || this.hasRoomPropsByType(roomData, propsType)) {
+            return false;
+        }
+
+        return this.buildRoomPropsByType(roomIdx, propsType, level);
+    }
+
     /**按房门范围主动建造或升级炮台，返回0无操作、1建造、2升级 */
     buildOrUpgradeCannonByDoor(roomIdx: number, canUpgrade: boolean) {
         let roomData: roomData = this.roomMap[roomIdx];

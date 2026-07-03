@@ -109,8 +109,12 @@ export const robotCommonConfig = {
     cannonBuildLevelLater: 5,
     /**后半段炮台的升级冷却时间（秒） */
     cannonBuildUpgradeCoolDownLater: 10,
-    /**后期门掉血速度过快时，生成炮台的的时间 */
-    cannonBuildTimedLater: 20,
+    /**后期门掉血速度过快时，生成道具的的时间 */
+    propsBuildTimedLater: 20,
+    /**建造机床的前提时间（秒） */
+    machineBuildTimeThreshold: 180,
+    /**建造寒冰的前提时间（秒） */
+    iceBuildTimeThreshold: 240,
 }
 
 

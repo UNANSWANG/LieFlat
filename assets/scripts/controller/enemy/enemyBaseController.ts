@@ -545,7 +545,7 @@ export class enemyBaseController extends Component {
         }
 
         //TODO 暂时只让抓玩家一个人
-        return result;
+        // return result;
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {

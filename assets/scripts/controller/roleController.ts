@@ -69,6 +69,10 @@ export class roleController extends Component {
     private cannonBuildUpgradeCoolDown: number = 0;
     /**后期高伤房门升级是否已使用 */
     private laterHighDamageDoorUpgradeUsed: boolean = false;
+    /**后期高伤机床建造是否已触发 */
+    private laterHighDamageMachineBuildUsed: boolean = false;
+    /**后期高伤寒冰建造是否已触发 */
+    private laterHighDamageIceBuildUsed: boolean = false;
     /**当前是否有敌人正在连续攻击房门 */
     private isDoorAttackSessionActive: boolean = false;
     /**当前敌人连续攻击房门时间 */
@@ -426,6 +430,8 @@ export class roleController extends Component {
         this.doorAttackUpgradeCoolDown = 0;
         this.cannonBuildUpgradeCoolDown = 0;
         this.laterHighDamageDoorUpgradeUsed = false;
+        this.laterHighDamageMachineBuildUsed = false;
+        this.laterHighDamageIceBuildUsed = false;
         this.isDoorAttackSessionActive = false;
         this.doorAttackSessionElapsedTime = 0;
     }
@@ -527,7 +533,21 @@ export class roleController extends Component {
             return;
         }
 
+        this.tryBuildLaterHighDamageProps(gameStartElapsedTime);
         this.tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime);
+    }
+
+    /**后期高伤时间窗内尝试补充防守道具 */
+    private tryBuildLaterHighDamageProps(gameStartElapsedTime: number) {
+        if (!this.laterHighDamageMachineBuildUsed && gameStartElapsedTime >= robotCommonConfig.machineBuildTimeThreshold) {
+            this.laterHighDamageMachineBuildUsed = true;
+            this.gameComp?.buildRoomPropsByTypeIfAbsent(this.roomIdx, tilePropsType.machine);
+        }
+
+        if (!this.laterHighDamageIceBuildUsed && gameStartElapsedTime >= robotCommonConfig.iceBuildTimeThreshold) {
+            this.laterHighDamageIceBuildUsed = true;
+            this.gameComp?.buildRoomPropsByTypeIfAbsent(this.roomIdx, tilePropsType.ice);
+        }
     }
 
     /**后期高伤是否允许生成炮台 */
@@ -536,7 +556,7 @@ export class roleController extends Component {
             return false;
         }
 
-        return this.doorAttackSessionElapsedTime <= robotCommonConfig.cannonBuildTimedLater;
+        return this.doorAttackSessionElapsedTime <= robotCommonConfig.propsBuildTimedLater;
     }
 
     /**获取当前时间段炮台主动升级冷却 */

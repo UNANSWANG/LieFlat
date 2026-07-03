@@ -1,11 +1,9 @@
 import { _decorator, Component, Node } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
-import { propsConfig } from '../../json/jsonProps';
 import { configData } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
 import { playerMgr } from '../../manager/playerManager';
 import { produceType } from '../../UIPage/tips/produceTips';
-import { tilePropsType } from '../tileItemController';
 import { gm } from '../../manager/gm';
 const { ccclass, property } = _decorator;
 

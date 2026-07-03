@@ -36,6 +36,8 @@ export class UIBuild extends UIBase {
     targetPos: Vec3 = new Vec3();
     /**当前页面道具数据 */
     currentPropsDataArr: any[] = [];
+    /**当前房间数据 */
+    roomData: any = null;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -65,6 +67,7 @@ export class UIBuild extends UIBase {
         if (data) {
             this.targetPos.set(data.pos);
             this.tilePos.set(data.tilePos);
+            this.roomData = data.roomData;
         }
         this.initPropsData();
         this.refreshPage();
@@ -154,7 +157,8 @@ export class UIBuild extends UIBase {
             let powerNum = propsData.power;
             let coinNum = propsData.coin;
             if (propsData.builNumMax && propsData.builNumMax > 0) {
-                limitLab.string = `可建造 ${0}/${propsData.builNumMax}`;
+                let buildCount = this.getRoomPropsBuildCount(propsData);
+                limitLab.string = `可建造 ${buildCount}/${propsData.builNumMax}`;
             } else {
                 limitLab.string = "";
             }
@@ -227,9 +231,27 @@ export class UIBuild extends UIBase {
         let buyBg = buyBtn.getChildByName("bg");
         let grayBg = buyBg.getChildByName("gray");
         let normalBg = buyBg.getChildByName("normal");
-        let canBuy = ccTools.checkCanBuy(propsData);
+        let canBuy = ccTools.checkCanBuy(propsData) && !this.isBuildNumLimit(propsData);
         grayBg.active = !canBuy;
         normalBg.active = canBuy;
+    }
+
+    /**获取当前房间内指定类型道具数量 */
+    private getRoomPropsBuildCount(propsData: any) {
+        if (!this.roomData || !propsData) {
+            return 0;
+        }
+
+        return this.roomData.propsCountMap?.[propsData.propsType] || 0;
+    }
+
+    /**是否达到当前房间建造数量上限 */
+    private isBuildNumLimit(propsData: any) {
+        if (!propsData?.builNumMax || propsData.builNumMax <= 0) {
+            return false;
+        }
+
+        return this.getRoomPropsBuildCount(propsData) >= propsData.builNumMax;
     }
 
     ///
@@ -252,13 +274,15 @@ export class UIBuild extends UIBase {
 
     /**点击购买按钮 */
     clickBuyBtn(idx: number) {
-        this.onClose();
         let curData = this.currentPropsDataArr[idx];
-        if (curData.coin > 0 && curData.coin > pData.gameCoin) {
+        if (this.isBuildNumLimit(curData)) {
+            uiMgr.showTips("建造数量已达上限");
+        } else if (curData.coin > 0 && curData.coin > pData.gameCoin) {
             uiMgr.showTips("金币不足");
         } else if (curData.power > 0 && curData.power > pData.gamePower) {
             uiMgr.showTips("电能不足");
         } else {
+            this.onClose();
             //扣除金币
             if (curData.coin > 0) {
                 pData.fixGameCoin(-curData.coin);

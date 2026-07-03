@@ -11,6 +11,8 @@ import { playerMgr } from '../manager/playerManager';
 import { GameEvent } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { loopAnimation } from './loopAnimation';
+import { iceProps } from './props/iceProps';
+import { machineProps } from './props/machineProps';
 const { ccclass, property } = _decorator;
 
 /**瓦片类型 */
@@ -167,6 +169,10 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(generatorProps);
         } else if (this.tileType == tilePropsType.printer) {
             propComp = propsItem.addComponent(printerProps);
+        } else if (this.tileType == tilePropsType.machine) {
+            propComp = propsItem.addComponent(machineProps);
+        } else if (this.tileType == tilePropsType.ice) {
+            propComp = propsItem.addComponent(iceProps);
         }
 
         this.propsNode.addChild(propsItem);

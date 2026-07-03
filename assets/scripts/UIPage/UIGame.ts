@@ -1351,7 +1351,7 @@ export class UIGame extends UIBase {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });
             }
         } else {
-            uiMgr.openPage(UIPath.UIBuild, { pos: this.tempUILocalPos, tilePos: tilePos });
+            uiMgr.openPage(UIPath.UIBuild, { pos: this.tempUILocalPos, tilePos: tilePos, roomData: this.getBuildRoomData(tilePos) });
         }
     }
 
@@ -1497,6 +1497,34 @@ export class UIGame extends UIBase {
         }
 
         return this.tileMap[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+    }
+
+    /**获取建造界面需要的当前房间数据 */
+    private getBuildRoomData(tilePos: Vec2) {
+        let roomIdx = this.getRoomIdxByTilePos(tilePos);
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData) {
+            return null;
+        }
+
+        let propsCountMap: { [key: string]: number } = {};
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let pos = roomArr[i];
+            let propsType = this.tileMap[pos.x]?.[pos.y]?.item?.propsComp?.propsType;
+            if (!propsType) {
+                continue;
+            }
+
+            propsCountMap[propsType] = (propsCountMap[propsType] || 0) + 1;
+        }
+
+        return {
+            roomArr: roomData.roomArr,
+            doorPos: roomData.doorPos,
+            bedPos: roomData.bedPos,
+            propsCountMap: propsCountMap,
+        };
     }
 
     /**刷新玩家进出房间状态，离开房间后自动关门 */

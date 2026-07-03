@@ -14,6 +14,7 @@ import { bedProps } from '../props/bedProps';
 import { enemyConfig } from '../../json/jsonEnemy';
 import { gm } from '../../manager/gm';
 import { cannonProps } from '../props/cannonProps';
+import { iceProps } from '../props/iceProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -305,12 +306,35 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        let timeScale = this.curRoleAnimName == enemyAnim.attack ? 0.5 : 1;
-        if (this.isRaging && this.curRoleAnimName == enemyAnim.attack) {
+        let isAttackAnim = this.curRoleAnimName == enemyAnim.attack;
+        let timeScale = isAttackAnim ? 0.5 : 1;
+        if (this.isRaging && isAttackAnim) {
             timeScale *= enemyCommonConfig.rageAttackSpeed;
+        }
+        if (isAttackAnim) {
+            timeScale *= this.getIceAttackTimeScale();
         }
 
         this.roleAnim.timeScale = timeScale;
+    }
+
+    /**获取千年寒冰对当前攻击目标所在房间的攻速影响 */
+    private getIceAttackTimeScale() {
+        let roomIdx = this.getCurAttackRoomIdx();
+        return iceProps.getEnemyAttackTimeScale(this.gameComp, roomIdx);
+    }
+
+    /**获取当前攻击目标所在房间 */
+    private getCurAttackRoomIdx() {
+        if (this.isAttackingProps && this.attackingTilePos) {
+            return this.gameComp?.tileMap?.[this.attackingTilePos.x]?.[this.attackingTilePos.y]?.roomIdx || 0;
+        }
+
+        if (this.isAttackingPlayer) {
+            return this.targetPlayer?.roomIdx || 0;
+        }
+
+        return 0;
     }
 
     /**刷新升级计时 */
@@ -521,7 +545,7 @@ export class enemyBaseController extends Component {
         }
 
         //TODO 暂时只让抓玩家一个人
-        // return result;
+        return result;
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {
@@ -892,6 +916,7 @@ export class enemyBaseController extends Component {
     private startAttackProps() {
         this.isAttackingProps = true;
         this.playRoleAnim(enemyAnim.attack, true);
+        this.refreshRoleAnimTimeScale();
     }
 
     /**停止攻击道具状态 */
@@ -912,6 +937,7 @@ export class enemyBaseController extends Component {
         this.clearMovePath();
         this.isAttackingPlayer = true;
         this.playRoleAnim(enemyAnim.attack, true);
+        this.refreshRoleAnimTimeScale();
     }
 
     /**停止攻击角色状态 */

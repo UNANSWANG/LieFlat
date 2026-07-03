@@ -63,5 +63,9 @@ export class Tableprops {
     get attackRange(): number {
         return this.data.attackRange;
     }
+    /** 建造上限 */
+    get builNumMax(): number {
+        return this.data.builNumMax;
+    }
 }
     

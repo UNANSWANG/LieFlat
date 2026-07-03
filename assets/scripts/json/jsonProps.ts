@@ -70,6 +70,8 @@ interface JsonPropsData {
     attack: number;
     /**攻击距离 */
     attackRange: number;
+    /**建造上限 */
+    builNumMax: number;
 }
 
 

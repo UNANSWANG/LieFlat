@@ -147,11 +147,17 @@ export class UIBuild extends UIBase {
             let buyLayout = buyBtn.getChildByName("layout");
             let coinLayout = buyLayout.getChildByName("coinNumLayout");
             let powerLayout = buyLayout.getChildByName("powerNumLayout");
+            let limitLab = buyBtn.getChildByName("limitLab").getComponent(Label);
             let coinNumLab = coinLayout.getChildByName("numLab").getComponent(Label);
             let powerNumLab = powerLayout.getChildByName("numLab").getComponent(Label);
 
             let powerNum = propsData.power;
             let coinNum = propsData.coin;
+            if (propsData.builNumMax && propsData.builNumMax > 0) {
+                limitLab.string = `可建造 ${0}/${propsData.builNumMax}`;
+            } else {
+                limitLab.string = "";
+            }
 
             this.refreshBuyBtnState(buyBtn, propsData);
 

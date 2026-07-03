@@ -5,6 +5,7 @@ import { propsConfig } from '../../json/jsonProps';
 import { tilePropsType } from '../tileItemController';
 import { gm } from '../../manager/gm';
 import { enemyMgr } from '../../manager/enemyManager';
+import { machineProps } from './machineProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('doorProps')
@@ -99,6 +100,7 @@ export class doorProps extends gamePropsBase {
         if (this.repairAddTime > 0) {
             repairSpeed += configData.doorRepairSpeedAdd;
         }
+        repairSpeed += machineProps.getDoorRepairSpeedAdd(this.gameComp, this.roomIdx);
 
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * repairSpeed / 100 * dt);
         this.hpBar.fillRange = this.hp / this.maxHp;

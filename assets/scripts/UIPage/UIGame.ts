@@ -1789,6 +1789,9 @@ export class UIGame extends UIBase {
                 pData.addLevel();
                 this.initData();
                 // uiMgr.openPage(UIPath.UISuccess);
+            case KeyCode.KEY_L:
+                pData.fixGameCoin(1000000);
+                pData.fixGamePower(1000000);
                 break;
         }
     }

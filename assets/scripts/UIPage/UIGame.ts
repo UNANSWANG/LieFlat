@@ -1873,6 +1873,10 @@ export class UIGame extends UIBase {
     /**滑动区域点击结束 */
     onTouchSlideEnd(event: EventTouch) {
         if (!this.isSlideMoving) {
+            if (playerMgr.playerComp?.state != roleState.bed) {
+                return;
+            }
+
             let touchTilePos = this.getTouchTilePos(event);
             this.closeTouchSelect();
             if (!touchTilePos) {
@@ -1911,6 +1915,31 @@ export class UIGame extends UIBase {
         let uitrans = this.touchSelect.getComponent(UITransform);
         uitrans.setContentSize(configData.tileSize * scale, configData.tileSize * scale);
     }
+
+    /**定位到敌人视角 */
+    lookAtEnemy() {
+        if (playerMgr.playerComp?.state != roleState.bed) {
+            return;
+        }
+
+        if (!this.gameCameraComp) {
+            return;
+        }
+
+        for (let i = 0; i < enemyMgr.enemyArr.length; i++) {
+            let enemyComp = enemyMgr.enemyArr[i];
+            if (!enemyComp || !enemyComp.node || !enemyComp.node.isValid || enemyComp.hp <= 0) {
+                continue;
+            }
+
+            playerMgr.cameraFollow = false;
+            this.gameCameraComp.setCameraPos(enemyComp.node.getPosition(), true);
+            return;
+        }
+
+        uiMgr.showTips("没有可定位的敌人");
+    }
+
     ///
     ///点击函数
     ///
@@ -1919,12 +1948,18 @@ export class UIGame extends UIBase {
     onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_S:
+                //跳过关卡
                 pData.addLevel();
                 this.initData();
                 // uiMgr.openPage(UIPath.UISuccess);
             case KeyCode.KEY_L:
+                //增加金币
                 pData.fixGameCoin(1000000);
                 pData.fixGamePower(1000000);
+                break;
+            case KeyCode.KEY_E:
+                //定位到敌人视角
+                this.lookAtEnemy();
                 break;
         }
     }
@@ -1956,15 +1991,6 @@ export class UIGame extends UIBase {
             let offset = enemyCommonConfig.enemyStartTime - this.gameStartCountDownTime;
             pData.fixGameCoin(offset);
         }
-    }
-
-    /**点击回归自身视角按钮 */
-    clickSelfBtn() {
-        if (playerMgr.cameraFollow) {
-            return;
-        }
-
-        this.gameCameraComp.setCameraPos(playerMgr.player.getPosition(), true);
     }
 
     /**点击角色定位按钮 */

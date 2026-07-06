@@ -147,6 +147,7 @@ export class UIProps extends UIBase {
             let desLab = propsItem.getChildByName("desLab").getComponent(Label);
             let nameLab = propsItem.getChildByName("nameLab").getComponent(Label);
             let buyBtn = propsItem.getChildByName("buyBtn");
+            let limitLab = buyBtn.getChildByName("limitLab").getComponent(Label);
             let buyBg = buyBtn.getChildByName("bg");
             let grayBg = buyBg.getChildByName("gray");
             let normalBg = buyBg.getChildByName("normal");
@@ -159,6 +160,7 @@ export class UIProps extends UIBase {
 
             let powerNum = 0;
             let coinNum = 0;
+            limitLab.string = "";
 
             if (i == 0 && nextPropsData.preConditions) {
                 desLab.fontSize = 22;

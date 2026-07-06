@@ -90,17 +90,19 @@ export class tileItemController extends Component {
     normalColor: Color = new Color("#FFFFFF");
     /**可升级颜色 */
     upgradeColor: Color = new Color("#00c032");
-    /**置灰颜色 */
-    grayColor: Color = new Color("#808080");
+    /**遮罩节点 */
+    mask: Node = null;
 
     protected onLoad(): void {
         this.propsNode = this.node.getChildByName("propsNode");
         this.boxBg = this.node.getChildByName("boxBg");
         this.outLine = this.node.getChildByName("outLine");
         this.upgradeNode = this.node.getChildByName("upgradeNode");
+        this.mask = this.node.getChildByName("mask");
 
         this.hideSelectBox();
         this.upgradeNode.active = false;
+        this.mask.active = false;
     }
 
     protected onEnable(): void {
@@ -132,6 +134,7 @@ export class tileItemController extends Component {
         this.propsItem = null;
         this.upgradeNode.getComponent(loopAnimation).stopAni();
         this.upgradeNode.active = false;
+        this.mask.active = false;
     }
 
     /**获取道具脚本 */
@@ -308,19 +311,19 @@ export class tileItemController extends Component {
 
     /**瓦片格置灰 */
     grayTile() {
-        this.boxBg.getComponent(Sprite).color = this.grayColor;
+        this.mask.active = true;
         this.outLine.active = false;
         this.upgradeNode.active = false;
-        let boxUiop = this.boxBg.getComponent(UIOpacity);
-        Tween.stopAllByTarget(this.boxBg);
-        Tween.stopAllByTarget(boxUiop);
-        boxUiop.opacity = 0;
+        this.boxBg.active = false;
+        let maskUiop = this.mask.getComponent(UIOpacity);
+        Tween.stopAllByTarget(maskUiop);
+        maskUiop.opacity = 0;
 
         if(this.propsComp){
             this.propsComp.endProps();
         }
 
-        tween(boxUiop)
+        tween(maskUiop)
             .to(0.5, { opacity: 255 })
             .start();
     }

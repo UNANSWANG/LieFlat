@@ -126,6 +126,11 @@ export class gamePropsBase extends Component {
 
     }
 
+    /**道具结束生效 */
+    endProps() {
+
+    }
+
     /**初始化道具 */
     init(tileItemComp: tileItemController, level: number = 0) {
         this.clearData();

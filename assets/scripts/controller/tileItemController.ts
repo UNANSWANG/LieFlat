@@ -90,6 +90,8 @@ export class tileItemController extends Component {
     normalColor: Color = new Color("#FFFFFF");
     /**可升级颜色 */
     upgradeColor: Color = new Color("#00c032");
+    /**置灰颜色 */
+    grayColor: Color = new Color("#808080");
 
     protected onLoad(): void {
         this.propsNode = this.node.getChildByName("propsNode");
@@ -301,6 +303,25 @@ export class tileItemController extends Component {
     stopSelectBoxAnim() {
         Tween.stopAllByTarget(this.boxBg.getComponent(UIOpacity));
         Tween.stopAllByTarget(this.outLine.getComponent(UIOpacity));
+    }
+
+    /**瓦片格置灰 */
+    grayTile() {
+        this.boxBg.getComponent(Sprite).color = this.grayColor;
+        this.outLine.active = false;
+        this.upgradeNode.active = false;
+        let boxUiop = this.boxBg.getComponent(UIOpacity);
+        Tween.stopAllByTarget(this.boxBg);
+        Tween.stopAllByTarget(boxUiop);
+        boxUiop.opacity = 0;
+
+        if(this.propsComp){
+            this.propsComp.endProps();
+        }
+
+        tween(boxUiop)
+            .to(0.5, { opacity: 255 })
+            .start();
     }
 }
 

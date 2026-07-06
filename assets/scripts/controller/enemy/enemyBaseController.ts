@@ -202,7 +202,8 @@ export class enemyBaseController extends Component {
 
     /**重置伤害 */
     resetAttackDamage() {
-        this.attackDamage = enemyConfig.getEnemyData(this.level).attack * 100;
+        //TODO 伤害临时秒杀
+        this.attackDamage = enemyConfig.getEnemyData(this.level).attack;
     }
 
     /**刷新等级 */

@@ -785,7 +785,8 @@ export class UIGame extends UIBase {
             return;
         }
 
-        let robotArr = this.getSleepingRobotsAroundTile(doorPos, robotCommonConfig.checkTeamRange);
+        let attackRoomIdx = this.getRoomIdxByTilePos(doorPos);
+        let robotArr = this.getSleepingRobotsAroundTile(doorPos, robotCommonConfig.checkTeamRange, attackRoomIdx);
         for (let i = 0; i < robotArr.length; i++) {
             let robotComp = robotArr[i];
             this.buildOrUpgradeTeamCannonByEnemyAttack(robotComp.roomIdx, enemyPos || doorPos);
@@ -813,12 +814,16 @@ export class UIGame extends UIBase {
     }
 
     /**获取指定范围内床上有睡觉人机的角色 */
-    private getSleepingRobotsAroundTile(centerPos: Vec2, range: number) {
+    private getSleepingRobotsAroundTile(centerPos: Vec2, range: number, excludeRoomIdx: number = 0) {
         let result: roleController[] = [];
         let checkRange = Math.max(0, range || 0);
         for (let i = 0; i < this.robotArr.length; i++) {
             let robotComp = this.robotArr[i];
             if (!robotComp || robotComp.roleId == 0 || robotComp.roomIdx <= 0 || robotComp.state != roleState.bed) {
+                continue;
+            }
+
+            if (excludeRoomIdx > 0 && robotComp.roomIdx == excludeRoomIdx) {
                 continue;
             }
 

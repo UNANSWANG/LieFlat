@@ -115,6 +115,10 @@ export const robotCommonConfig = {
     machineBuildTimeThreshold: 180,
     /**建造寒冰的前提时间（秒） */
     iceBuildTimeThreshold: 240,
+    /**检测队友被攻击范围（格数） */
+    checkTeamRange: 10,
+    /**队友被攻击时可升级的最大等级炮台 */
+    maxUpgradeCannonLevel: 2,
 }
 
 

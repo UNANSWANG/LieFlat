@@ -208,6 +208,8 @@ export class UILoading extends Component {
         robotCommonConfig.propsBuildTimedLater = Number(commonConfig.getValue("propsBuildTimedLater"));
         robotCommonConfig.machineBuildTimeThreshold = Number(commonConfig.getValue("machineBuildTimeThreshold"));
         robotCommonConfig.iceBuildTimeThreshold = Number(commonConfig.getValue("iceBuildTimeThreshold"));
+        robotCommonConfig.checkTeamRange = Number(commonConfig.getValue("checkTeamRange"));
+        robotCommonConfig.maxUpgradeCannonLevel = Number(commonConfig.getValue("maxUpgradeCannonLevel"));
 
         console.log("------------>公共配置表数据同步完毕");
     }

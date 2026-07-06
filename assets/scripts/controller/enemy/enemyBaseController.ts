@@ -62,6 +62,8 @@ export class enemyBaseController extends Component {
     private isAttackingProps: boolean = false;
     /**当前连续攻击门期间是否已经触发过震慑 */
     private hasFearCurAttackDoor: boolean = false;
+    /**当前攻击门期间是否已经触发过队友炮台处理 */
+    private hasHandleTeamCannonCurAttackDoor: boolean = false;
     /**当前攻击的门是否已判定为继续强攻 */
     private isForceAttackingDoor: boolean = false;
     /**当前攻击门秒伤检测阶段 */
@@ -901,6 +903,7 @@ export class enemyBaseController extends Component {
         if (!this.attackingTilePos || this.attackingTilePos.x != nextTilePos.x || this.attackingTilePos.y != nextTilePos.y) {
             this.attackingTilePos = new Vec2(nextTilePos.x, nextTilePos.y);
             this.hasFearCurAttackDoor = false;
+            this.hasHandleTeamCannonCurAttackDoor = false;
             this.isForceAttackingDoor = false;
             this.resetDoorAttackTimeCheck();
             if (propComp.propsType == tilePropsType.door) {
@@ -928,6 +931,7 @@ export class enemyBaseController extends Component {
         this.isAttackingProps = false;
         this.attackingTilePos = null;
         this.hasFearCurAttackDoor = false;
+        this.hasHandleTeamCannonCurAttackDoor = false;
         this.isForceAttackingDoor = false;
         this.resetDoorAttackTimeCheck();
     }
@@ -1384,6 +1388,11 @@ export class enemyBaseController extends Component {
         let isAttackDoor = propComp.propsType == tilePropsType.door;
         let actualDamage = Math.min(this.attackDamage, propComp.hp);
         let actualDamagePercent = propComp.getDamagePercent(actualDamage);
+        if (isAttackDoor && !this.hasHandleTeamCannonCurAttackDoor) {
+            this.hasHandleTeamCannonCurAttackDoor = true;
+            this.gameComp?.handleTeamCannonByEnemyFirstDoorAttack(tilePos, this.currentPos);
+        }
+
         let isDestroyed = propComp.takeDamage(this.attackDamage);
         if (isAttackDoor) {
             this.recordDoorAttackTimeDamage(actualDamage);

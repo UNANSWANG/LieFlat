@@ -1472,7 +1472,9 @@ export class UIGame extends UIBase {
         let tileItem: tileItemController = this.tileMap[tilePos.x]?.[tilePos.y]?.item;
         if (tileItem && tileItem.propsItem) {
             let propComp = tileItem.propsComp;
-            if(propComp.isMaxLevel && (propComp.propsType == tilePropsType.bed || propComp.propsType == tilePropsType.door)){
+            if (tileItem.isGrayTile) {
+                uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp, isGrayProps: true });
+            } else if(propComp.isMaxLevel && (propComp.propsType == tilePropsType.bed || propComp.propsType == tilePropsType.door)){
                 uiMgr.showTips("已达最大等级");
             }else{
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });

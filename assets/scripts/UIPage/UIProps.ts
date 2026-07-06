@@ -40,6 +40,8 @@ export class UIProps extends UIBase {
     hasRemoveProps: boolean = false;
     /**是否已经满级 */
     isMaxLevel: boolean = false;
+    /**是否为敌人置灰后的道具 */
+    isGrayProps: boolean = false;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -70,6 +72,7 @@ export class UIProps extends UIBase {
             this.targetPos.set(data.pos);
             this.tilePos.set(data.tilePos);
             this.propsComp = data.propsComp;
+            this.isGrayProps = !!data.isGrayProps;
         }
         this.checkPropsStatus();
 
@@ -83,6 +86,12 @@ export class UIProps extends UIBase {
 
     /**检测道具状态 */
     checkPropsStatus() {
+        if (this.isGrayProps) {
+            this.hasRemoveProps = true;
+            this.isMaxLevel = true;
+            return;
+        }
+
         this.hasRemoveProps = true;
         let type: tilePropsType = this.propsComp.propsType;
         if (type == tilePropsType.door || type == tilePropsType.bed) {
@@ -93,6 +102,13 @@ export class UIProps extends UIBase {
 
     /**刷新标题 */
     refreshTitle() {
+        if (this.isGrayProps) {
+            this.titleLab.fontSize = 60;
+            this.titleLab.lineHeight = 60;
+            this.titleLab.string = "摧毁";
+            return;
+        }
+
         if (this.isMaxLevel) {
             this.titleLab.fontSize = 20;
             this.titleLab.lineHeight = 30;
@@ -122,10 +138,10 @@ export class UIProps extends UIBase {
             }
         }
 
-        this.propsLayout.children[0].active = !this.isMaxLevel;
+        this.propsLayout.children[0].active = !this.isMaxLevel && !this.isGrayProps;
         this.propsLayout.children[1].active = this.hasRemoveProps;
         //有次数且是门
-        this.propsLayout.children[2].active = pData.adUpgradeDoorCount > 0 && this.propsComp.propsType == tilePropsType.door;
+        this.propsLayout.children[2].active = !this.isGrayProps && pData.adUpgradeDoorCount > 0 && this.propsComp.propsType == tilePropsType.door;
 
         let propsLength = 0;
 

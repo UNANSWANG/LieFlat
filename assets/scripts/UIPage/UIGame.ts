@@ -530,16 +530,45 @@ export class UIGame extends UIBase {
         let tileComp = tileData.item;
         if (!tileComp) {
             //不存在瓦片就添加瓦片
-            let tileItem = instantiate(this.tileItemPre);
-            this.tileObjList.addChild(tileItem);
-            tileComp = tileItem.getComponent(tileItemController);
-            tileItem.position = ccTools.getPosByTileIndex(tilePos);
-            tileComp.roomIdx = tileData.roomIdx;
-            tileComp.pos = tilePos;
-            tileComp.bindGameComp(this);
-            this.tileMap[tilePos.x][tilePos.y].item = tileComp;
+            tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
         tileComp.addProps(propsType, level);
+    }
+
+    /**创建瓦片节点 */
+    private createTileItem(tilePos: Vec2, roomIdx: number = 0) {
+        let tileItem = instantiate(this.tileItemPre);
+        this.tileObjList.addChild(tileItem);
+        let tileComp = tileItem.getComponent(tileItemController);
+        tileItem.position = ccTools.getPosByTileIndex(tilePos);
+        tileComp.roomIdx = roomIdx;
+        tileComp.pos = tilePos;
+        tileComp.bindGameComp(this);
+        this.tileMap[tilePos.x][tilePos.y].item = tileComp;
+        return tileComp;
+    }
+
+    /**敌人破坏床铺后，将房间瓦片补齐并置灰 */
+    grayRoomAfterBedDestroyed(roomIdx: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData || !roomData.roomArr) {
+            return;
+        }
+
+        for (let i = 0; i < roomData.roomArr.length; i++) {
+            let tilePos = roomData.roomArr[i];
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            if (!tileData) {
+                continue;
+            }
+
+            let tileComp = tileData.item;
+            if (!tileComp) {
+                tileComp = this.createTileItem(tilePos, roomIdx);
+            }
+
+            tileComp.grayTile();
+        }
     }
 
     /**升级建筑道具 */
@@ -1696,15 +1725,7 @@ export class UIGame extends UIBase {
 
             let tileComp = tileData.item;
             if (!tileComp) {
-                let tileItem = instantiate(this.tileItemPre);
-                this.tileObjList.addChild(tileItem);
-                tileItem.position = ccTools.getPosByTileIndex(tilePos);
-
-                tileComp = tileItem.getComponent(tileItemController);
-                tileComp.roomIdx = playerMgr.playerComp.roomIdx;
-                tileComp.pos = tilePos;
-                tileComp.bindGameComp(this);
-                tileData.item = tileComp;
+                tileComp = this.createTileItem(tilePos, playerMgr.playerComp.roomIdx);
             } else {
                 let type = tileComp.tileType;
                 if (type == tilePropsType.door) {

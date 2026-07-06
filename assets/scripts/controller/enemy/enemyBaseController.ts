@@ -202,7 +202,7 @@ export class enemyBaseController extends Component {
 
     /**重置伤害 */
     resetAttackDamage() {
-        this.attackDamage = enemyConfig.getEnemyData(this.level).attack;
+        this.attackDamage = enemyConfig.getEnemyData(this.level).attack * 100;
     }
 
     /**刷新等级 */
@@ -1272,9 +1272,11 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        let roomIdx = tileData.roomIdx || tileItem.roomIdx;
         bedComp.removeProps();
         tileItem.tileType = tilePropsType.none;
         tileData.block = 0;
+        this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
     }
 
     /**尝试攻击当前目标角色 */
@@ -1367,9 +1369,11 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        let roomIdx = roleComp.roomIdx;
         bedComp.removeProps();
         tileItem.tileType = tilePropsType.none;
         tileData.block = 0;
+        this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
     }
 
     /**播放角色动画 */
@@ -1400,6 +1404,11 @@ export class enemyBaseController extends Component {
         }
         this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
         if (isDestroyed) {
+            if (propComp.propsType == tilePropsType.bed) {
+                let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+                this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
+            }
+
             this.clearDestroyedProps(tilePos);
 
             if (isAttackDoor && this.hpPercent < enemyCommonConfig.goalHpThresholdPercent) {

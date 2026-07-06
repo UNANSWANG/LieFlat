@@ -14,6 +14,12 @@ export class printerProps extends gamePropsBase {
         this.startProduceCoin();
     }
 
+    /**道具结束生效 */
+    endProps() {
+        super.endProps();
+        this.stopProduceCoin();
+    }
+
     /**开始生产金币 */
     startProduceCoin() {
         this.stopProduceCoin();

@@ -20,6 +20,13 @@ export class bedProps extends gamePropsBase {
     /**是否正在生产金币 */
     isProduceCoin: boolean = false;
 
+    /**道具结束生效 */
+    endProps() {
+        super.endProps();
+        this.isProduceCoin = false;
+        this.stopProduceCoin();
+    }
+
     /**操作床 */
     operateProps() {
         this.isOccupied = true;

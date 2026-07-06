@@ -17,6 +17,12 @@ export class generatorProps extends gamePropsBase {
         this.startProducePower();
     }
 
+    /**道具结束生效 */
+    endProps() {
+        super.endProps();
+        this.stopProducePower();
+    }
+
     /**开始生产电能 */
     startProducePower() {
         this.stopProducePower();

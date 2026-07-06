@@ -225,6 +225,7 @@ export class tileItemController extends Component {
         if (!this.propsItem) {
             return;
         }
+        this.propsComp?.endProps();
         this.propsItem.removeFromParent();
         this.propsItem = null;
         this.tileType = tilePropsType.none;

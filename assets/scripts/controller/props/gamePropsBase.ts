@@ -25,6 +25,8 @@ export class gamePropsBase extends Component {
     private damageRecords: { time: number, damage: number }[] = [];
     /**瓦片脚本 */
     tileItemComp: tileItemController = null;
+    /**道具是否正在生效 */
+    private propsActive: boolean = false;
 
 
     /**游戏脚本 */
@@ -42,6 +44,10 @@ export class gamePropsBase extends Component {
     /**坐标系 */
     get pos() {
         return this.tileItemComp.pos;
+    }
+    /**道具效果是否生效中 */
+    get isPropsActive() {
+        return this.propsActive;
     }
 
     ///
@@ -88,6 +94,7 @@ export class gamePropsBase extends Component {
         this.hp = 1;
         this.damageRecords = [];
         this.tileItemComp = null;
+        this.propsActive = false;
     }
 
     /**是否最大等级 */
@@ -128,7 +135,8 @@ export class gamePropsBase extends Component {
 
     /**道具结束生效 */
     endProps() {
-
+        this.propsActive = false;
+        this.unscheduleAllCallbacks();
     }
 
     /**初始化道具 */
@@ -140,6 +148,7 @@ export class gamePropsBase extends Component {
         this.initMaxLevel();
         this.initMaxHp();
 
+        this.propsActive = true;
         this.startProps();
     }
 

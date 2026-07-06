@@ -37,6 +37,17 @@ export class cannonProps extends gamePropsBase {
         this.attackStartDelay = 2;
     }
 
+    /**道具结束生效 */
+    endProps() {
+        super.endProps();
+        this.targetEnemy = null;
+        this.attack = 0;
+        this.attackRange = 0;
+        this.attackTimer = 0;
+        this.attackStartDelay = 0;
+        this.fearTimer = 0;
+    }
+
     protected onDisable(): void {
         super.onDisable();
         this.targetEnemy = null;
@@ -46,7 +57,7 @@ export class cannonProps extends gamePropsBase {
     }
 
     protected update(dt: number): void {
-        if (gm.isGamePause) {
+        if (gm.isGamePause || !this.isPropsActive) {
             return;
         }
 

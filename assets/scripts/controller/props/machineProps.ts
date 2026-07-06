@@ -22,6 +22,10 @@ export class machineProps extends gamePropsBase {
 
     }
 
-}
+    /**道具结束生效 */
+    endProps() {
+        super.endProps();
+    }
 
+}
 

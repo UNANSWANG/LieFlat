@@ -17,6 +17,18 @@ export class doorProps extends gamePropsBase {
     /**使用修复按钮后的剩余加速修复时间 */
     private repairAddTime: number = 0;
 
+    /**道具开始生效 */
+    startProps() {
+
+    }
+
+    /**道具结束生效 */
+    endProps() {
+        super.endProps();
+        this.repairAddTime = 0;
+        Tween.stopAllByTarget(this.img1.node);
+    }
+
     /**初始化门 */
     initDoor(offsetDir: number, dir: number) {
         this.isClose = false;
@@ -77,7 +89,7 @@ export class doorProps extends gamePropsBase {
     }
 
     protected update(dt: number): void {
-        if (gm.isGamePause) {
+        if (gm.isGamePause || !this.isPropsActive) {
             return;
         }
 

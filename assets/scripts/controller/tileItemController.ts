@@ -13,6 +13,17 @@ import { gm } from '../manager/gm';
 import { loopAnimation } from './loopAnimation';
 import { iceProps } from './props/iceProps';
 import { machineProps } from './props/machineProps';
+import { alarmProps } from './props/alarmProps';
+import { handProps } from './props/handProps';
+import { netProps } from './props/netProps';
+import { sawProps } from './props/sawProps';
+import { telescopeProps } from './props/telescopeProps';
+import { tubeProps } from './props/tubeProps';
+import { boxProps } from './props/boxProps';
+import { clockProps } from './props/clockProps';
+import { thornProps } from './props/thornProps';
+import { woodManProps } from './props/woodManProps';
+import { trollsProps } from './props/trollsProps';
 const { ccclass, property } = _decorator;
 
 /**瓦片类型 */
@@ -48,7 +59,7 @@ export enum tilePropsType {
     /**铡刀 */
     saw = "saw",
     /**喷子 */
-    spray = "jet",
+    trolls = "trolls",
     /**望远镜 */
     telescope = "telescope",
     /**转管 */
@@ -183,6 +194,28 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(machineProps);
         } else if (this.tileType == tilePropsType.ice) {
             propComp = propsItem.addComponent(iceProps);
+        } else if (this.tileType == tilePropsType.hand) {
+            propComp = propsItem.addComponent(handProps);
+        } else if (this.tileType == tilePropsType.net) {
+            propComp = propsItem.addComponent(netProps);
+        } else if (this.tileType == tilePropsType.saw) {
+            propComp = propsItem.addComponent(sawProps);
+        } else if (this.tileType == tilePropsType.trolls) {
+            propComp = propsItem.addComponent(trollsProps);
+        } else if (this.tileType == tilePropsType.telescope) {
+            propComp = propsItem.addComponent(telescopeProps);
+        } else if (this.tileType == tilePropsType.tube) {
+            propComp = propsItem.addComponent(tubeProps);
+        } else if (this.tileType == tilePropsType.alarm) {
+            propComp = propsItem.addComponent(alarmProps);
+        } else if (this.tileType == tilePropsType.box) {
+            propComp = propsItem.addComponent(boxProps);
+        } else if (this.tileType == tilePropsType.woodMan) {
+            propComp = propsItem.addComponent(woodManProps);
+        } else if (this.tileType == tilePropsType.clock) {
+            propComp = propsItem.addComponent(clockProps);
+        } else if (this.tileType == tilePropsType.thorn) {
+            propComp = propsItem.addComponent(thornProps);
         }
 
         this.propsNode.addChild(propsItem);
@@ -246,7 +279,7 @@ export class tileItemController extends Component {
         }
 
         let canBuy = false;
-        if(this.propsComp && this.propsComp.isValid){
+        if (this.propsComp && this.propsComp.isValid) {
             let nextLevel = this.propsComp.level + 1;
             //非满级才需要显示可升级
             if (nextLevel < this.propsComp.propsDatas.length) {
@@ -325,7 +358,7 @@ export class tileItemController extends Component {
         Tween.stopAllByTarget(maskUiop);
         maskUiop.opacity = 0;
 
-        if(this.propsComp){
+        if (this.propsComp) {
             this.propsComp.endProps();
         }
 

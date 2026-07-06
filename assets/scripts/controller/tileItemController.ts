@@ -86,6 +86,8 @@ export class tileItemController extends Component {
     gameComp: UIGame = null;
     /**道具节点 */
     propsItem: Node = null;
+    /**是否已置灰 */
+    isGrayTile: boolean = false;
     /**常规颜色 */
     normalColor: Color = new Color("#FFFFFF");
     /**可升级颜色 */
@@ -132,6 +134,7 @@ export class tileItemController extends Component {
         this.gameComp = null;
         /**道具节点 */
         this.propsItem = null;
+        this.isGrayTile = false;
         this.upgradeNode.getComponent(loopAnimation).stopAni();
         this.upgradeNode.active = false;
         this.mask.active = false;
@@ -147,6 +150,8 @@ export class tileItemController extends Component {
 
     /**添加道具 */
     addProps(type: tilePropsType, level: number = 0) {
+        this.isGrayTile = false;
+        this.mask.active = false;
         this.tileType = type;
         this.createProps(level);
     }
@@ -311,6 +316,7 @@ export class tileItemController extends Component {
 
     /**瓦片格置灰 */
     grayTile() {
+        this.isGrayTile = true;
         this.mask.active = true;
         this.outLine.active = false;
         this.upgradeNode.active = false;

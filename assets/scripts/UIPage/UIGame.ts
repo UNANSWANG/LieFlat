@@ -1884,11 +1884,23 @@ export class UIGame extends UIBase {
             }
 
             let touchRoomIdx = this.tileMap[touchTilePos.x]?.[touchTilePos.y]?.roomIdx || 0;
-            if (touchRoomIdx > 0 && touchRoomIdx == playerRoomIdx) {
+            if ((touchRoomIdx > 0 && touchRoomIdx == playerRoomIdx) || this.canClickGrayTeamProps(touchTilePos, playerRoomIdx)) {
                 this.selectedPos.set(touchTilePos);
                 this.updateTouchSelectPos(touchTilePos);
             }
         }
+    }
+
+    /**是否可以点击队友已摧毁房间内的置灰道具 */
+    private canClickGrayTeamProps(tilePos: Vec2, playerRoomIdx: number) {
+        let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+        let tileItem = tileData?.item;
+        if (!tileItem || !tileItem.isGrayTile || !tileItem.propsItem || !tileItem.propsItem.isValid) {
+            return false;
+        }
+
+        let roomIdx = tileData.roomIdx || tileItem.roomIdx;
+        return roomIdx > 0 && roomIdx != playerRoomIdx;
     }
 
     /**刷新游戏摄像机视角 */

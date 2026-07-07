@@ -11,6 +11,7 @@ export class UIManager {
     tipsPrefab: Prefab = null;
     produceTipsPrefab: Prefab = null;
     bulletPrefab: Prefab = null;
+    gameItemPrefab: Prefab = null;
 
     private gamePage: Node = null;
     private uiPage: Node = null;
@@ -37,6 +38,7 @@ export class UIManager {
             this.tipsPrefab = await ccResTools.loadPrefab(this.resBundle, UIPath.tips);
             this.produceTipsPrefab = await ccResTools.loadPrefab(this.resBundle, UIPath.produceTips);
             this.bulletPrefab = await ccResTools.loadPrefab(this.resBundle, UIPath.bullet);
+            this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, UIPath.gameItem);
             resolve();
         });
     }

@@ -14,6 +14,8 @@ export enum UIPath {
     produceTips = "prefabs/notice/produceTips",
     /**子弹 */
     bullet = "prefabs/Item/bullet",
+    /**游戏通用物体 */
+    gameItem = "prefabs/Item/gameItem",
     /**加载页面 */
     UILoading = "UILoading",
     /**主页面 */

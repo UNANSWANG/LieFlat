@@ -210,8 +210,8 @@ export class enemyBaseController extends Component {
     /**重置伤害 */
     resetAttackDamage() {
         //TODO 伤害临时秒杀
-        // this.attackDamage = enemyConfig.getEnemyData(this.level).attack * 10;
-        this.attackDamage = enemyConfig.getEnemyData(this.level).attack;
+        this.attackDamage = enemyConfig.getEnemyData(this.level).attack * 3;
+        // this.attackDamage = enemyConfig.getEnemyData(this.level).attack;
     }
 
     /**刷新等级 */
@@ -566,7 +566,7 @@ export class enemyBaseController extends Component {
         }
 
         //TODO 暂时只让抓玩家一个人
-        // return result;
+        return result;
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {

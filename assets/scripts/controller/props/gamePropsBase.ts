@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, Sprite, Tween, tween, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Node, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
 import { tileItemController, tilePropsType } from '../tileItemController';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
@@ -65,6 +65,8 @@ export class gamePropsBase extends Component {
     hpNode: Node = null;
     /**血量图片 */
     hpBar: Sprite = null;
+    /**透明组件 */
+    uiOpacity: UIOpacity = null;
 
     protected onLoad(): void {
         this.scaleNode = this.node.getChildByName("scaleNode");
@@ -73,6 +75,7 @@ export class gamePropsBase extends Component {
         this.img3 = this.scaleNode.getChildByName("img3").getComponent(Sprite);
         this.hpNode = this.scaleNode.getChildByName("hpBg");
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
+        this.uiOpacity = this.scaleNode.getComponent(UIOpacity);
     }
 
     protected onDisable(): void {
@@ -92,6 +95,7 @@ export class gamePropsBase extends Component {
 
         this.level = 0;
         this.hp = 1;
+        this.uiOpacity.opacity = 255;
         this.damageRecords = [];
         this.tileItemComp = null;
         this.propsActive = false;
@@ -148,6 +152,7 @@ export class gamePropsBase extends Component {
     init(tileItemComp: tileItemController, level: number = 0) {
         this.clearData();
         this.level = level;
+        this.uiOpacity.opacity = 255;
         this.tileItemComp = tileItemComp;
         this.initPropsImg();
         this.initMaxLevel();
@@ -271,6 +276,25 @@ export class gamePropsBase extends Component {
         }
 
         return result;
+    }
+
+    /**道具消失回调（移除道具之前） */
+    onDisappear() {
+
+    }
+
+    /**消失动画 */
+    playDisappearAnim() {
+        this.uiOpacity.opacity = 255;
+        Tween.stopAllByTarget(this.uiOpacity);
+        tween(this.uiOpacity)
+            .to(0.2, { opacity: 0 })
+            .call(() => {
+                this.onDisappear();
+                //移除自身
+                this.tileItemComp.removeProps();
+            })
+            .start();
     }
 
     /**清理过期伤害记录 */

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, tween, Tween } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
@@ -14,7 +14,7 @@ export class woodManProps extends gamePropsBase {
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        woodManProps.woodManControlPercent = commonConfig.getValueNumber("woodManControlPercent") / 100;
+        woodManProps.woodManControlPercent = 1//commonConfig.getValueNumber("woodManControlPercent") / 100;
         woodManProps.woodManControlDuration = commonConfig.getValueNumber("woodManControlDuration");
     }
 
@@ -46,5 +46,4 @@ export class woodManProps extends gamePropsBase {
     endProps() {
         super.endProps();
     }
-
 }

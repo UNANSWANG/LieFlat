@@ -94,6 +94,7 @@ export class doorProps extends gamePropsBase {
             return;
         }
 
+        coverProps.updateRoomShieldTimer(this.roomIdx, dt);
         this.repairDoor(dt);
     }
 

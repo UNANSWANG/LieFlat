@@ -179,14 +179,6 @@ export class gamePropsBase extends Component {
 
     /**生产物品 */
     produceItem(type: produceType, num: number) {
-        // let tipsNode = poolMgr.produceTipsPool.get();
-        // if (!tipsNode) {
-        //     tipsNode = instantiate(uiMgr.produceTipsPrefab);
-        // }
-        // tipsNode.active = true;
-        // this.node.addChild(tipsNode);
-        // let comp = tipsNode.getComponent(produceTips);
-        // comp.initNum(type, num);
         this.gameComp.addProduceAnim(type, num, this.node.worldPosition);
     }
 

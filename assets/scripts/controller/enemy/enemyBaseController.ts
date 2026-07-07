@@ -490,6 +490,7 @@ export class enemyBaseController extends Component {
 
         let enemyDamageSpeed = this.getRecentDamage(2);
         let doorDamageSpeed = doorComp.getRecentDamage(2);
+        //敌人受到的伤害大于门受到的伤害则逃离
         if (enemyDamageSpeed > doorDamageSpeed) {
             this.startRepairHp();
             return true;
@@ -1441,17 +1442,20 @@ export class enemyBaseController extends Component {
     /**攻击道具 */
     private attackProps(propComp: gamePropsBase, tilePos: Vec2) {
         let isAttackDoor = propComp.propsType == tilePropsType.door;
-        let actualDamage = Math.min(this.attackDamage, propComp.hp);
-        let actualDamagePercent = propComp.getDamagePercent(actualDamage);
+        let hpBeforeDamage = propComp.hp;
         if (isAttackDoor && !this.hasHandleTeamCannonCurAttackDoor) {
             this.hasHandleTeamCannonCurAttackDoor = true;
             this.gameComp?.handleTeamCannonByEnemyFirstDoorAttack(tilePos, this.currentPos);
         }
 
         let isDestroyed = propComp.takeDamage(this.attackDamage);
+        let actualDamage = Math.max(0, hpBeforeDamage - propComp.hp);
+        let actualDamagePercent = propComp.getDamagePercent(actualDamage);
         if (isAttackDoor) {
-            this.recordDoorAttackTimeDamage(actualDamage);
-            this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
+            if (actualDamage > 0) {
+                this.recordDoorAttackTimeDamage(actualDamage);
+                this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
+            }
         }
         this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
         if (isDestroyed) {

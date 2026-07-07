@@ -6,6 +6,7 @@ import { tilePropsType } from '../tileItemController';
 import { gm } from '../../manager/gm';
 import { enemyMgr } from '../../manager/enemyManager';
 import { machineProps } from './machineProps';
+import { coverProps } from './coverProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('doorProps')
@@ -141,6 +142,20 @@ export class doorProps extends gamePropsBase {
     /**初始化血量 */
     initMaxHp() {
         this.resetHp();
+    }
+
+    /**受到伤害 */
+    takeDamage(damage: number) {
+        if (coverProps.tryBlockDoorDamage(this.gameComp, this.roomIdx, this.hpPercent)) {
+            return false;
+        }
+
+        let isDestroyed = super.takeDamage(damage);
+        if (!isDestroyed) {
+            coverProps.tryStartShieldByDoorHp(this.gameComp, this.roomIdx, this.hpPercent);
+        }
+
+        return isDestroyed;
     }
 
     /**升级道具 */

@@ -133,6 +133,11 @@ export class gamePropsBase extends Component {
 
     }
 
+    /**初始化专属数据 */
+    initPropsData() {
+
+    }
+
     /**道具结束生效 */
     endProps() {
         this.propsActive = false;
@@ -147,6 +152,7 @@ export class gamePropsBase extends Component {
         this.initPropsImg();
         this.initMaxLevel();
         this.initMaxHp();
+        this.initPropsData();
 
         this.propsActive = true;
         this.startProps();

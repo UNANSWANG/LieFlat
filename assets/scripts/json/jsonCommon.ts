@@ -29,6 +29,11 @@ export class jsonCommon extends jsonBase {
     getValue(key){
         return this.commonData[key]?.value;
     }
+
+    /**获取指定类型公共数据（数字） */
+    getValueNumber(key){
+        return Number(this.commonData[key]?.value);
+    }
 }
 export let commonConfig = new jsonCommon();
 

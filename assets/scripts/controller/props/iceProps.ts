@@ -1,11 +1,18 @@
 import { _decorator, Component, Node } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
+import { commonConfig } from '../../json/jsonCommon';
 const { ccclass, property } = _decorator;
 
 @ccclass('iceProps')
 export class iceProps extends gamePropsBase {
     /**房间内存在千年寒冰时，感染者攻击动画播放速度倍率 */
-    static readonly enemyAttackTimeScale: number = 0.8;
+    static iceAttackTimeScale: number = 0.8;
+
+    /**初始化专属数据 */
+    initPropsData() {
+        super.initPropsData();
+        iceProps.iceAttackTimeScale = commonConfig.getValueNumber("iceAttackTimeScale");
+    }
 
     /**获取指定房间内千年寒冰提供的感染者攻击速度倍率 */
     static getEnemyAttackTimeScale(gameComp: any, roomIdx: number) {
@@ -14,7 +21,7 @@ export class iceProps extends gamePropsBase {
         }
 
         let iceCount = gameComp.getRoomPropsCountByType(roomIdx, "ice");
-        return iceCount > 0 ? iceProps.enemyAttackTimeScale : 1;
+        return iceCount > 0 ? iceProps.iceAttackTimeScale : 1;
     }
 
     /**道具开始生效 */

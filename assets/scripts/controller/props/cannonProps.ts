@@ -9,6 +9,10 @@ import { uiMgr } from '../../manager/UIManager';
 import { bulletController } from '../bulletController';
 import { enemyBaseController } from '../enemy/enemyBaseController';
 import { gm } from '../../manager/gm';
+import { handProps } from './handProps';
+import { playerMgr } from '../../manager/playerManager';
+import { pData } from '../../manager/playerData';
+import { produceType } from '../../UIPage/tips/produceTips';
 const { ccclass, property } = _decorator;
 
 @ccclass('cannonProps')
@@ -182,6 +186,24 @@ export class cannonProps extends gamePropsBase {
         }
         bulletComp.init(target, this.attack, this.level);
         bulletNode.active = true;
+
+        this.produceCoinByHand();
+    }
+
+    /** 妙手空空使炮台攻击时产出金币 */
+    private produceCoinByHand() {
+        if (this.roomIdx != playerMgr.playerComp?.roomIdx) {
+            return;
+        }
+
+        let coinMultiplier = handProps.getRoomCoinMultiplier(this.gameComp, this.roomIdx);
+        if (coinMultiplier <= 0) {
+            return;
+        }
+
+        let coin = (this.level + 1) * coinMultiplier;
+        this.produceItem(produceType.coin, coin);
+        pData.fixGameCoin(coin);
     }
 
     /**受到震慑，暂停攻击 */

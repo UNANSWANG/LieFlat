@@ -16,11 +16,14 @@ export class netController extends Component {
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */
     private tempLocalPos: Vec3 = new Vec3();
+    /**是否已经命中 */
+    private hasHit: boolean = false;
 
     /**初始化渔网 */
     init(target: enemyBaseController, duration: number, imgPath: string) {
         this.target = target;
         this.duration = duration;
+        this.hasHit = false;
 
         let img = this.node.getComponent(Sprite);
         if (img) {
@@ -31,6 +34,11 @@ export class netController extends Component {
     }
 
     protected update(dt: number): void {
+        if (this.hasHit) {
+            this.refreshHitPosition();
+            return;
+        }
+
         if (!this.isTargetValid()) {
             this.recycle();
             return;
@@ -90,17 +98,51 @@ export class netController extends Component {
 
     /**命中目标 */
     private hitTarget() {
-        if (this.isTargetValid()) {
-            this.target.netControl(this.duration);
+        if (!this.isTargetValid()) {
+            this.recycle();
+            return;
         }
+
+        this.hasHit = true;
+        this.node.angle = 0;
+        this.refreshHitPosition();
+        this.target.netControl(this.duration);
+        this.scheduleOnce(this.finishControl, this.duration);
+    }
+
+    /**刷新命中后渔网停留位置 */
+    private refreshHitPosition() {
+        if (!this.isTargetValid()) {
+            this.recycle();
+            return;
+        }
+
+        this.target.node.getWorldPosition(this.tempWorldPos);
+        let parentTransform = this.node.parent?.getComponent(UITransform);
+        if (parentTransform) {
+            parentTransform.convertToNodeSpaceAR(this.tempWorldPos, this.tempLocalPos);
+        } else {
+            this.tempLocalPos.set(this.tempWorldPos);
+        }
+
+        // let height = this.node.getComponent(UITransform)?.height || 0;
+        // this.tempLocalPos.y += height / 2;
+        this.node.setPosition(this.tempLocalPos);
+    }
+
+    /**控制结束 */
+    private finishControl() {
         this.recycle();
     }
 
     /**移除渔网 */
     private recycle() {
+        this.unschedule(this.finishControl);
         this.target = null;
         this.duration = 0;
+        this.hasHit = false;
         this.node.destroy();
     }
 }
-
+
+

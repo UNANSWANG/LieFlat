@@ -14,6 +14,7 @@ import { playerMgr } from '../../manager/playerManager';
 import { pData } from '../../manager/playerData';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { telescopeProps } from './telescopeProps';
+import { tubeProps } from './tubeProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('cannonProps')
@@ -77,14 +78,14 @@ export class cannonProps extends gamePropsBase {
 
         this.targetEnemy = this.getAttackTarget();
         if (!this.targetEnemy) {
-            this.attackTimer = configData.cannonAttackFreq;
+            this.attackTimer = this.getCurrentAttackInterval();
             return;
         }
 
         this.lookAtTarget(this.targetEnemy);
 
         this.attackTimer += dt;
-        if (this.attackTimer < configData.cannonAttackFreq) {
+        if (this.attackTimer < this.getCurrentAttackInterval()) {
             return;
         }
 
@@ -101,7 +102,7 @@ export class cannonProps extends gamePropsBase {
         this.attackStartDelay = Math.max(0, this.attackStartDelay - dt);
         if (this.attackStartDelay <= 0) {
             this.refreshAttack();
-            this.attackTimer = configData.cannonAttackFreq;
+            this.attackTimer = this.getCurrentAttackInterval();
         }
     }
 
@@ -150,6 +151,11 @@ export class cannonProps extends gamePropsBase {
     /** 获取当前实际攻击距离 */
     private getCurrentAttackRange() {
         return this.attackRange * telescopeProps.getRoomRangeMultiplier(this.gameComp, this.roomIdx);
+    }
+
+    /** 获取当前实际攻击间隔 */
+    private getCurrentAttackInterval() {
+        return configData.cannonAttackFreq / tubeProps.getRoomAttackSpeedMultiplier(this.gameComp, this.roomIdx);
     }
 
     /**炮台图片朝向目标 */

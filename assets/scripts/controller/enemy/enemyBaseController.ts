@@ -15,7 +15,7 @@ import { enemyConfig } from '../../json/jsonEnemy';
 import { gm } from '../../manager/gm';
 import { cannonProps } from '../props/cannonProps';
 import { iceProps } from '../props/iceProps';
-import { woodManProps } from '../props/woodManProps';
+import { cageProps } from '../props/cageProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -1418,13 +1418,13 @@ export class enemyBaseController extends Component {
 
         let tilePos = this.attackingTilePos;
         let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
-        if (!woodManProps.checkControlEnemy(this.gameComp, roomIdx)) {
+        if (!cageProps.checkControlEnemy(this.gameComp, roomIdx)) {
             return false;
         }
 
         this.isWoodManControlled = true;
         this.refreshRoleAnimTimeScale();
-        this.scheduleOnce(this.stopWoodManControl, woodManProps.getControlDuration());
+        this.scheduleOnce(this.stopWoodManControl, cageProps.getControlDuration());
         return true;
     }
 

@@ -22,7 +22,7 @@ import { tubeProps } from './props/tubeProps';
 import { boxProps } from './props/boxProps';
 import { coverProps } from './props/coverProps';
 import { thornProps } from './props/thornProps';
-import { woodManProps } from './props/woodManProps';
+import { cageProps } from './props/cageProps';
 import { trollsProps } from './props/trollsProps';
 const { ccclass, property } = _decorator;
 
@@ -44,8 +44,8 @@ export enum tilePropsType {
     machine = "machine",
     /**潘多拉魔盒 */
     box = "box",
-    /**123木头人 */
-    woodMan = "woodMan",
+    /**铁笼 */
+    cage = "cage",
     /**金钟罩 */
     cover = "cover",
     /**妙手空空 */
@@ -210,8 +210,8 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(alarmProps);
         } else if (this.tileType == tilePropsType.box) {
             propComp = propsItem.addComponent(boxProps);
-        } else if (this.tileType == tilePropsType.woodMan) {
-            propComp = propsItem.addComponent(woodManProps);
+        } else if (this.tileType == tilePropsType.cage) {
+            propComp = propsItem.addComponent(cageProps);
         } else if (this.tileType == tilePropsType.cover) {
             propComp = propsItem.addComponent(coverProps);
         } else if (this.tileType == tilePropsType.thorn) {

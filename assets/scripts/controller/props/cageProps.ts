@@ -4,29 +4,29 @@ import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
 const { ccclass, property } = _decorator;
 
-@ccclass('woodManProps')
-export class woodManProps extends gamePropsBase {
+@ccclass('cageProps')
+export class cageProps extends gamePropsBase {
     /**控制时长 */
-    static woodManControlDuration: number = 3;
+    static cageControlDuration: number = 3;
 
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        woodManProps.woodManControlDuration = commonConfig.getValueNumber("woodManControlDuration");
+        cageProps.cageControlDuration = commonConfig.getValueNumber("cageControlDuration");
     }
 
     /**指定房间内木头人是否触发控制 */
     static checkControlEnemy(gameComp: any, roomIdx: number) {
-        if (!gameComp || roomIdx <= 0 || woodManProps.woodManControlDuration <= 0) {
+        if (!gameComp || roomIdx <= 0 || cageProps.cageControlDuration <= 0) {
             return false;
         }
 
-        let woodManComp = woodManProps.getRoomWoodManComp(gameComp, roomIdx);
-        if (!woodManComp) {
+        let cageComp = cageProps.getRoomWoodManComp(gameComp, roomIdx);
+        if (!cageComp) {
             return false;
         }
 
-        woodManComp.playDisappearAnim();
+        cageComp.playDisappearAnim();
         return true;
     }
 
@@ -41,8 +41,8 @@ export class woodManProps extends gamePropsBase {
         for (let i = 0; i < roomArr.length; i++) {
             let tilePos = roomArr[i];
             let propComp = gameComp.tileMap?.[tilePos.x]?.[tilePos.y]?.item?.propsComp;
-            if (propComp?.propsType == tilePropsType.woodMan && propComp.isPropsActive) {
-                return propComp as woodManProps;
+            if (propComp?.propsType == tilePropsType.cage && propComp.isPropsActive) {
+                return propComp as cageProps;
             }
         }
 
@@ -51,7 +51,7 @@ export class woodManProps extends gamePropsBase {
 
     /**获取木头人控制时长 */
     static getControlDuration() {
-        return woodManProps.woodManControlDuration;
+        return cageProps.cageControlDuration;
     }
 
     /**道具开始生效 */

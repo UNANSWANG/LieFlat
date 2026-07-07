@@ -11,16 +11,26 @@ export class jsonProps extends jsonBase {
     protected tableUrl2: string = "";
 
     private propsData: JsonPropsData[][] = [];
+    /**可随机生成的道具数据 */
+    private randomPropsData: JsonPropsData[] = [];
 
     /**表格处理 */
     protected processTableData() {
         super.processTableData();
+        this.propsData = [];
+        this.randomPropsData = [];
         for (let i = 0; i < this.data.length; i++) {
             let data = this.data[i];
             if (this.propsData.hasOwnProperty(data.propsType)) {
                 this.propsData[data.propsType].push(data);
             } else {
                 this.propsData[data.propsType] = [data];
+            }
+
+            data.level = this.propsData[data.propsType].length - 1;
+
+            if (data.isRandom == 1) {
+                this.randomPropsData.push(data);
             }
         }
         console.warn("-------->初始化道具分类型数据:\n",this.propsData);
@@ -42,10 +52,15 @@ export class jsonProps extends jsonBase {
         }
         return this.propsData;
     }
+
+    /**获取可随机生成道具数据 */
+    getRandomPropsData(): JsonPropsData[] {
+        return this.randomPropsData || [];
+    }
 }
 export let propsConfig = new jsonProps();
 
-interface JsonPropsData {
+export interface JsonPropsData {
     /**道具类型(标识符) */
     propsType: string;
     /**建筑类型 */
@@ -74,6 +89,8 @@ interface JsonPropsData {
     builNumMax: number;
     /**是否随机生成 */
     isRandom: number;
+    /**等级（0基） */
+    level: number;
 }
 
 

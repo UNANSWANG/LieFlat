@@ -16,6 +16,7 @@ import { gm } from '../../manager/gm';
 import { cannonProps } from '../props/cannonProps';
 import { iceProps } from '../props/iceProps';
 import { cageProps } from '../props/cageProps';
+import { thornProps } from '../props/thornProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -75,6 +76,8 @@ export class enemyBaseController extends Component {
     private doorAttackTimeCheckDamage: number = 0;
     /**当前攻击门秒伤检测坐标 */
     private doorAttackTimeCheckTilePos: Vec2 = null;
+    /**当前攻击门荆棘反伤计时 */
+    private thornDamageTimer: number = 0;
     /**是否正在播放攻击角色动画 */
     private isAttackingPlayer: boolean = false;
     /**是否正在返回出生点回血 */
@@ -179,6 +182,7 @@ export class enemyBaseController extends Component {
         }
         this.checkRepairHpState();
         this.updateDoorAttackTimeCheck(dt);
+        this.updateThornDamage(dt);
         if (this.isCageControlled) {
             return;
         }
@@ -355,6 +359,29 @@ export class enemyBaseController extends Component {
         }
 
         return 0;
+    }
+
+    /** 攻击房门时受到荆棘反伤 */
+    private updateThornDamage(dt: number) {
+        if (!this.isAttackingDoor() || this.hp <= 0 || dt <= 0) {
+            this.thornDamageTimer = 0;
+            return;
+        }
+
+        let roomIdx = this.getCurAttackRoomIdx();
+        let thornDamage = thornProps.getRoomDamagePercent(this.gameComp, roomIdx);
+        if (thornDamage <= 0) {
+            this.thornDamageTimer = 0;
+            return;
+        }
+
+        this.thornDamageTimer += dt;
+        if (this.thornDamageTimer < 1) {
+            return;
+        }
+
+        this.thornDamageTimer = 0;
+        this.takeDamage(this.maxHp * thornDamage);
     }
 
     /**刷新升级计时 */
@@ -925,6 +952,7 @@ export class enemyBaseController extends Component {
             this.hasHandleTeamCannonCurAttackDoor = false;
             this.isForceAttackingDoor = false;
             this.resetDoorAttackTimeCheck();
+            this.thornDamageTimer = 0;
             if (propComp.propsType == tilePropsType.door) {
                 this.gameComp?.onDoorAttackStartedByEnemy(nextTilePos);
             }
@@ -954,6 +982,7 @@ export class enemyBaseController extends Component {
         this.hasHandleTeamCannonCurAttackDoor = false;
         this.isForceAttackingDoor = false;
         this.resetDoorAttackTimeCheck();
+        this.thornDamageTimer = 0;
     }
 
     /**开始攻击目标角色 */

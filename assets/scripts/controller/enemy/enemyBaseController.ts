@@ -17,6 +17,7 @@ import { cannonProps } from '../props/cannonProps';
 import { iceProps } from '../props/iceProps';
 import { cageProps } from '../props/cageProps';
 import { thornProps } from '../props/thornProps';
+import { netProps } from '../props/netProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -110,6 +111,8 @@ export class enemyBaseController extends Component {
     private isRaging: boolean = false;
     /**是否被铁笼控制 */
     private isCageControlled: boolean = false;
+    /**是否被渔网控制 */
+    private isNetControlled: boolean = false;
 
     ///
     ///节点
@@ -150,6 +153,7 @@ export class enemyBaseController extends Component {
         this.resetUpgradeTimer();
         this.resetRageSkill();
         this.stopCageControl();
+        this.stopNetControl();
 
         this.gameComp = comp;
         this.roleId = id;
@@ -184,6 +188,10 @@ export class enemyBaseController extends Component {
         this.updateDoorAttackTimeCheck(dt);
         this.updateThornDamage(dt);
         if (this.isCageControlled) {
+            return;
+        }
+        if (this.isNetControlled) {
+            this.playRoleAnim(enemyAnim.move, true);
             return;
         }
         this.moveByPath(dt);
@@ -340,6 +348,17 @@ export class enemyBaseController extends Component {
         }
 
         this.roleAnim.timeScale = timeScale;
+    }
+
+    /**渔网控制 */
+    netControl(time: number) {
+        if (time <= 0) {
+            return;
+        }
+
+        this.isNetControlled = true;
+        this.unschedule(this.stopNetControl);
+        this.scheduleOnce(this.stopNetControl, time);
     }
 
     /**获取千年寒冰对当前攻击目标所在房间的攻速影响 */
@@ -505,12 +524,14 @@ export class enemyBaseController extends Component {
             return false;
         }
 
+        let attackRoomIdx = this.getCurAttackRoomIdx();
         let doorComp = this.getTilePropComp(this.attackingTilePos);
         if (!doorComp) {
             return false;
         }
 
         if (doorComp.hpPercent > enemyCommonConfig.doorHpAttackPercent) {
+            this.tryTriggerRoomNet(attackRoomIdx);
             this.startRepairHp();
             return true;
         }
@@ -519,6 +540,7 @@ export class enemyBaseController extends Component {
         let doorDamageSpeed = doorComp.getRecentDamage(2);
         //敌人受到的伤害大于门受到的伤害则逃离
         if (enemyDamageSpeed > doorDamageSpeed) {
+            this.tryTriggerRoomNet(attackRoomIdx);
             this.startRepairHp();
             return true;
         }
@@ -1113,6 +1135,9 @@ export class enemyBaseController extends Component {
 
     /**离开当前门并重新寻找其他目标 */
     private leaveCurrentDoorAndChooseTarget() {
+        let attackRoomIdx = this.getCurAttackRoomIdx();
+        this.tryTriggerRoomNet(attackRoomIdx);
+
         if (this.shouldReturnBornWhenForceLeave()) {
             this.startRepairHp(true);
             return;
@@ -1281,6 +1306,7 @@ export class enemyBaseController extends Component {
         this.clearMovePath();
         this.stopAttackPlayer();
         this.resetRageSkill();
+        this.stopNetControl();
     }
 
     /**尝试处理到达当前目标 */
@@ -1466,6 +1492,21 @@ export class enemyBaseController extends Component {
         this.unschedule(this.stopCageControl);
         this.isCageControlled = false;
         this.refreshRoleAnimTimeScale();
+    }
+
+    /**结束渔网控制 */
+    private stopNetControl() {
+        if (!this.isNetControlled) {
+            return;
+        }
+
+        this.unschedule(this.stopNetControl);
+        this.isNetControlled = false;
+    }
+
+    /**触发当前攻击房间内的渔网 */
+    private tryTriggerRoomNet(roomIdx: number) {
+        return netProps.tryTriggerRoomNet(this.gameComp, roomIdx, this);
     }
 
     /**攻击道具 */

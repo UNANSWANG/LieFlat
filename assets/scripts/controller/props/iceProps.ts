@@ -1,6 +1,7 @@
 import { _decorator, Component, Node } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
+import { tilePropsType } from '../tileItemController';
 const { ccclass, property } = _decorator;
 
 @ccclass('iceProps')
@@ -20,7 +21,7 @@ export class iceProps extends gamePropsBase {
             return 1;
         }
 
-        let iceCount = gameComp.getRoomPropsCountByType(roomIdx, "ice");
+        let iceCount = gameComp.getRoomPropsCountByType(roomIdx, tilePropsType.ice);
         return iceCount > 0 ? iceProps.iceAttackTimeScale : 1;
     }
 

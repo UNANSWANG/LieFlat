@@ -15,6 +15,7 @@ import { enemyConfig } from '../../json/jsonEnemy';
 import { gm } from '../../manager/gm';
 import { cannonProps } from '../props/cannonProps';
 import { iceProps } from '../props/iceProps';
+import { woodManProps } from '../props/woodManProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -104,6 +105,8 @@ export class enemyBaseController extends Component {
     private isRageReady: boolean = false;
     /**是否处于狂怒状态 */
     private isRaging: boolean = false;
+    /**是否被木头人控制 */
+    private isWoodManControlled: boolean = false;
 
     ///
     ///节点
@@ -143,6 +146,7 @@ export class enemyBaseController extends Component {
         this.resetAttackDamage();
         this.resetUpgradeTimer();
         this.resetRageSkill();
+        this.stopWoodManControl();
 
         this.gameComp = comp;
         this.roleId = id;
@@ -175,6 +179,9 @@ export class enemyBaseController extends Component {
         }
         this.checkRepairHpState();
         this.updateDoorAttackTimeCheck(dt);
+        if (this.isWoodManControlled) {
+            return;
+        }
         this.moveByPath(dt);
     }
 
@@ -282,15 +289,19 @@ export class enemyBaseController extends Component {
     /**尝试在攻击动画结束后释放狂怒 */
     private tryStartRageSkill() {
         if (!this.isRageReady || this.isRaging || enemyCommonConfig.rageTime <= 0) {
-            return;
+            return false;
         }
 
         this.isRageReady = false;
-        this.isRaging = true;
         this.rageUseTimer = 0;
+        uiMgr.showTips("猎梦者释放狂怒技能");
+        if (this.tryStartWoodManControl()) {
+            return true;
+        }
+
+        this.isRaging = true;
         this.rageTimer = 0;
         this.refreshRoleAnimTimeScale();
-        uiMgr.showTips("猎梦者释放狂怒技能");
     }
 
     /**结束狂怒技能 */
@@ -307,6 +318,11 @@ export class enemyBaseController extends Component {
     /**刷新角色动画播放速度 */
     private refreshRoleAnimTimeScale() {
         if (!this.roleAnim) {
+            return;
+        }
+
+        if (this.isWoodManControlled) {
+            this.roleAnim.timeScale = 0;
             return;
         }
 
@@ -930,6 +946,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        this.stopWoodManControl();
         this.isAttackingProps = false;
         this.attackingTilePos = null;
         this.hasFearCurAttackDoor = false;
@@ -948,6 +965,7 @@ export class enemyBaseController extends Component {
 
     /**停止攻击角色状态 */
     private stopAttackPlayer() {
+        this.stopWoodManControl();
         this.isAttackingPlayer = false;
     }
 
@@ -1314,7 +1332,9 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        this.tryStartRageSkill();
+        if (this.tryStartRageSkill()) {
+            return;
+        }
 
         let tilePos = new Vec2(this.attackingTilePos.x, this.attackingTilePos.y);
         let propComp = this.getTilePropComp(tilePos);
@@ -1385,8 +1405,37 @@ export class enemyBaseController extends Component {
         }
 
         this.curRoleAnimName = animName;
-        this.refreshRoleAnimTimeScale();
         this.roleAnim.setAnimation(0, animName, loop);
+        this.refreshRoleAnimTimeScale();
+    }
+
+    /**尝试在释放技能时触发木头人控制 */
+    private tryStartWoodManControl() {
+        if (this.isWoodManControlled || !this.isAttackingDoor()) {
+            return false;
+        }
+
+        let tilePos = this.attackingTilePos;
+        let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+        if (!woodManProps.checkControlEnemy(this.gameComp, roomIdx)) {
+            return false;
+        }
+
+        this.isWoodManControlled = true;
+        this.refreshRoleAnimTimeScale();
+        this.scheduleOnce(this.stopWoodManControl, woodManProps.getControlDuration());
+        return true;
+    }
+
+    /**结束木头人控制 */
+    private stopWoodManControl() {
+        if (!this.isWoodManControlled) {
+            return;
+        }
+
+        this.unschedule(this.stopWoodManControl);
+        this.isWoodManControlled = false;
+        this.refreshRoleAnimTimeScale();
     }
 
     /**攻击道具 */
@@ -1425,7 +1474,6 @@ export class enemyBaseController extends Component {
         }
     }
 
-    /**尝试释放震慑技能 */
     private tryReleaseFearSkill(propComp: gamePropsBase, tilePos: Vec2, isAttackDoor: boolean) {
         if (this.hasFearCurAttackDoor || !isAttackDoor) {
             return;
@@ -1436,6 +1484,10 @@ export class enemyBaseController extends Component {
         }
 
         uiMgr.showTips("猎梦者释放震慑技能");
+        if (this.tryStartWoodManControl()) {
+            this.hasFearCurAttackDoor = true;
+            return;
+        }
 
         this.hasFearCurAttackDoor = true;
         this.fearCannonsAround(tilePos);

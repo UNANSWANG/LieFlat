@@ -105,8 +105,8 @@ export class enemyBaseController extends Component {
     private isRageReady: boolean = false;
     /**是否处于狂怒状态 */
     private isRaging: boolean = false;
-    /**是否被木头人控制 */
-    private isWoodManControlled: boolean = false;
+    /**是否被铁笼控制 */
+    private isCageControlled: boolean = false;
 
     ///
     ///节点
@@ -146,7 +146,7 @@ export class enemyBaseController extends Component {
         this.resetAttackDamage();
         this.resetUpgradeTimer();
         this.resetRageSkill();
-        this.stopWoodManControl();
+        this.stopCageControl();
 
         this.gameComp = comp;
         this.roleId = id;
@@ -179,7 +179,7 @@ export class enemyBaseController extends Component {
         }
         this.checkRepairHpState();
         this.updateDoorAttackTimeCheck(dt);
-        if (this.isWoodManControlled) {
+        if (this.isCageControlled) {
             return;
         }
         this.moveByPath(dt);
@@ -295,7 +295,7 @@ export class enemyBaseController extends Component {
         this.isRageReady = false;
         this.rageUseTimer = 0;
         uiMgr.showTips("猎梦者释放狂怒技能");
-        if (this.tryStartWoodManControl()) {
+        if (this.tryStartCageControl()) {
             return true;
         }
 
@@ -321,7 +321,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        if (this.isWoodManControlled) {
+        if (this.isCageControlled) {
             this.roleAnim.timeScale = 0;
             return;
         }
@@ -947,7 +947,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        this.stopWoodManControl();
+        this.stopCageControl();
         this.isAttackingProps = false;
         this.attackingTilePos = null;
         this.hasFearCurAttackDoor = false;
@@ -966,7 +966,7 @@ export class enemyBaseController extends Component {
 
     /**停止攻击角色状态 */
     private stopAttackPlayer() {
-        this.stopWoodManControl();
+        this.stopCageControl();
         this.isAttackingPlayer = false;
     }
 
@@ -1410,9 +1410,9 @@ export class enemyBaseController extends Component {
         this.refreshRoleAnimTimeScale();
     }
 
-    /**尝试在释放技能时触发木头人控制 */
-    private tryStartWoodManControl() {
-        if (this.isWoodManControlled || !this.isAttackingDoor()) {
+    /**尝试在释放技能时触发铁笼控制 */
+    private tryStartCageControl() {
+        if (this.isCageControlled || !this.isAttackingDoor()) {
             return false;
         }
 
@@ -1422,20 +1422,20 @@ export class enemyBaseController extends Component {
             return false;
         }
 
-        this.isWoodManControlled = true;
+        this.isCageControlled = true;
         this.refreshRoleAnimTimeScale();
-        this.scheduleOnce(this.stopWoodManControl, cageProps.getControlDuration());
+        this.scheduleOnce(this.stopCageControl, cageProps.getControlDuration());
         return true;
     }
 
-    /**结束木头人控制 */
-    private stopWoodManControl() {
-        if (!this.isWoodManControlled) {
+    /**结束铁笼控制 */
+    private stopCageControl() {
+        if (!this.isCageControlled) {
             return;
         }
 
-        this.unschedule(this.stopWoodManControl);
-        this.isWoodManControlled = false;
+        this.unschedule(this.stopCageControl);
+        this.isCageControlled = false;
         this.refreshRoleAnimTimeScale();
     }
 
@@ -1488,7 +1488,7 @@ export class enemyBaseController extends Component {
         }
 
         uiMgr.showTips("猎梦者释放震慑技能");
-        if (this.tryStartWoodManControl()) {
+        if (this.tryStartCageControl()) {
             this.hasFearCurAttackDoor = true;
             return;
         }

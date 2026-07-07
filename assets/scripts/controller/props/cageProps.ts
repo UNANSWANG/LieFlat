@@ -15,13 +15,13 @@ export class cageProps extends gamePropsBase {
         cageProps.cageControlDuration = commonConfig.getValueNumber("cageControlDuration");
     }
 
-    /**指定房间内木头人是否触发控制 */
+    /**指定房间内铁笼是否触发控制 */
     static checkControlEnemy(gameComp: any, roomIdx: number) {
         if (!gameComp || roomIdx <= 0 || cageProps.cageControlDuration <= 0) {
             return false;
         }
 
-        let cageComp = cageProps.getRoomWoodManComp(gameComp, roomIdx);
+        let cageComp = cageProps.getRoomCageComp(gameComp, roomIdx);
         if (!cageComp) {
             return false;
         }
@@ -30,8 +30,8 @@ export class cageProps extends gamePropsBase {
         return true;
     }
 
-    /**获取指定房间内的木头人道具 */
-    private static getRoomWoodManComp(gameComp: any, roomIdx: number) {
+    /**获取指定房间内的铁笼道具 */
+    private static getRoomCageComp(gameComp: any, roomIdx: number) {
         let roomData = gameComp?.roomMap?.[roomIdx];
         if (!roomData) {
             return null;
@@ -49,7 +49,7 @@ export class cageProps extends gamePropsBase {
         return null;
     }
 
-    /**获取木头人控制时长 */
+    /**获取铁笼控制时长 */
     static getControlDuration() {
         return cageProps.cageControlDuration;
     }

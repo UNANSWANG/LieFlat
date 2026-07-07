@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, tween, Tween } from 'cc';
+import { _decorator } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
@@ -21,12 +21,32 @@ export class woodManProps extends gamePropsBase {
             return false;
         }
 
-        let woodManCount = gameComp.getRoomPropsCountByType(roomIdx, tilePropsType.woodMan);
-        if (woodManCount <= 0) {
+        let woodManComp = woodManProps.getRoomWoodManComp(gameComp, roomIdx);
+        if (!woodManComp) {
             return false;
         }
 
+        woodManComp.playDisappearAnim();
         return true;
+    }
+
+    /**获取指定房间内的木头人道具 */
+    private static getRoomWoodManComp(gameComp: any, roomIdx: number) {
+        let roomData = gameComp?.roomMap?.[roomIdx];
+        if (!roomData) {
+            return null;
+        }
+
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = gameComp.tileMap?.[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == tilePropsType.woodMan && propComp.isPropsActive) {
+                return propComp as woodManProps;
+            }
+        }
+
+        return null;
     }
 
     /**获取木头人控制时长 */

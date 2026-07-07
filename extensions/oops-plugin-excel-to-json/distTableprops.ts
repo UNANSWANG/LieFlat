@@ -63,6 +63,10 @@ export class Tableprops {
     get attackRange(): number {
         return this.data.attackRange;
     }
+    /** 是否随机生成 */
+    get isRandom(): number {
+        return this.data.isRandom;
+    }
     /** 建造上限 */
     get builNumMax(): number {
         return this.data.builNumMax;

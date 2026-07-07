@@ -4,6 +4,9 @@ const { ccclass, property } = _decorator;
 
 @ccclass('boxProps')
 export class boxProps extends gamePropsBase {
+    /**等待时间（不读表） */
+    waitTime: number = 2;
+
     /**道具开始生效 */
     startProps() {
 

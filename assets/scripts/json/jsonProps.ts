@@ -72,6 +72,8 @@ interface JsonPropsData {
     attackRange: number;
     /**建造上限 */
     builNumMax: number;
+    /**是否随机生成 */
+    isRandom: number;
 }
 
 

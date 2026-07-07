@@ -290,9 +290,10 @@ export class gamePropsBase extends Component {
         tween(this.uiOpacity)
             .to(0.2, { opacity: 0 })
             .call(() => {
-                this.onDisappear();
                 //移除自身
                 this.tileItemComp.removeProps();
+                //移除回调
+                this.onDisappear();
             })
             .start();
     }

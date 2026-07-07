@@ -13,6 +13,7 @@ import { handProps } from './handProps';
 import { playerMgr } from '../../manager/playerManager';
 import { pData } from '../../manager/playerData';
 import { produceType } from '../../UIPage/tips/produceTips';
+import { telescopeProps } from './telescopeProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('cannonProps')
@@ -121,7 +122,7 @@ export class cannonProps extends gamePropsBase {
     private getAttackTarget() {
         let target: enemyBaseController = null;
         let minDistanceSqr = Number.MAX_VALUE;
-        let range = this.attackRange * configData.tileSize;
+        let range = this.getCurrentAttackRange() * configData.tileSize;
         let rangeSqr = range * range;
         let selfWorldPos = this.node.worldPosition;
 
@@ -144,6 +145,11 @@ export class cannonProps extends gamePropsBase {
         }
 
         return target;
+    }
+
+    /** 获取当前实际攻击距离 */
+    private getCurrentAttackRange() {
+        return this.attackRange * telescopeProps.getRoomRangeMultiplier(this.gameComp, this.roomIdx);
     }
 
     /**炮台图片朝向目标 */

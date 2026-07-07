@@ -3,8 +3,8 @@ import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 const { ccclass, property } = _decorator;
 
-@ccclass('clockProps')
-export class clockProps extends gamePropsBase {
+@ccclass('coverProps')
+export class coverProps extends gamePropsBase {
     /**血量阈值 */
     coverThreshold: number = 0.3;
     /**技能持续时长 */

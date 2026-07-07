@@ -20,7 +20,7 @@ import { sawProps } from './props/sawProps';
 import { telescopeProps } from './props/telescopeProps';
 import { tubeProps } from './props/tubeProps';
 import { boxProps } from './props/boxProps';
-import { clockProps } from './props/clockProps';
+import { coverProps } from './props/coverProps';
 import { thornProps } from './props/thornProps';
 import { woodManProps } from './props/woodManProps';
 import { trollsProps } from './props/trollsProps';
@@ -47,7 +47,7 @@ export enum tilePropsType {
     /**123木头人 */
     woodMan = "woodMan",
     /**金钟罩 */
-    clock = "clock",
+    cover = "cover",
     /**妙手空空 */
     hand = "hand",
     /**千年寒冰 */
@@ -212,8 +212,8 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(boxProps);
         } else if (this.tileType == tilePropsType.woodMan) {
             propComp = propsItem.addComponent(woodManProps);
-        } else if (this.tileType == tilePropsType.clock) {
-            propComp = propsItem.addComponent(clockProps);
+        } else if (this.tileType == tilePropsType.cover) {
+            propComp = propsItem.addComponent(coverProps);
         } else if (this.tileType == tilePropsType.thorn) {
             propComp = propsItem.addComponent(thornProps);
         }

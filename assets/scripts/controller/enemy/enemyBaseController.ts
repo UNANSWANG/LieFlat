@@ -1473,7 +1473,7 @@ export class enemyBaseController extends Component {
 
         let tilePos = this.attackingTilePos;
         let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
-        if (!cageProps.checkControlEnemy(this.gameComp, roomIdx)) {
+        if (!cageProps.checkControlEnemy(this.gameComp, roomIdx, this)) {
             return false;
         }
 

@@ -203,7 +203,7 @@ export class UIProps extends UIBase {
                 coinNumLab.string = coinNum + "";
                 powerNumLab.string = powerNum + "";
                 nameLab.string = nextPropsData.name;
-                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType);
+                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType + "_" + nextPropsData.level);
                 this.refreshBuyBtnState(buyBtn, nextPropsData);
             } else if (i == 1) {
                 powerNum = propsData.power / 2;

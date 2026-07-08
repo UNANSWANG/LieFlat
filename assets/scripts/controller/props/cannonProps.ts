@@ -15,6 +15,7 @@ import { pData } from '../../manager/playerData';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { telescopeProps } from './telescopeProps';
 import { tubeProps } from './tubeProps';
+import { fireProps } from './fireProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('cannonProps')
@@ -196,7 +197,7 @@ export class cannonProps extends gamePropsBase {
         if (!bulletComp) {
             bulletComp = bulletNode.addComponent(bulletController);
         }
-        bulletComp.init(target, this.attack, this.level);
+        bulletComp.init(target, this.attack, this.level, fireProps.getRoomDamagePercent(this.gameComp, this.roomIdx));
         bulletNode.active = true;
 
         this.produceCoinByHand();

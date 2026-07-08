@@ -22,15 +22,18 @@ export class bulletController extends Component {
     private img: Sprite = null;
     /**等级 */
     private level: number = -1;
+    /**灼烧每秒伤害百分比 */
+    private fireDamagePercent: number = 0;
 
     protected onLoad(): void {
         this.img = this.node.getComponent(Sprite);
     }
 
     /**初始化子弹 */
-    init(target: enemyBaseController, damage: number, level: number) {
+    init(target: enemyBaseController, damage: number, level: number, fireDamagePercent: number = 0) {
         this.target = target;
         this.damage = damage;
+        this.fireDamagePercent = fireDamagePercent;
         this.refreshBulletImg(level);
         this.refreshDirection();
     }
@@ -114,7 +117,10 @@ export class bulletController extends Component {
     /**命中目标 */
     private hitTarget() {
         if (this.isTargetValid()) {
-            this.target.takeDamage(this.damage);
+            let isDead = this.target.takeDamage(this.damage);
+            if (!isDead && this.fireDamagePercent > 0) {
+                this.target.refreshFireBurn(this.fireDamagePercent);
+            }
         }
         this.recycle();
     }
@@ -123,6 +129,7 @@ export class bulletController extends Component {
     private recycle() {
         this.target = null;
         this.damage = 0;
+        this.fireDamagePercent = 0;
         this.node.active = false;
         this.node.removeFromParent();
         poolMgr.bulletPool.put(this.node);

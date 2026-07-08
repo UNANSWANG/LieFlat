@@ -80,6 +80,14 @@ export class enemyBaseController extends Component {
     private doorAttackTimeCheckTilePos: Vec2 = null;
     /**当前攻击门荆棘反伤计时 */
     private thornDamageTimer: number = 0;
+    /**火攻术灼烧剩余时间 */
+    private fireBurnTimer: number = 0;
+    /**火攻术灼烧伤害计时 */
+    private fireBurnDamageTimer: number = 0;
+    /**火攻术每秒伤害百分比 */
+    private fireBurnDamagePercent: number = 0;
+    /**火攻术灼烧刷新后的保留时间 */
+    private fireBurnKeepTime: number = 1.2;
     /**是否正在播放攻击角色动画 */
     private isAttackingPlayer: boolean = false;
     /**是否正在返回出生点回血 */
@@ -153,6 +161,7 @@ export class enemyBaseController extends Component {
         this.resetAttackDamage();
         this.resetUpgradeTimer();
         this.resetRageSkill();
+        this.clearFireBurn();
         this.stopCageControl();
         this.stopNetControl();
 
@@ -188,6 +197,7 @@ export class enemyBaseController extends Component {
         this.checkRepairHpState();
         this.updateDoorAttackTimeCheck(dt);
         this.updateThornDamage(dt);
+        this.updateFireBurn(dt);
         if (this.isCageControlled) {
             return;
         }
@@ -362,6 +372,19 @@ export class enemyBaseController extends Component {
         this.scheduleOnce(this.stopNetControl, time);
     }
 
+    /**刷新火攻术灼烧状态 */
+    refreshFireBurn(damagePercent: number) {
+        if (damagePercent <= 0 || this.hp <= 0) {
+            return;
+        }
+
+        if (this.fireBurnTimer <= 0) {
+            this.fireBurnDamageTimer = 0;
+        }
+        this.fireBurnTimer = this.fireBurnKeepTime;
+        this.fireBurnDamagePercent = Math.max(this.fireBurnDamagePercent, damagePercent);
+    }
+
     /**获取千年寒冰对当前攻击目标所在房间的攻速影响 */
     private getIceAttackTimeScale() {
         let roomIdx = this.getCurAttackRoomIdx();
@@ -402,6 +425,32 @@ export class enemyBaseController extends Component {
 
         this.thornDamageTimer = 0;
         this.takeDamage(this.maxHp * thornDamage);
+    }
+
+    /**刷新火攻术灼烧伤害 */
+    private updateFireBurn(dt: number) {
+        if (this.hp <= 0 || dt <= 0 || this.fireBurnTimer <= 0 || this.fireBurnDamagePercent <= 0) {
+            this.clearFireBurn();
+            return;
+        }
+
+        this.fireBurnTimer = Math.max(0, this.fireBurnTimer - dt);
+        this.fireBurnDamageTimer += dt;
+        while (this.fireBurnDamageTimer >= 1 && this.hp > 0) {
+            this.fireBurnDamageTimer -= 1;
+            this.takeDamage(this.maxHp * this.fireBurnDamagePercent);
+        }
+
+        if (this.fireBurnTimer <= 0) {
+            this.clearFireBurn();
+        }
+    }
+
+    /**清除火攻术灼烧状态 */
+    private clearFireBurn() {
+        this.fireBurnTimer = 0;
+        this.fireBurnDamageTimer = 0;
+        this.fireBurnDamagePercent = 0;
     }
 
     /**刷新升级计时 */

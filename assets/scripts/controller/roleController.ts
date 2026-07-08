@@ -77,6 +77,8 @@ export class roleController extends Component {
     private isDoorAttackSessionActive: boolean = false;
     /**当前敌人连续攻击房门时间 */
     private doorAttackSessionElapsedTime: number = 0;
+    /**本局建造道具次数 */
+    private gamePropsBuildCountMap: { [key: string]: number } = {};
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -113,6 +115,7 @@ export class roleController extends Component {
         this.state = roleState.normal;
         this.stopRobotUpgrade();
         this.resetDoorAttackUpgradeData();
+        this.gamePropsBuildCountMap = {};
 
         //TODO 名称后续加入配置，先临时写死
         if (this.roleId == 0) {
@@ -120,6 +123,24 @@ export class roleController extends Component {
         } else {
             this.roleNameLab.string = `人机${this.roleId}`
         }
+    }
+
+    /**累计本角色本局建造道具次数 */
+    addGamePropsBuildCount(propsType: tilePropsType) {
+        if (!propsType) {
+            return;
+        }
+
+        this.gamePropsBuildCountMap[propsType] = (this.gamePropsBuildCountMap[propsType] || 0) + 1;
+    }
+
+    /**获取本角色本局指定类型道具建造次数 */
+    getGamePropsBuildCountByType(propsType: string) {
+        if (!propsType) {
+            return 0;
+        }
+
+        return this.gamePropsBuildCountMap[propsType] || 0;
     }
 
     /**隐藏角色 */

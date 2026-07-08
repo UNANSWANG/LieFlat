@@ -533,6 +533,29 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
         tileComp.addProps(propsType, level);
+        let buildRole = this.getBuildRoleByRoomIdx(tileData.roomIdx);
+        buildRole?.addGamePropsBuildCount(propsType);
+    }
+
+    /**通过房间号获取建造归属角色 */
+    private getBuildRoleByRoomIdx(roomIdx: number) {
+        if (roomIdx <= 0) {
+            return null;
+        }
+
+        let playerComp = playerMgr.playerComp;
+        if (playerComp && playerComp.roomIdx == roomIdx) {
+            return playerComp;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let robotComp = this.robotArr[i];
+            if (robotComp && robotComp.roomIdx == roomIdx) {
+                return robotComp;
+            }
+        }
+
+        return null;
     }
 
     /**创建瓦片节点 */

@@ -6,6 +6,7 @@ import { configData, GameEvent } from "../manager/configData";
 import { gm } from "../manager/gm";
 import { imgPath, UIPath } from "../manager/pathConfig";
 import { pData } from "../manager/playerData";
+import { playerMgr } from "../manager/playerManager";
 import { uiMgr } from "../manager/UIManager";
 import { UIBase } from "./UIBase";
 const { ccclass, property } = _decorator;
@@ -157,7 +158,7 @@ export class UIBuild extends UIBase {
             let powerNum = propsData.power;
             let coinNum = propsData.coin;
             if (propsData.builNumMax && propsData.builNumMax > 0) {
-                let buildCount = this.getRoomPropsBuildCount(propsData);
+                let buildCount = this.getPropsBuildLimitCount(propsData);
                 limitLab.string = `可建造 ${buildCount}/${propsData.builNumMax}`;
             } else {
                 limitLab.string = "";
@@ -245,13 +246,26 @@ export class UIBuild extends UIBase {
         return this.roomData.propsCountMap?.[propsData.propsType] || 0;
     }
 
+    /**获取用于建造上限判断的数量 */
+    private getPropsBuildLimitCount(propsData: any) {
+        if (!propsData) {
+            return 0;
+        }
+
+        if (propsData.propsType == tilePropsType.box) {
+            return playerMgr.playerComp?.getGamePropsBuildCountByType(propsData.propsType) || 0;
+        }
+
+        return this.getRoomPropsBuildCount(propsData);
+    }
+
     /**是否达到当前房间建造数量上限 */
     private isBuildNumLimit(propsData: any) {
         if (!propsData?.builNumMax || propsData.builNumMax <= 0) {
             return false;
         }
 
-        return this.getRoomPropsBuildCount(propsData) >= propsData.builNumMax;
+        return this.getPropsBuildLimitCount(propsData) >= propsData.builNumMax;
     }
 
     ///

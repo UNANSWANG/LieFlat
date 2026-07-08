@@ -27,8 +27,6 @@ export class jsonProps extends jsonBase {
                 this.propsData[data.propsType] = [data];
             }
 
-            data.level = this.propsData[data.propsType].length - 1;
-
             if (data.isRandom == 1) {
                 this.randomPropsData.push(data);
             }
@@ -89,7 +87,7 @@ export interface JsonPropsData {
     builNumMax: number;
     /**是否随机生成 */
     isRandom: number;
-    /**等级（0基） */
+    /**等级 */
     level: number;
 }
 

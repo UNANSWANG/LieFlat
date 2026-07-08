@@ -19,6 +19,10 @@ export class Tableprops {
     get propsType(): string {
         return this.data.propsType;
     }
+    /** 等级 */
+    get level(): number {
+        return this.data.level;
+    }
     /** 建筑类型 */
     get buildType(): number {
         return this.data.buildType;

@@ -28,7 +28,7 @@ export class boxProps extends gamePropsBase {
         }
 
         setTimeout(() => {
-            tileItemComp.addProps(propsData.propsType as tilePropsType, propsData.level);
+            tileItemComp.addProps(propsData.propsType as tilePropsType, propsData.level - 1);
         }, 0);
     }
 

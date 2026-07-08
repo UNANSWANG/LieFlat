@@ -30,7 +30,7 @@ export class UIBuild extends UIBase {
     /**当前页签 */
     currentIdx: number = 0;
     /**分类道具数组 基础，赚钱，高科技，黑科技，工坊 */
-    propsTypeArr: string[][] = null;
+    propsTypeArr: any[][] = null;
     /**当前瓦片位置 */
     tilePos: Vec2 = new Vec2();
     /**当前目标位置 */
@@ -94,10 +94,10 @@ export class UIBuild extends UIBase {
                 if (type == "printer") {
                     let pointerData = propsConfig.getPropsData(type);
                     for (let i = 0; i < pointerData.length; i++) {
-                        this.propsTypeArr[buildType - 1].push("printer_" + i);
+                        this.propsTypeArr[buildType - 1].push({type: type, level: i});
                     }
                 } else {
-                    this.propsTypeArr[buildType - 1].push(type);
+                    this.propsTypeArr[buildType - 1].push({type: type, level: 0});
                 }
             }
         });
@@ -126,18 +126,11 @@ export class UIBuild extends UIBase {
 
             propsItem.active = true;
 
-            let propsTypeData = propsConfig.getPropsData(currentPropsTypeArr[i]);
+            let propsTypeData = propsConfig.getPropsData(currentPropsTypeArr[i].type);
             let propsData = null;
-            let level = 0;
+            let level = currentPropsTypeArr[i].level;
 
-            if (!propsTypeData) {
-                let typeData: any = currentPropsTypeArr[i].split("_");
-                propsTypeData = propsConfig.getPropsData(typeData[0]);
-                level = Number(typeData[1]);
-                propsData = propsTypeData[level];
-            } else {
-                propsData = propsTypeData[level];
-            }
+            propsData = propsTypeData[level];
 
             //增加level属性
             propsData.level = level;
@@ -190,7 +183,7 @@ export class UIBuild extends UIBase {
             coinNumLab.string = propsData.coin + "";
             powerNumLab.string = propsData.power + "";
             nameLab.string = propsData.name;
-            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i]);
+            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + propsData.level);
 
             let btnComp = buyBtn.getComponent(zoomButton);
             if (!btnComp) {

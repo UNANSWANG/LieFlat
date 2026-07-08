@@ -18,6 +18,7 @@ import { iceProps } from '../props/iceProps';
 import { cageProps } from '../props/cageProps';
 import { thornProps } from '../props/thornProps';
 import { netProps } from '../props/netProps';
+import { alarmProps } from '../props/alarmProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -456,6 +457,10 @@ export class enemyBaseController extends Component {
             return true;
         }
 
+        if (this.tryTriggerAttackRoomAlarm()) {
+            return false;
+        }
+
         if (this.tryHandleDoorAttackHpThreshold(hpPercentBeforeDamage)) {
             return false;
         }
@@ -518,6 +523,33 @@ export class enemyBaseController extends Component {
         this.leaveCurrentDoorAndChooseTarget();
     }
 
+    /**敌人强制离开当前攻击房间，重新选择其他房间目标 */
+    forceChooseTargetExcludeRoom(excludeRoomIdx: number) {
+        if (excludeRoomIdx <= 0 || this.getCurAttackRoomIdx() != excludeRoomIdx) {
+            return;
+        }
+
+        this.clearTarget();
+        this.emptyRoomIgnoreDoorRoomIdx = 0;
+        this.clearMovePath();
+        this.playRoleAnim(enemyAnim.move, true);
+        this.chooseTargetAndFindPath(excludeRoomIdx);
+    }
+
+    /**尝试触发当前攻击房间内的警示铃 */
+    private tryTriggerAttackRoomAlarm() {
+        if (!this.isAttackingProps) {
+            return false;
+        }
+
+        let attackRoomIdx = this.getCurAttackRoomIdx();
+        if (attackRoomIdx <= 0) {
+            return false;
+        }
+
+        return alarmProps.tryTriggerRoomAlarm(this.gameComp, attackRoomIdx, this);
+    }
+
     /**检测攻击门时是否需要逃离 */
     private checkDoorAttackEscape() {
         if (!this.isAttackingDoor()) {
@@ -550,7 +582,7 @@ export class enemyBaseController extends Component {
     }
 
     /**随机选择一个可到达的玩家，并移动到该玩家身边 */
-    chooseTargetAndFindPath() {
+    chooseTargetAndFindPath(excludeRoomIdx: number = 0) {
         if (gm.isGamePause) {
             return;
         }
@@ -567,7 +599,7 @@ export class enemyBaseController extends Component {
         this.syncCurrentPosByNode();
         this.stopAttackPlayer();
 
-        let candidates = this.getTargetCandidates();
+        let candidates = this.getTargetCandidates(excludeRoomIdx);
 
         if (candidates.length == 0) {
             this.clearTarget();
@@ -603,10 +635,10 @@ export class enemyBaseController extends Component {
     }
 
     /**获取敌人目标候选，包含角色和空房间床 */
-    private getTargetCandidates(): enemyTargetCandidate[] {
+    private getTargetCandidates(excludeRoomIdx: number = 0): enemyTargetCandidate[] {
         let result: enemyTargetCandidate[] = [];
         let playerComp = playerMgr.playerComp;
-        if (this.isRoleTargetValid(playerComp)) {
+        if (this.isRoleTargetValid(playerComp) && !this.isRoleInExcludedRoom(playerComp, excludeRoomIdx)) {
             result.push({
                 type: "player",
                 targetPos: new Vec2(playerComp.currentPos.x, playerComp.currentPos.y),
@@ -620,7 +652,7 @@ export class enemyBaseController extends Component {
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {
             let robotComp = robotArr[i];
-            if (this.isRoleTargetValid(robotComp)) {
+            if (this.isRoleTargetValid(robotComp) && !this.isRoleInExcludedRoom(robotComp, excludeRoomIdx)) {
                 result.push({
                     type: "player",
                     targetPos: new Vec2(robotComp.currentPos.x, robotComp.currentPos.y),
@@ -629,7 +661,7 @@ export class enemyBaseController extends Component {
             }
         }
 
-        let emptyBedCandidates = this.getEmptyBedCandidates();
+        let emptyBedCandidates = this.getEmptyBedCandidates(excludeRoomIdx);
         for (let i = 0; i < emptyBedCandidates.length; i++) {
             result.push(emptyBedCandidates[i]);
         }
@@ -639,12 +671,16 @@ export class enemyBaseController extends Component {
     }
 
     /**获取空房间床候选 */
-    private getEmptyBedCandidates(): enemyTargetCandidate[] {
+    private getEmptyBedCandidates(excludeRoomIdx: number = 0): enemyTargetCandidate[] {
         let result: enemyTargetCandidate[] = [];
         let roomMap = this.gameComp.roomMap || {};
         let roomKeys = Object.keys(roomMap);
         for (let i = 0; i < roomKeys.length; i++) {
             let roomIdx = Number(roomKeys[i]);
+            if (roomIdx == excludeRoomIdx) {
+                continue;
+            }
+
             let roomData = roomMap[roomKeys[i]];
             let bedPos: Vec2 = roomData?.bedPos;
             if (!bedPos || !this.isRoomEmpty(roomIdx)) {
@@ -725,6 +761,11 @@ export class enemyBaseController extends Component {
             && roleComp.node.isValid
             && roleComp.state != roleState.dead
             && !!roleComp.currentPos;
+    }
+
+    /**角色是否在本次需要排除的房间 */
+    private isRoleInExcludedRoom(roleComp: roleController, excludeRoomIdx: number) {
+        return excludeRoomIdx > 0 && roleComp?.roomIdx == excludeRoomIdx;
     }
 
     /**空床目标是否有效 */

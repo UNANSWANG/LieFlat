@@ -1,6 +1,10 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
+import { enemyMgr } from '../../manager/enemyManager';
+import { configData } from '../../manager/configData';
+import { gm } from '../../manager/gm';
+import type { enemyBaseController } from '../enemy/enemyBaseController';
 const { ccclass, property } = _decorator;
 
 @ccclass('sawProps')
@@ -9,6 +13,12 @@ export class sawProps extends gamePropsBase {
     sawThreshold: number = 0.1;
     /**检测范围（格数） */
     sawRange: number = 10;
+    /**检测间隔 */
+    private checkInterval: number = 0.2;
+    /**检测计时 */
+    private checkTimer: number = 0;
+    /**是否已经触发斩杀 */
+    private hasKillEnemy: boolean = false;
 
     /**初始化专属数据 */
     initPropsData() {
@@ -19,13 +29,72 @@ export class sawProps extends gamePropsBase {
 
     /**道具开始生效 */
     startProps() {
+        this.checkTimer = this.checkInterval;
+        this.hasKillEnemy = false;
+    }
 
+    protected update(dt: number): void {
+        if (gm.isGamePause || !this.isPropsActive || this.hasKillEnemy) {
+            return;
+        }
+
+        this.checkTimer += dt;
+        if (this.checkTimer < this.checkInterval) {
+            return;
+        }
+
+        this.checkTimer = 0;
+        this.checkKillEnemy();
+    }
+
+    /**检测并斩杀范围内低血量敌人 */
+    private checkKillEnemy() {
+        if (this.hasKillEnemy || this.sawRange <= 0 || this.sawThreshold <= 0) {
+            return;
+        }
+
+        let range = this.sawRange * configData.tileSize;
+        let rangeSqr = range * range;
+        let selfWorldPos = this.node.worldPosition;
+        let targetEnemy: enemyBaseController = null;
+        let minDistanceSqr = Number.MAX_VALUE;
+
+        for (let i = 0; i < enemyMgr.enemyArr.length; i++) {
+            let enemyComp = enemyMgr.enemyArr[i];
+            if (!enemyComp || !enemyComp.node || !enemyComp.node.isValid || enemyComp.hp <= 0 || enemyComp.maxHp <= 0) {
+                continue;
+            }
+
+            if (enemyComp.hpPercent >= this.sawThreshold) {
+                continue;
+            }
+
+            let enemyWorldPos = enemyComp.node.worldPosition;
+            let offsetX = enemyWorldPos.x - selfWorldPos.x;
+            let offsetY = enemyWorldPos.y - selfWorldPos.y;
+            let distanceSqr = offsetX * offsetX + offsetY * offsetY;
+            if (distanceSqr > rangeSqr || distanceSqr >= minDistanceSqr) {
+                continue;
+            }
+
+            minDistanceSqr = distanceSqr;
+            targetEnemy = enemyComp;
+        }
+
+        if (!targetEnemy) {
+            return;
+        }
+
+        this.hasKillEnemy = true;
+        targetEnemy.takeDamage(targetEnemy.hp);
+        this.playDisappearAnim();
     }
 
     /**道具结束生效 */
     endProps() {
         super.endProps();
+        this.checkTimer = 0;
+        this.hasKillEnemy = false;
     }
 
 }
-

@@ -23,7 +23,7 @@ import { boxProps } from './props/boxProps';
 import { coverProps } from './props/coverProps';
 import { thornProps } from './props/thornProps';
 import { cageProps } from './props/cageProps';
-import { trollsProps } from './props/trollsProps';
+import { fireProps } from './props/fireProps';
 const { ccclass, property } = _decorator;
 
 /**瓦片类型 */
@@ -58,8 +58,8 @@ export enum tilePropsType {
     thorn = "thorn",
     /**铡刀 */
     saw = "saw",
-    /**喷子 */
-    trolls = "trolls",
+    /**火攻术 */
+    fire = "fire",
     /**望远镜 */
     telescope = "telescope",
     /**转管 */
@@ -200,8 +200,8 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(netProps);
         } else if (this.tileType == tilePropsType.saw) {
             propComp = propsItem.addComponent(sawProps);
-        } else if (this.tileType == tilePropsType.trolls) {
-            propComp = propsItem.addComponent(trollsProps);
+        } else if (this.tileType == tilePropsType.fire) {
+            propComp = propsItem.addComponent(fireProps);
         } else if (this.tileType == tilePropsType.telescope) {
             propComp = propsItem.addComponent(telescopeProps);
         } else if (this.tileType == tilePropsType.tube) {

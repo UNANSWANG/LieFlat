@@ -1,6 +1,6 @@
 import { _decorator, AssetManager, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { UIBase } from '../UIPage/UIBase';
-import { gamePath, ItemPath, UIPath } from './pathConfig';
+import { gamePath, ItemPath, mapNameArr, UIPath } from './pathConfig';
 import { ccResTools } from '../extention/resTools';
 import { tipsNotice } from '../UIPage/tips/tipsNotice';
 const { ccclass, property } = _decorator;
@@ -35,10 +35,13 @@ export class UIManager {
             if (!this.resBundle) {
                 reject();
             }
-            this.tipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.tips);
-            this.produceTipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.produceTips);
-            this.bulletPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.bullet);
-            this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem);
+            this.tipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.tips, false);
+            this.produceTipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.produceTips, false);
+            this.bulletPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.bullet, false);
+            this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem, false);
+            for (let i = 0; i < mapNameArr.length; i++) {
+                await ccResTools.loadTiledMap(this.resBundle, ItemPath.tileMap + mapNameArr[i], false);
+            }
             resolve();
         });
     }

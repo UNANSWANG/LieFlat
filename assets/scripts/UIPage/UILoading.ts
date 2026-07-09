@@ -78,16 +78,22 @@ export class UILoading extends Component {
 
             this.refreshProgress();
 
-            uiMgr.preLoadPrefab();
+            let prefabLoad = uiMgr.preLoadPrefab();
 
-            this.loadItems.map(async ($path) => {
+            let pageLoad = Promise.all(this.loadItems.map(async ($path) => {
                 try {
-                    uiMgr.preLoadPage($path);
+                    await uiMgr.preLoadPage($path);
                 } catch (error) {
                     console.error(`加载 ${$path} 失败:`, error);
                 }
-            });
+            }));
 
+            await Promise.all([prefabLoad, pageLoad]);
+
+            this.currentProgressPercent = 1;
+            this.refreshProgress();
+            this.uiComplete = true;
+            this.checkLoadComplete();
             resolve();
         });
     }
@@ -121,10 +127,6 @@ export class UILoading extends Component {
 
         this.currentProgressPercent = tempPercent;
         this.refreshProgress();
-
-        if (tempPercent == 1) {
-            this.uiComplete = true;
-        }
 
         this.checkLoadComplete();
     }

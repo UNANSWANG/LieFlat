@@ -1,4 +1,4 @@
-import { _decorator, AssetManager, assetManager, Component, ImageAsset, JsonAsset, Node, Prefab, SpriteFrame, Texture2D } from 'cc';
+import { _decorator, AssetManager, assetManager, Component, ImageAsset, JsonAsset, Node, Prefab, SpriteFrame, Texture2D, TiledMapAsset } from 'cc';
 import { gm, PlatType } from '../manager/gm';
 import { GameEvent } from '../manager/configData';
 const { ccclass, property } = _decorator;
@@ -77,11 +77,13 @@ export class resTools {
     }
 
     /**加载预制体*/
-    loadPrefab($bundle: AssetManager.Bundle, $path: string): Promise<Prefab> {
+    loadPrefab($bundle: AssetManager.Bundle, $path: string, showLoading: boolean = true): Promise<Prefab> {
         return new Promise(($resolve) => {
             $bundle.load($path, Prefab,
                 (finish: number, total: number) => {
-                    gm.Event.emit(GameEvent.loading, [finish, total, $path]);
+                    if (showLoading) {
+                        gm.Event.emit(GameEvent.loading, [finish, total, $path]);
+                    }
                 },
                 (err, prefab: Prefab) => {
                     $resolve(prefab);
@@ -119,6 +121,27 @@ export class resTools {
 
                 $resolve(jsonData);
             });
+        });
+    }
+
+    /**加载瓦片地图 */
+    loadTiledMap($bundle: AssetManager.Bundle, $path: string, showLoading: boolean = true): Promise<TiledMapAsset> {
+        return new Promise(($resolve) => {
+            $bundle.load($path, TiledMapAsset,
+                (finish: number, total: number) => {
+                    if (showLoading) {
+                        gm.Event.emit(GameEvent.loading, [finish, total, $path]);
+                    }
+                },
+                (err, tiledMapAsset: TiledMapAsset) => {
+                    if (err) {
+                        console.error("加载瓦片地图失败", $path, err);
+                        $resolve(null);
+                        return;
+                    }
+
+                    $resolve(tiledMapAsset);
+                });
         });
     }
 }

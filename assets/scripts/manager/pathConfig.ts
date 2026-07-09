@@ -45,12 +45,12 @@ export enum ItemPath {
 }
 
 /**地图名称 */
-export enum mapName {
+export const mapNameArr = [
     /**地图1 */
-    map01 = "map01",
+    "map01",
     /**地图2 */
-    map02 = "map02",
-}
+    "map02",
+]
 
 /**物品路径 */
 export enum audioPath {

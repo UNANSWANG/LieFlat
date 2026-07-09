@@ -1,12 +1,13 @@
-import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween } from 'cc';
+import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset } from 'cc';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { UIBase } from './UIBase';
-import { UIPath } from '../manager/pathConfig';
+import { ItemPath, mapNameArr, UIPath } from '../manager/pathConfig';
 import { configData, enemyCommonConfig, GameEvent, robotCommonConfig } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { zoomButton } from '../extention/zoomButton';
 import { ccTools } from '../extention/generalTools';
+import { ccResTools } from '../extention/resTools';
 import { playerMgr } from '../manager/playerManager';
 import { tileItemController, tilePropsType } from '../controller/tileItemController';
 import { doorProps } from '../controller/props/doorProps';
@@ -157,6 +158,10 @@ export class UIGame extends UIBase {
     private playerLastRoomIdx = 0;
     /**倒计时结束后的游戏经过时间 */
     private gameStartElapsedTime = 0;
+    /**当前地图资源名称 */
+    private currentMapName = "";
+    /**游戏页打开序号，用于避免异步加载回写旧局 */
+    private openVersion = 0;
     protected onLoad(): void {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
@@ -166,18 +171,55 @@ export class UIGame extends UIBase {
         this.initCamera();
     }
 
-    onUI_Open(data?: any): void {
+    async onUI_Open(data?: any) {
+        ++this.openVersion;
         this.addListener();
-        this.initData();
+        this.restartGame();
     }
 
     onUI_Close(): void {
+        this.openVersion++;
         this.removeListener();
+    }
+
+    /**随机并装配瓦片地图 */
+    private async randomTiledMap() {
+        if (!this.tiledMap || !uiMgr.resBundle || mapNameArr.length <= 0) {
+            return false;
+        }
+
+        let randomIdx = Math.floor(Math.random() * mapNameArr.length);
+        let mapName = mapNameArr[randomIdx];
+        let mapAsset: TiledMapAsset = await ccResTools.loadTiledMap(uiMgr.resBundle, ItemPath.tileMap + mapName);
+        if (!mapAsset) {
+            return false;
+        }
+
+        this.currentMapName = mapName;
+        this.tiledMap.tmxAsset = mapAsset;
+        console.warn("----------->当前随机地图：", this.currentMapName);
+        return true;
+    }
+
+    /**重新开始单局 */
+    private async restartGame() {
+        let version = this.openVersion;
+        let mapReady = await this.randomTiledMap();
+        if (version != this.openVersion || !this.node.activeInHierarchy) {
+            return;
+        }
+
+        if (!mapReady) {
+            console.error("随机地图加载失败，无法初始化游戏");
+            return;
+        }
+
+        this.initData();
     }
 
     /**添加监听 */
     addListener() {
-        gm.Event.on(GameEvent.refreshGameLevel, this.initData, this);
+        gm.Event.on(GameEvent.refreshGameLevel, this.restartGame, this);
         gm.Event.on(GameEvent.refreshGameCamera, this.refreshGameCamera, this);
         gm.Event.on(GameEvent.refreshGameMonetary, this.refreshMonetaryLab, this);
         gm.Event.on(GameEvent.refreshPlayerPos, this.checkPlayerPos, this);
@@ -200,7 +242,7 @@ export class UIGame extends UIBase {
 
     /**删除监听 */
     removeListener() {
-        gm.Event.off(GameEvent.refreshGameLevel, this.initData, this);
+        gm.Event.off(GameEvent.refreshGameLevel, this.restartGame, this);
         gm.Event.off(GameEvent.refreshGameCamera, this.refreshGameCamera, this);
         gm.Event.off(GameEvent.refreshGameMonetary, this.refreshMonetaryLab, this);
         gm.Event.off(GameEvent.refreshPlayerPos, this.checkPlayerPos, this);
@@ -289,6 +331,7 @@ export class UIGame extends UIBase {
         playerMgr.player = null;
         enemyMgr.enemyArr = [];
         enemyMgr.enemyId = 0;
+        enemyMgr.enemyBornPosArr = [];
         this.robotArr = [];
         this.roomMap = {};
         this.bornPosArr = [];
@@ -1973,7 +2016,7 @@ export class UIGame extends UIBase {
             case KeyCode.KEY_S:
                 //跳过关卡
                 pData.addLevel();
-                this.initData();
+                this.restartGame();
                 // uiMgr.openPage(UIPath.UISuccess);
             case KeyCode.KEY_L:
                 //增加金币

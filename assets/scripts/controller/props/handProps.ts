@@ -7,12 +7,12 @@ const { ccclass, property } = _decorator;
 @ccclass('handProps')
 export class handProps extends gamePropsBase {
     /**获取金币倍率 */
-    handCoinMultiplier: number = 1;
+    printerCoinMultiplier: number = 1;
 
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.handCoinMultiplier = commonConfig.getValueNumber("handCoinMultiplier");
+        this.printerCoinMultiplier = commonConfig.getValueNumber("printerCoinMultiplier");
     }
 
     /**道具开始生效 */
@@ -32,7 +32,7 @@ export class handProps extends gamePropsBase {
             return 0;
         }
 
-        return handComp.handCoinMultiplier;
+        return handComp.printerCoinMultiplier;
     }
 
     /** 获取指定房间内正在生效的妙手空空 */

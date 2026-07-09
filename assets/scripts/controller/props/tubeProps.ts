@@ -6,12 +6,12 @@ const { ccclass, property } = _decorator;
 @ccclass('tubeProps')
 export class tubeProps extends gamePropsBase {
     /**提高防御塔的百分比攻击速度 */
-    tubeSpeed: number = 0.5;
+    bearingSpeed: number = 0.5;
 
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.tubeSpeed = commonConfig.getValueNumber("tubeSpeed") / 100;
+        this.bearingSpeed = commonConfig.getValueNumber("bearingSpeed") / 100;
     }
     
     /**道具开始生效 */
@@ -31,7 +31,7 @@ export class tubeProps extends gamePropsBase {
             return 1;
         }
 
-        return 1 + tubeComp.tubeSpeed;
+        return 1 + tubeComp.bearingSpeed;
     }
 
     /** 获取指定房间内正在生效的转管 */

@@ -39,7 +39,7 @@ export enum tilePropsType {
     /**发电机 */
     generator = "generator",
     /**印钞机 */
-    printer = "printer",
+    printer = "vein",
     /**维修机床 */
     machine = "machine",
     /**潘多拉魔盒 */
@@ -49,7 +49,7 @@ export enum tilePropsType {
     /**金钟罩 */
     cover = "cover",
     /**妙手空空 */
-    hand = "hand",
+    hand = "printer",
     /**千年寒冰 */
     ice = "ice",
     /**渔网 */
@@ -63,7 +63,7 @@ export enum tilePropsType {
     /**望远镜 */
     telescope = "telescope",
     /**转管 */
-    tube = "tube",
+    tube = "bearing",
     /**警示铃 */
     alarm = "alarm",
 }

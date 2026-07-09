@@ -7,6 +7,7 @@ import { pData } from '../../manager/playerData';
 import { playerMgr } from '../../manager/playerManager';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { gm } from '../../manager/gm';
+import { roleState } from '../roleController';
 const { ccclass, property } = _decorator;
 
 @ccclass('generatorProps')
@@ -55,7 +56,7 @@ export class generatorProps extends gamePropsBase {
         this.produceItem(produceType.power, this.addNum);
 
         //是当前游戏玩家的发电机则增加游戏电能
-        if (this.roomIdx == playerMgr.playerComp.roomIdx) {
+        if (this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
             pData.fixGamePower(this.addNum);
         }
     }

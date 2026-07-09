@@ -5,6 +5,7 @@ import { pData } from '../../manager/playerData';
 import { playerMgr } from '../../manager/playerManager';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { gm } from '../../manager/gm';
+import { roleState } from '../roleController';
 const { ccclass, property } = _decorator;
 
 @ccclass('veinProps')
@@ -48,7 +49,7 @@ export class veinProps extends gamePropsBase {
         this.produceItem(produceType.coin, this.addNum);
 
         //是当前游戏玩家的矿脉则增加游戏金币
-        if (this.roomIdx == playerMgr.playerComp.roomIdx) {
+        if (this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
             pData.fixGameCoin(this.addNum);
         }
     }

@@ -8,15 +8,29 @@ const { ccclass } = _decorator;
 export class boxProps extends gamePropsBase {
     /**等待时间（不读表） */
     waitTime: number = 2;
+    /**剩余等待时间 */
+    private disappearTimer: number = 0;
 
     /**道具开始生效 */
     startProps() {
-        this.scheduleOnce(this.playDisappearAnim, this.waitTime);
+        this.disappearTimer = this.waitTime;
     }
 
     /**道具结束生效 */
     endProps() {
         super.endProps();
+        this.disappearTimer = 0;
+    }
+
+    protected update(dt: number): void {
+        if (!this.isPropsActive || this.disappearTimer <= 0) {
+            return;
+        }
+
+        this.disappearTimer = Math.max(0, this.disappearTimer - dt);
+        if (this.disappearTimer <= 0) {
+            this.playDisappearAnim();
+        }
     }
 
     /**消失时随机生成道具替代魔盒 */
@@ -65,5 +79,4 @@ export class boxProps extends gamePropsBase {
     }
 
 }
-
 

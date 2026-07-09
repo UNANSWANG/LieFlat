@@ -47,7 +47,16 @@ export class gamePropsBase extends Component {
     }
     /**道具效果是否生效中 */
     get isPropsActive() {
-        return this.propsActive;
+        return this.propsActive && this.isRoomEffectActive;
+    }
+
+    /**房间道具是否满足生效条件 */
+    get isRoomEffectActive() {
+        if (this.propsType == tilePropsType.bed || this.propsType == tilePropsType.door) {
+            return true;
+        }
+
+        return this.gameComp?.hasSleepingRoleInRoom(this.roomIdx) ?? true;
     }
 
     ///

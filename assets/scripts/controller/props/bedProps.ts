@@ -9,6 +9,7 @@ import { produceType } from '../../UIPage/tips/produceTips';
 import { propsConfig } from '../../json/jsonProps';
 import { tilePropsType } from '../tileItemController';
 import { gm } from '../../manager/gm';
+import { roleState } from '../roleController';
 const { ccclass, property } = _decorator;
 
 @ccclass('bedProps')
@@ -82,7 +83,7 @@ export class bedProps extends gamePropsBase {
         this.produceItem(produceType.coin, this.addNum);
 
         //是当前游戏玩家的床则增加游戏金币
-        if (this.roomIdx == playerMgr.playerComp.roomIdx) {
+        if (this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
             pData.fixGameCoin(this.addNum);
         }
     }

@@ -18,6 +18,7 @@ import { enemyMgr } from '../manager/enemyManager';
 import { enemyBaseController } from '../controller/enemy/enemyBaseController';
 import { produceTips, produceType } from './tips/produceTips';
 import { poolMgr } from '../manager/poolManager';
+import { JsonPropsData, propsConfig } from '../json/jsonProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIGame')
@@ -461,6 +462,7 @@ export class UIGame extends UIBase {
             roomIdx++;
         }
         console.warn("房间数据", this.roomMap);
+        this.createRandomPropsByRoom();
     }
 
     /**初始化玩家 */
@@ -612,6 +614,105 @@ export class UIGame extends UIBase {
         tileComp.bindGameComp(this);
         this.tileMap[tilePos.x][tilePos.y].item = tileComp;
         return tileComp;
+    }
+
+    /**开局按房间概率生成随机道具 */
+    private createRandomPropsByRoom() {
+        let roomKeys = Object.keys(this.roomMap);
+        for (let i = 0; i < roomKeys.length; i++) {
+            let roomIdx = Number(roomKeys[i]);
+            if (roomIdx <= 0 || Math.random() > configData.roomPropsProbability) {
+                continue;
+            }
+
+            let roomData: roomData = this.roomMap[roomIdx];
+            let buildPos = this.getRandomEmptyPosAroundBed(roomData, roomIdx);
+            let propsData = this.getRandomBuildablePropsData(roomIdx);
+            if (!buildPos || !propsData) {
+                continue;
+            }
+
+            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, propsData.level - 1);
+        }
+    }
+
+    /**在指定位置生成开局道具，不记录角色建造次数 */
+    private createInitialProps(tilePos: Vec2, propsType: tilePropsType, level: number = 0) {
+        let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+        if (!tileData) {
+            return;
+        }
+
+        let tileComp = tileData.item;
+        if (!tileComp) {
+            tileComp = this.createTileItem(tilePos, tileData.roomIdx);
+        }
+
+        tileComp.addProps(propsType, level);
+    }
+
+    /**随机获取床边上下左右空闲位置 */
+    private getRandomEmptyPosAroundBed(roomData: roomData, roomIdx: number) {
+        let bedPos = roomData?.bedPos;
+        if (!bedPos) {
+            return null;
+        }
+
+        let dirArr = [
+            new Vec2(0, 1),
+            new Vec2(0, -1),
+            new Vec2(-1, 0),
+            new Vec2(1, 0),
+        ];
+        let emptyPosArr: Vec2[] = [];
+        for (let i = 0; i < dirArr.length; i++) {
+            let tilePos = new Vec2(bedPos.x + dirArr[i].x, bedPos.y + dirArr[i].y);
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            let tileComp = tileData?.item;
+            if (!tileData || tileData.roomIdx != roomIdx || this.isSameTilePos(tilePos, roomData.doorPos) || (tileComp && tileComp.tileType != tilePropsType.none)) {
+                continue;
+            }
+
+            emptyPosArr.push(tilePos);
+        }
+
+        if (emptyPosArr.length == 0) {
+            return null;
+        }
+
+        let randomIdx = Math.floor(Math.random() * emptyPosArr.length);
+        return emptyPosArr[randomIdx];
+    }
+
+    /**获取未达到房间生成上限的随机道具 */
+    private getRandomBuildablePropsData(roomIdx: number) {
+        let randomPropsData = propsConfig.getRandomPropsData();
+        let result: JsonPropsData[] = [];
+
+        for (let i = 0; i < randomPropsData.length; i++) {
+            let propsData = randomPropsData[i];
+            if (this.isRoomBuildNumLimit(roomIdx, propsData)) {
+                continue;
+            }
+
+            result.push(propsData);
+        }
+
+        if (result.length == 0) {
+            return null;
+        }
+
+        let randomIdx = Math.floor(Math.random() * result.length);
+        return result[randomIdx];
+    }
+
+    /**是否达到当前房间建造数量上限 */
+    private isRoomBuildNumLimit(roomIdx: number, propsData: JsonPropsData) {
+        if (!propsData?.builNumMax || propsData.builNumMax <= 0) {
+            return false;
+        }
+
+        return this.getRoomPropsCountByType(roomIdx, propsData.propsType) >= propsData.builNumMax;
     }
 
     /**敌人破坏床铺后，将房间瓦片补齐并置灰 */
@@ -1736,21 +1837,16 @@ export class UIGame extends UIBase {
         this.refreshRepairBtnVisible();
     }
 
-    /**房间内是否有角色正在睡觉 */
-    private hasSleepingRoleInRoom(roomId: number) {
-        let playerComp = playerMgr.playerComp;
-        if (playerComp && playerComp.roomIdx == roomId && playerComp.state == roleState.bed) {
-            return true;
+    /**房间床是否已被占用 */
+    hasSleepingRoleInRoom(roomId: number) {
+        let roomData: roomData = this.roomMap[roomId];
+        let bedPos = roomData?.bedPos;
+        if (!bedPos) {
+            return false;
         }
 
-        for (let i = 0; i < this.robotArr.length; i++) {
-            let robotComp = this.robotArr[i];
-            if (robotComp && robotComp.roomIdx == roomId && robotComp.state == roleState.bed) {
-                return true;
-            }
-        }
-
-        return false;
+        let bedComp = this.tileMap[bedPos.x]?.[bedPos.y]?.item?.propsComp as bedProps;
+        return !!bedComp && bedComp.isOccupied;
     }
 
     /**获取房间内正在睡觉的人机 */

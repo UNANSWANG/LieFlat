@@ -64,7 +64,7 @@ export class cannonProps extends gamePropsBase {
     }
 
     protected update(dt: number): void {
-        if (gm.isGamePause) {
+        if (gm.isGamePause || !this.isPropsActive) {
             return;
         }
 

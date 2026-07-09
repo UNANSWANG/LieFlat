@@ -24,7 +24,7 @@ export class fireProps extends gamePropsBase {
         super.endProps();
     }
 
-    /** 获取指定房间内火攻术造成的每秒生命百分比伤害 */
+    /** 获取指定房间内火焰锻造台造成的每秒生命百分比伤害 */
     static getRoomDamagePercent(gameComp: any, roomIdx: number) {
         let fireComp = fireProps.getRoomFireComp(gameComp, roomIdx);
         if (!fireComp) {
@@ -34,7 +34,7 @@ export class fireProps extends gamePropsBase {
         return fireComp.fireDamage;
     }
 
-    /** 获取指定房间内正在生效的火攻术 */
+    /** 获取指定房间内正在生效的火焰锻造台 */
     private static getRoomFireComp(gameComp: any, roomIdx: number) {
         let roomData = gameComp?.roomMap?.[roomIdx];
         if (!roomData || roomIdx <= 0) {
@@ -54,4 +54,3 @@ export class fireProps extends gamePropsBase {
     }
 
 }
-

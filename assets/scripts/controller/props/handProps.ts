@@ -25,7 +25,7 @@ export class handProps extends gamePropsBase {
         super.endProps();
     }
 
-    /** 获取指定房间内妙手空空的金币倍率 */
+    /** 获取指定房间内印钞机的金币倍率 */
     static getRoomCoinMultiplier(gameComp: any, roomIdx: number) {
         let handComp = handProps.getRoomHandComp(gameComp, roomIdx);
         if (!handComp) {
@@ -35,7 +35,7 @@ export class handProps extends gamePropsBase {
         return handComp.printerCoinMultiplier;
     }
 
-    /** 获取指定房间内正在生效的妙手空空 */
+    /** 获取指定房间内正在生效的印钞机 */
     private static getRoomHandComp(gameComp: any, roomIdx: number) {
         let roomData = gameComp?.roomMap?.[roomIdx];
         if (!roomData || roomIdx <= 0) {
@@ -46,7 +46,7 @@ export class handProps extends gamePropsBase {
         for (let i = 0; i < roomArr.length; i++) {
             let tilePos = roomArr[i];
             let propComp = gameComp.tileMap?.[tilePos.x]?.[tilePos.y]?.item?.propsComp;
-            if (propComp?.propsType == tilePropsType.hand && propComp.isPropsActive) {
+            if (propComp?.propsType == tilePropsType.printer && propComp.isPropsActive) {
                 return propComp as handProps;
             }
         }
@@ -55,4 +55,3 @@ export class handProps extends gamePropsBase {
     }
 
 }
-

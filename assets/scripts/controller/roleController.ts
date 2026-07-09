@@ -57,10 +57,10 @@ export class roleController extends Component {
     private generatorUpgradeTimer: number = 0;
     /**机器人发电机升级所需时间 */
     private generatorUpgradeTime: number = 0;
-    /**机器人印钞机建造计时 */
-    private printerBuildTimer: number = 0;
-    /**机器人印钞机建造所需时间 */
-    private printerBuildTime: number = 0;
+    /**机器人矿脉建造计时 */
+    private veinBuildTimer: number = 0;
+    /**机器人矿脉建造所需时间 */
+    private veinBuildTime: number = 0;
     /**房门受攻击后升级次数 */
     private doorAttackUpgradeCount: number = 0;
     /**房门受攻击后升级冷却 */
@@ -423,8 +423,8 @@ export class roleController extends Component {
         this.generatorBuildTime = 0;
         this.generatorUpgradeTimer = 0;
         this.generatorUpgradeTime = 0;
-        this.printerBuildTimer = 0;
-        this.printerBuildTime = 0;
+        this.veinBuildTimer = 0;
+        this.veinBuildTime = 0;
         this.isRobotUpgrading = true;
         this.resetDoorAttackUpgradeData();
         this.setNextRobotUpgradeTime();
@@ -440,8 +440,8 @@ export class roleController extends Component {
         this.generatorBuildTime = 0;
         this.generatorUpgradeTimer = 0;
         this.generatorUpgradeTime = 0;
-        this.printerBuildTimer = 0;
-        this.printerBuildTime = 0;
+        this.veinBuildTimer = 0;
+        this.veinBuildTime = 0;
         this.resetDoorAttackUpgradeData();
     }
 
@@ -686,36 +686,36 @@ export class roleController extends Component {
         this.generatorUpgradeTime = 0;
     }
 
-    /**刷新机器人印钞机建造计时 */
+    /**刷新机器人矿脉建造计时 */
     private refreshRobotPrinterBuild(dt: number) {
         let generatorMaxLevel = this.gameComp?.getRoomPropsMaxLevelByType(this.roomIdx, tilePropsType.generator) ?? -1;
-        if ((generatorMaxLevel + 1) < robotCommonConfig.printerBuildLevel) {
-            this.printerBuildTimer = 0;
-            this.printerBuildTime = 0;
+        if ((generatorMaxLevel + 1) < robotCommonConfig.veinBuildLevel) {
+            this.veinBuildTimer = 0;
+            this.veinBuildTime = 0;
             return;
         }
 
-        let printerCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.printer) || 0;
-        if (printerCount >= robotCommonConfig.printerMax) {
-            this.printerBuildTimer = 0;
-            this.printerBuildTime = 0;
+        let veinCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.vein) || 0;
+        if (veinCount >= robotCommonConfig.veinMax) {
+            this.veinBuildTimer = 0;
+            this.veinBuildTime = 0;
             return;
         }
 
-        if (this.printerBuildTime <= 0) {
-            this.printerBuildTime = this.getRandomInterval(robotCommonConfig.printerBuildInterval);
-            this.printerBuildTimer = 0;
+        if (this.veinBuildTime <= 0) {
+            this.veinBuildTime = this.getRandomInterval(robotCommonConfig.veinBuildInterval);
+            this.veinBuildTimer = 0;
             return;
         }
 
-        this.printerBuildTimer += dt;
-        if (this.printerBuildTimer < this.printerBuildTime) {
+        this.veinBuildTimer += dt;
+        if (this.veinBuildTimer < this.veinBuildTime) {
             return;
         }
 
-        this.gameComp?.buildRoomPropsByType(this.roomIdx, tilePropsType.printer, this.getRandomPrinterLevel());
-        this.printerBuildTimer = 0;
-        this.printerBuildTime = 0;
+        this.gameComp?.buildRoomPropsByType(this.roomIdx, tilePropsType.vein, this.getRandomVeinLevel());
+        this.veinBuildTimer = 0;
+        this.veinBuildTime = 0;
     }
 
     /**设置下一次机器人升级所需时间 */
@@ -758,9 +758,9 @@ export class roleController extends Component {
         return timeMin + Math.random() * (timeMax - timeMin);
     }
 
-    /**按配置权重随机印钞机建造等级 */
-    private getRandomPrinterLevel() {
-        let weights = robotCommonConfig.printerBuildWeight || [];
+    /**按配置权重随机矿脉建造等级 */
+    private getRandomVeinLevel() {
+        let weights = robotCommonConfig.veinBuildWeight || [];
         let totalWeight = 0;
         for (let i = 0; i < weights.length; i++) {
             totalWeight += Math.max(0, Number(weights[i]) || 0);

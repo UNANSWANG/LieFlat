@@ -91,7 +91,7 @@ export class UIBuild extends UIBase {
             let buildType = propsItem.buildType;
 
             if (buildType > 0 && buildType <= this.propsTypeArr.length && this.propsTypeArr[buildType - 1].indexOf(type) < 0) {
-                if (type == "printer") {
+                if (type == "vein") {
                     let pointerData = propsConfig.getPropsData(type);
                     for (let i = 0; i < pointerData.length; i++) {
                         this.propsTypeArr[buildType - 1].push({type: type, level: i});

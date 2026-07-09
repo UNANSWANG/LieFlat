@@ -38,9 +38,9 @@ export enum tilePropsType {
     cannon = "cannon",
     /**发电机 */
     generator = "generator",
-    /**印钞机 */
-    printer = "vein",
-    /**维修机床 */
+    /**矿脉 */
+    vein = "vein",
+    /**修复台 */
     machine = "machine",
     /**潘多拉魔盒 */
     box = "box",
@@ -48,8 +48,8 @@ export enum tilePropsType {
     cage = "cage",
     /**金钟罩 */
     cover = "cover",
-    /**妙手空空 */
-    hand = "printer",
+    /**印钞机 */
+    printer = "printer",
     /**千年寒冰 */
     ice = "ice",
     /**渔网 */
@@ -58,12 +58,12 @@ export enum tilePropsType {
     thorn = "thorn",
     /**铡刀 */
     saw = "saw",
-    /**火攻术 */
+    /**火焰锻造台 */
     fire = "fire",
     /**望远镜 */
     telescope = "telescope",
-    /**转管 */
-    tube = "bearing",
+    /**轴承 */
+    bearing = "bearing",
     /**警示铃 */
     alarm = "alarm",
 }
@@ -188,13 +188,13 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(cannonProps);
         } else if (this.tileType == tilePropsType.generator) {
             propComp = propsItem.addComponent(generatorProps);
-        } else if (this.tileType == tilePropsType.printer) {
+        } else if (this.tileType == tilePropsType.vein) {
             propComp = propsItem.addComponent(printerProps);
         } else if (this.tileType == tilePropsType.machine) {
             propComp = propsItem.addComponent(machineProps);
         } else if (this.tileType == tilePropsType.ice) {
             propComp = propsItem.addComponent(iceProps);
-        } else if (this.tileType == tilePropsType.hand) {
+        } else if (this.tileType == tilePropsType.printer) {
             propComp = propsItem.addComponent(handProps);
         } else if (this.tileType == tilePropsType.net) {
             propComp = propsItem.addComponent(netProps);
@@ -204,7 +204,7 @@ export class tileItemController extends Component {
             propComp = propsItem.addComponent(fireProps);
         } else if (this.tileType == tilePropsType.telescope) {
             propComp = propsItem.addComponent(telescopeProps);
-        } else if (this.tileType == tilePropsType.tube) {
+        } else if (this.tileType == tilePropsType.bearing) {
             propComp = propsItem.addComponent(tubeProps);
         } else if (this.tileType == tilePropsType.alarm) {
             propComp = propsItem.addComponent(alarmProps);

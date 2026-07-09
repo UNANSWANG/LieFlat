@@ -47,7 +47,7 @@ export class printerProps extends gamePropsBase {
         this.playScaleDownAnim();
         this.produceItem(produceType.coin, this.addNum);
 
-        //是当前游戏玩家的印钞机则增加游戏金币
+        //是当前游戏玩家的矿脉则增加游戏金币
         if (this.roomIdx == playerMgr.playerComp.roomIdx) {
             pData.fixGameCoin(this.addNum);
         }

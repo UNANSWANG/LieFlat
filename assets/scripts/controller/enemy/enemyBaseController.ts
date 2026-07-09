@@ -80,13 +80,13 @@ export class enemyBaseController extends Component {
     private doorAttackTimeCheckTilePos: Vec2 = null;
     /**当前攻击门荆棘反伤计时 */
     private thornDamageTimer: number = 0;
-    /**火攻术灼烧剩余时间 */
+    /**火焰锻造台灼烧剩余时间 */
     private fireBurnTimer: number = 0;
-    /**火攻术灼烧伤害计时 */
+    /**火焰锻造台灼烧伤害计时 */
     private fireBurnDamageTimer: number = 0;
-    /**火攻术每秒伤害百分比 */
+    /**火焰锻造台每秒伤害百分比 */
     private fireBurnDamagePercent: number = 0;
-    /**火攻术灼烧刷新后的保留时间 */
+    /**火焰锻造台灼烧刷新后的保留时间 */
     private fireBurnKeepTime: number = 1.2;
     /**是否正在播放攻击角色动画 */
     private isAttackingPlayer: boolean = false;
@@ -372,7 +372,7 @@ export class enemyBaseController extends Component {
         this.scheduleOnce(this.stopNetControl, time);
     }
 
-    /**刷新火攻术灼烧状态 */
+    /**刷新火焰锻造台灼烧状态 */
     refreshFireBurn(damagePercent: number) {
         if (damagePercent <= 0 || this.hp <= 0) {
             return;
@@ -427,7 +427,7 @@ export class enemyBaseController extends Component {
         this.takeDamage(this.maxHp * thornDamage);
     }
 
-    /**刷新火攻术灼烧伤害 */
+    /**刷新火焰锻造台灼烧伤害 */
     private updateFireBurn(dt: number) {
         if (this.hp <= 0 || dt <= 0 || this.fireBurnTimer <= 0 || this.fireBurnDamagePercent <= 0) {
             this.clearFireBurn();
@@ -446,7 +446,7 @@ export class enemyBaseController extends Component {
         }
     }
 
-    /**清除火攻术灼烧状态 */
+    /**清除火焰锻造台灼烧状态 */
     private clearFireBurn() {
         this.fireBurnTimer = 0;
         this.fireBurnDamageTimer = 0;

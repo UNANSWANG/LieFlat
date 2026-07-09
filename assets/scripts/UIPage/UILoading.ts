@@ -192,10 +192,10 @@ export class UILoading extends Component {
         robotCommonConfig.generatorBuildInterval = JSON.parse(commonConfig.getValue("generatorBuildInterval"));
         robotCommonConfig.generatorUpgradeInterval = JSON.parse(commonConfig.getValue("generatorUpgradeInterval"));
         robotCommonConfig.generatorMaxLevel = commonConfig.getValueNumber("generatorMaxLevel");
-        robotCommonConfig.printerBuildLevel = commonConfig.getValueNumber("printerBuildLevel");
-        robotCommonConfig.printerBuildInterval = JSON.parse(commonConfig.getValue("printerBuildInterval"));
-        robotCommonConfig.printerMax = commonConfig.getValueNumber("printerMax");
-        robotCommonConfig.printerBuildWeight = JSON.parse(commonConfig.getValue("printerBuildWeight"));
+        robotCommonConfig.veinBuildLevel = commonConfig.getValueNumber("veinBuildLevel");
+        robotCommonConfig.veinBuildInterval = JSON.parse(commonConfig.getValue("veinBuildInterval"));
+        robotCommonConfig.veinMax = commonConfig.getValueNumber("veinMax");
+        robotCommonConfig.veinBuildWeight = JSON.parse(commonConfig.getValue("veinBuildWeight"));
 
         robotCommonConfig.enemyAttackTimeThreshold = commonConfig.getValueNumber("enemyAttackTimeThreshold");
         robotCommonConfig.enemyUpgradeDoorMax = commonConfig.getValueNumber("enemyUpgradeDoorMax");

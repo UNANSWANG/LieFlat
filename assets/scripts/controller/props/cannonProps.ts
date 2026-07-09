@@ -203,7 +203,7 @@ export class cannonProps extends gamePropsBase {
         this.produceCoinByHand();
     }
 
-    /** 妙手空空使炮台攻击时产出金币 */
+    /** 印钞机使炮台攻击时产出金币 */
     private produceCoinByHand() {
         if (this.roomIdx != playerMgr.playerComp?.roomIdx) {
             return;

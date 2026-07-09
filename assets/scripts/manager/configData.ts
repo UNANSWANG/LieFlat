@@ -80,14 +80,14 @@ export const robotCommonConfig = {
     generatorUpgradeInterval: [30, 60],
     /**发电机最高等级 */
     generatorMaxLevel: 5,
-    /**印钞机的建造前提（发电机最高等级，实际3级的时候level=2因为从0开始） */
-    printerBuildLevel: 3,
-    /**印钞机的建造间隔（秒） */
-    printerBuildInterval: [30, 60],
-    /**印钞机的最大上限（个数） */
-    printerMax: 2,
-    /**印钞机各等级建造权重 */
-    printerBuildWeight: [0.95, 0.03, 0.02, 0.01],
+    /**矿脉的建造前提（发电机最高等级，实际3级的时候level=2因为从0开始） */
+    veinBuildLevel: 3,
+    /**矿脉的建造间隔（秒） */
+    veinBuildInterval: [30, 60],
+    /**矿脉的最大上限（个数） */
+    veinMax: 2,
+    /**矿脉各等级建造权重 */
+    veinBuildWeight: [0.95, 0.03, 0.02, 0.01],
 
     /**被怪物攻击时检测的时间阈值（从倒计时结束后开始计时，区分前期和后期） */
     enemyAttackTimeThreshold: 40,

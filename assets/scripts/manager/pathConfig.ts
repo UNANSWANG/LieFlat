@@ -6,16 +6,6 @@ export enum gamePath {
 
 /**界面路径 */
 export enum UIPath {
-    /**提示 */
-    tips = "prefabs/notice/tips",
-    /**加载提示 */
-    loadTips = "prefabs/notice/loadTips",
-    /**生产提示 */
-    produceTips = "prefabs/notice/produceTips",
-    /**子弹 */
-    bullet = "prefabs/Item/bullet",
-    /**游戏通用物体 */
-    gameItem = "prefabs/Item/gameItem",
     /**加载页面 */
     UILoading = "UILoading",
     /**主页面 */
@@ -40,7 +30,26 @@ export enum UIPath {
 
 /**物品路径 */
 export enum ItemPath {
-    
+    /**提示 */
+    tips = "prefabs/notice/tips",
+    /**加载提示 */
+    loadTips = "prefabs/notice/loadTips",
+    /**生产提示 */
+    produceTips = "prefabs/notice/produceTips",
+    /**子弹 */
+    bullet = "prefabs/Item/bullet",
+    /**游戏通用物体 */
+    gameItem = "prefabs/Item/gameItem",
+    /**瓦片地图 */
+    tileMap = "tileMap/map/",
+}
+
+/**地图名称 */
+export enum mapName {
+    /**地图1 */
+    map01 = "map01",
+    /**地图2 */
+    map02 = "map02",
 }
 
 /**物品路径 */

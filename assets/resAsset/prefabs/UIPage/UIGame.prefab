@@ -228,7 +228,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "map01",
+    "_name": "map",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {

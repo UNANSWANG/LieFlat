@@ -24,6 +24,8 @@ export const configData = {
     doorRepairSpeed: 2,
     /**门使用修复增加的修复速度（每秒修复百分比） */
     doorRepairSpeedAdd: 3,
+    /**房间有随机道具概率 */
+    roomPropsProbability: 0.8,
 }
 
 /**敌人通用配置 */

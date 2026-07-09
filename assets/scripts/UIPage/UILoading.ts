@@ -164,6 +164,7 @@ export class UILoading extends Component {
         configData.repairCoolDown = commonConfig.getValueNumber("repairCoolDown");
         configData.doorRepairSpeed = commonConfig.getValueNumber("doorRepairSpeed");
         configData.doorRepairSpeedAdd = commonConfig.getValueNumber("doorRepairSpeedAdd");
+        configData.roomPropsProbability = commonConfig.getValueNumber("roomPropsProbability") / 100;
         //敌人
         enemyCommonConfig.enemyHpRepairSpeed = commonConfig.getValueNumber("enemyHpRepairSpeed");
         enemyCommonConfig.enemyStartTime = commonConfig.getValueNumber("enemyStartTime");

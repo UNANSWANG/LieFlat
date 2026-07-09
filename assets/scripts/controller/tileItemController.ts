@@ -5,7 +5,7 @@ import { doorProps } from './props/doorProps';
 import { UIGame } from '../UIPage/UIGame';
 import { cannonProps } from './props/cannonProps';
 import { generatorProps } from './props/generatorProps';
-import { printerProps } from './props/printerProps';
+import { veinProps } from './props/veinProps';
 import { ccTools } from '../extention/generalTools';
 import { playerMgr } from '../manager/playerManager';
 import { GameEvent } from '../manager/configData';
@@ -14,11 +14,11 @@ import { loopAnimation } from './loopAnimation';
 import { iceProps } from './props/iceProps';
 import { machineProps } from './props/machineProps';
 import { alarmProps } from './props/alarmProps';
-import { handProps } from './props/handProps';
+import { printerProps } from './props/printerProps';
 import { netProps } from './props/netProps';
 import { sawProps } from './props/sawProps';
 import { telescopeProps } from './props/telescopeProps';
-import { tubeProps } from './props/tubeProps';
+import { bearingProps } from './props/bearingProps';
 import { boxProps } from './props/boxProps';
 import { coverProps } from './props/coverProps';
 import { thornProps } from './props/thornProps';
@@ -189,13 +189,13 @@ export class tileItemController extends Component {
         } else if (this.tileType == tilePropsType.generator) {
             propComp = propsItem.addComponent(generatorProps);
         } else if (this.tileType == tilePropsType.vein) {
-            propComp = propsItem.addComponent(printerProps);
+            propComp = propsItem.addComponent(veinProps);
         } else if (this.tileType == tilePropsType.machine) {
             propComp = propsItem.addComponent(machineProps);
         } else if (this.tileType == tilePropsType.ice) {
             propComp = propsItem.addComponent(iceProps);
         } else if (this.tileType == tilePropsType.printer) {
-            propComp = propsItem.addComponent(handProps);
+            propComp = propsItem.addComponent(printerProps);
         } else if (this.tileType == tilePropsType.net) {
             propComp = propsItem.addComponent(netProps);
         } else if (this.tileType == tilePropsType.saw) {
@@ -205,7 +205,7 @@ export class tileItemController extends Component {
         } else if (this.tileType == tilePropsType.telescope) {
             propComp = propsItem.addComponent(telescopeProps);
         } else if (this.tileType == tilePropsType.bearing) {
-            propComp = propsItem.addComponent(tubeProps);
+            propComp = propsItem.addComponent(bearingProps);
         } else if (this.tileType == tilePropsType.alarm) {
             propComp = propsItem.addComponent(alarmProps);
         } else if (this.tileType == tilePropsType.box) {

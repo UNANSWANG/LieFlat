@@ -3,8 +3,8 @@ import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
 const { ccclass, property } = _decorator;
-@ccclass('tubeProps')
-export class tubeProps extends gamePropsBase {
+@ccclass('bearingProps')
+export class bearingProps extends gamePropsBase {
     /**提高防御塔的百分比攻击速度 */
     bearingSpeed: number = 0.5;
 
@@ -26,7 +26,7 @@ export class tubeProps extends gamePropsBase {
 
     /** 获取指定房间内轴承带来的攻击速度倍率 */
     static getRoomAttackSpeedMultiplier(gameComp: any, roomIdx: number) {
-        let tubeComp = tubeProps.getRoomTubeComp(gameComp, roomIdx);
+        let tubeComp = bearingProps.getRoomTubeComp(gameComp, roomIdx);
         if (!tubeComp) {
             return 1;
         }
@@ -46,7 +46,7 @@ export class tubeProps extends gamePropsBase {
             let tilePos = roomArr[i];
             let propComp = gameComp.tileMap?.[tilePos.x]?.[tilePos.y]?.item?.propsComp;
             if (propComp?.propsType == tilePropsType.bearing && propComp.isPropsActive) {
-                return propComp as tubeProps;
+                return propComp as bearingProps;
             }
         }
 

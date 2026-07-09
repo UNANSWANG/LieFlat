@@ -1,57 +1,57 @@
 import { _decorator, Component, Node } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
-import { configData } from '../../manager/configData';
-import { pData } from '../../manager/playerData';
-import { playerMgr } from '../../manager/playerManager';
-import { produceType } from '../../UIPage/tips/produceTips';
-import { gm } from '../../manager/gm';
+import { commonConfig } from '../../json/jsonCommon';
+import { tilePropsType } from '../tileItemController';
 const { ccclass, property } = _decorator;
 
 @ccclass('printerProps')
 export class printerProps extends gamePropsBase {
+    /**获取金币倍率 */
+    printerCoinMultiplier: number = 1;
+
+    /**初始化专属数据 */
+    initPropsData() {
+        super.initPropsData();
+        this.printerCoinMultiplier = commonConfig.getValueNumber("printerCoinMultiplier");
+    }
+
     /**道具开始生效 */
     startProps() {
-        this.startProduceCoin();
+
     }
 
     /**道具结束生效 */
     endProps() {
         super.endProps();
-        this.stopProduceCoin();
     }
 
-    /**开始生产金币 */
-    startProduceCoin() {
-        this.stopProduceCoin();
-        this.schedule(this.produceCoin, configData.produceCoinFreq);
-    }
-
-    /**停止生产金币 */
-    stopProduceCoin() {
-        this.unschedule(this.produceCoin);
-    }
-
-    get addNum() {
-        if (this.level >= this.maxLevel || this.level < 0) {
+    /** 获取指定房间内印钞机的金币倍率 */
+    static getRoomCoinMultiplier(gameComp: any, roomIdx: number) {
+        let handComp = printerProps.getRoomHandComp(gameComp, roomIdx);
+        if (!handComp) {
             return 0;
         }
-        return this.propsDatas[this.level].produceCoin;
+
+        return handComp.printerCoinMultiplier;
     }
 
-    /**生产金币 */
-    produceCoin() {
-        if (gm.isGamePause) {
-            return;
+    /** 获取指定房间内正在生效的印钞机 */
+    private static getRoomHandComp(gameComp: any, roomIdx: number) {
+        let roomData = gameComp?.roomMap?.[roomIdx];
+        if (!roomData || roomIdx <= 0) {
+            return null;
         }
 
-        this.playScaleDownAnim();
-        this.produceItem(produceType.coin, this.addNum);
-
-        //是当前游戏玩家的矿脉则增加游戏金币
-        if (this.roomIdx == playerMgr.playerComp.roomIdx) {
-            pData.fixGameCoin(this.addNum);
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = gameComp.tileMap?.[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == tilePropsType.printer && propComp.isPropsActive) {
+                return propComp as printerProps;
+            }
         }
+
+        return null;
     }
+
 }
-
-

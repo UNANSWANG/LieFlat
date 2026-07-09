@@ -9,12 +9,12 @@ import { uiMgr } from '../../manager/UIManager';
 import { bulletController } from '../bulletController';
 import { enemyBaseController } from '../enemy/enemyBaseController';
 import { gm } from '../../manager/gm';
-import { handProps } from './handProps';
+import { printerProps } from './printerProps';
 import { playerMgr } from '../../manager/playerManager';
 import { pData } from '../../manager/playerData';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { telescopeProps } from './telescopeProps';
-import { tubeProps } from './tubeProps';
+import { bearingProps } from './bearingProps';
 import { fireProps } from './fireProps';
 const { ccclass, property } = _decorator;
 
@@ -156,7 +156,7 @@ export class cannonProps extends gamePropsBase {
 
     /** 获取当前实际攻击间隔 */
     private getCurrentAttackInterval() {
-        return configData.cannonAttackFreq / tubeProps.getRoomAttackSpeedMultiplier(this.gameComp, this.roomIdx);
+        return configData.cannonAttackFreq / bearingProps.getRoomAttackSpeedMultiplier(this.gameComp, this.roomIdx);
     }
 
     /**炮台图片朝向目标 */
@@ -209,7 +209,7 @@ export class cannonProps extends gamePropsBase {
             return;
         }
 
-        let coinMultiplier = handProps.getRoomCoinMultiplier(this.gameComp, this.roomIdx);
+        let coinMultiplier = printerProps.getRoomCoinMultiplier(this.gameComp, this.roomIdx);
         if (coinMultiplier <= 0) {
             return;
         }

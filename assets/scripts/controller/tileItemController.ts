@@ -164,7 +164,7 @@ export class tileItemController extends Component {
         this.isGrayTile = false;
         this.mask.active = false;
         this.tileType = type;
-        this.createProps(level);
+        this.createProps(Math.max(0, Math.floor(Number(level) || 0)));
     }
 
     /**绑定游戏节点 */

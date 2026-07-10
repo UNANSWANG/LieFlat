@@ -12,7 +12,7 @@ export class cageController extends Component {
     /**是否已经落到目标位置 */
     private hasLanded: boolean = false;
     /**生成在敌人头顶的偏移 */
-    private startOffsetY: number = 160;
+    private startOffsetY: number = 200;
     /**临时世界坐标 */
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */
@@ -57,9 +57,12 @@ export class cageController extends Component {
             return;
         }
 
+        let targetPos = this.tempLocalPos.clone();
+        targetPos.y = this.tempLocalPos.y + 130;
+
         Tween.stopAllByTarget(this.node);
         tween(this.node)
-            .to(0.25, { position: this.tempLocalPos.clone() }, { easing: "quadIn" })
+            .to(0.25, { position: targetPos }, { easing: "quadIn" })
             .call(() => {
                 this.hasLanded = true;
             })

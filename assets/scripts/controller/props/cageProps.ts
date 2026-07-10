@@ -98,6 +98,7 @@ export class cageProps extends gamePropsBase {
         } else {
             this.tempLocalPos.set(this.targetEnemy.node.worldPosition);
         }
+
         cageNode.setPosition(this.tempLocalPos);
 
         let cageComp = cageNode.getComponent(cageController);
@@ -106,7 +107,7 @@ export class cageProps extends gamePropsBase {
         }
 
         let duration = Math.max(0, cageProps.cageControlDuration - cageProps.disappearDuration);
-        cageComp.init(this.targetEnemy, duration, imgPath.gamePprops + this.propsType + "_" + this.level);
+        cageComp.init(this.targetEnemy, duration, imgPath.gamePprops + this.propsType);
         this.targetEnemy = null;
     }
 }

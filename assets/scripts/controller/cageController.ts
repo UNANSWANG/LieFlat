@@ -9,10 +9,10 @@ export class cageController extends Component {
     private target: enemyBaseController = null;
     /**铁笼停留时长 */
     private duration: number = 0;
-    /**是否已经落到目标位置 */
-    private hasLanded: boolean = false;
     /**生成在敌人头顶的偏移 */
     private startOffsetY: number = 200;
+    /**下落目标相对敌人的偏移 */
+    private landedOffsetY: number = 20;
     /**临时世界坐标 */
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */
@@ -22,7 +22,6 @@ export class cageController extends Component {
     init(target: enemyBaseController, duration: number, imgPath: string) {
         this.target = target;
         this.duration = duration;
-        this.hasLanded = false;
 
         let img = this.node.getComponent(Sprite);
         if (img) {
@@ -44,28 +43,20 @@ export class cageController extends Component {
             this.recycle();
             return;
         }
-
-        if (this.hasLanded && this.refreshTargetLocalPosition(0)) {
-            this.node.setPosition(this.tempLocalPos);
-        }
     }
 
     /**播放向下落到敌人位置的动画 */
     private playDropAnim() {
-        if (!this.refreshTargetLocalPosition(0)) {
+        if (!this.refreshTargetLocalPosition(this.landedOffsetY)) {
             this.recycle();
             return;
         }
 
         let targetPos = this.tempLocalPos.clone();
-        targetPos.y = this.tempLocalPos.y + 130;
 
         Tween.stopAllByTarget(this.node);
         tween(this.node)
             .to(0.25, { position: targetPos }, { easing: "quadIn" })
-            .call(() => {
-                this.hasLanded = true;
-            })
             .start();
     }
 
@@ -104,7 +95,6 @@ export class cageController extends Component {
         this.unschedule(this.finishControl);
         this.target = null;
         this.duration = 0;
-        this.hasLanded = false;
         this.node.destroy();
     }
 }

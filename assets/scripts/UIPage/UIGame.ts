@@ -12,6 +12,7 @@ import { playerMgr } from '../manager/playerManager';
 import { tileItemController, tilePropsType } from '../controller/tileItemController';
 import { doorProps } from '../controller/props/doorProps';
 import { bedProps } from '../controller/props/bedProps';
+import { thornProps } from '../controller/props/thornProps';
 import { CameraController } from '../controller/CameraController';
 import { roleController, roleState } from '../controller/roleController';
 import { enemyMgr } from '../manager/enemyManager';
@@ -1795,6 +1796,8 @@ export class UIGame extends UIBase {
         if (doorTile && !doorTile.isClose) {
             doorTile.tileItemComp.operateProps();
         }
+
+        thornProps.refreshRoomDoorEffect(this, roomId);
     }
 
     /**获取瓦片所在房间 */
@@ -1927,6 +1930,7 @@ export class UIGame extends UIBase {
         }
 
         playerMgr.playerComp.hideRole();
+        thornProps.refreshRoomDoorEffect(this, playerMgr.playerComp.roomIdx);
     }
 
     /**玩家占用房间后，刷新预定该房间的人机目标 */

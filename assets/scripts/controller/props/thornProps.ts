@@ -1,13 +1,19 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, instantiate, Node, Sprite } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
-const { ccclass, property } = _decorator;
+import { uiMgr } from '../../manager/UIManager';
+import { ccTools } from '../../extention/generalTools';
+import { imgPath } from '../../manager/pathConfig';
+import { doorProps } from './doorProps';
+const { ccclass } = _decorator;
 
 @ccclass('thornProps')
 export class thornProps extends gamePropsBase {
     /**每秒百分比生命伤害 */
     thornDamage: number = 0.01;
+    /**房门上的藤条效果节点 */
+    private doorEffectNode: Node = null;
 
     /**初始化专属数据 */
     initPropsData() {
@@ -17,12 +23,66 @@ export class thornProps extends gamePropsBase {
 
     /**道具开始生效 */
     startProps() {
-
+        this.refreshDoorEffect();
     }
 
     /**道具结束生效 */
     endProps() {
+        this.clearDoorEffect();
         super.endProps();
+    }
+
+    /**刷新房门上的藤条效果 */
+    refreshDoorEffect() {
+        if (!this.isPropsActive || !uiMgr.gameItemPrefab) {
+            this.clearDoorEffect();
+            return;
+        }
+
+        let doorComp = this.getRoomDoorComp();
+        if (!doorComp?.effectNode) {
+            this.clearDoorEffect();
+            return;
+        }
+
+        if (this.doorEffectNode && this.doorEffectNode.isValid && this.doorEffectNode.parent == doorComp.effectNode) {
+            return;
+        }
+
+        this.clearDoorEffect();
+        this.doorEffectNode = instantiate(uiMgr.gameItemPrefab);
+        doorComp.effectNode.addChild(this.doorEffectNode);
+
+        let img = this.doorEffectNode.getComponent(Sprite);
+        if (img) {
+            ccTools.loadImg(img, imgPath.gamePprops + this.propsType);
+        }
+    }
+
+    /**清理房门上的藤条效果 */
+    private clearDoorEffect() {
+        if (this.doorEffectNode && this.doorEffectNode.isValid) {
+            this.doorEffectNode.destroy();
+        }
+
+        this.doorEffectNode = null;
+    }
+
+    /**获取当前房间房门 */
+    private getRoomDoorComp() {
+        let roomData = this.gameComp?.roomMap?.[this.roomIdx];
+        let doorPos = roomData?.doorPos;
+        if (!doorPos) {
+            return null;
+        }
+
+        return this.gameComp?.tileMap?.[doorPos.x]?.[doorPos.y]?.item?.propsComp as doorProps;
+    }
+
+    /**刷新指定房间的藤条房门效果 */
+    static refreshRoomDoorEffect(gameComp: any, roomIdx: number) {
+        let thornComp = thornProps.getRoomThornComp(gameComp, roomIdx);
+        thornComp?.refreshDoorEffect();
     }
 
     /** 获取指定房间内荆棘造成的每秒生命百分比伤害 */
@@ -55,4 +115,3 @@ export class thornProps extends gamePropsBase {
     }
 
 }
-

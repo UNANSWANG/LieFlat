@@ -1,6 +1,7 @@
 import { _decorator, Component, Sprite, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ccTools } from '../extention/generalTools';
 import type { enemyBaseController } from './enemy/enemyBaseController';
+import { poolMgr } from '../manager/poolManager';
 const { ccclass } = _decorator;
 
 @ccclass('cageController')
@@ -95,6 +96,7 @@ export class cageController extends Component {
         this.unschedule(this.finishControl);
         this.target = null;
         this.duration = 0;
-        this.node.destroy();
+        this.enabled = false;
+        poolMgr.putGameNode(this.node);
     }
 }

@@ -1,4 +1,4 @@
-import { _decorator, Color, Component, instantiate, Node, Prefab, Sprite, tween, Tween, UIOpacity, Vec2, Vec3 } from 'cc';
+import { _decorator, Color, Component, Node, Prefab, Sprite, tween, Tween, UIOpacity, Vec2, Vec3 } from 'cc';
 import { bedProps } from './props/bedProps';
 import { gamePropsBase } from './props/gamePropsBase';
 import { doorProps } from './props/doorProps';
@@ -11,6 +11,7 @@ import { playerMgr } from '../manager/playerManager';
 import { GameEvent } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { loopAnimation } from './loopAnimation';
+import { poolMgr } from '../manager/poolManager';
 import { iceProps } from './props/iceProps';
 import { machineProps } from './props/machineProps';
 import { alarmProps } from './props/alarmProps';
@@ -97,6 +98,8 @@ export class tileItemController extends Component {
     gameComp: UIGame = null;
     /**道具节点 */
     propsItem: Node = null;
+    /**当前道具脚本 */
+    private propsCompCache: gamePropsBase = null;
     /**是否已置灰 */
     isGrayTile: boolean = false;
     /**常规颜色 */
@@ -145,7 +148,9 @@ export class tileItemController extends Component {
         this.gameComp = null;
         /**道具节点 */
         this.propsItem = null;
+        this.propsCompCache = null;
         this.isGrayTile = false;
+        this.hideSelectBox();
         this.upgradeNode.getComponent(loopAnimation).stopAni();
         this.upgradeNode.active = false;
         this.mask.active = false;
@@ -153,10 +158,10 @@ export class tileItemController extends Component {
 
     /**获取道具脚本 */
     get propsComp(): gamePropsBase {
-        if (!this.propsItem || !this.propsItem.isValid) {
+        if (!this.propsItem || !this.propsItem.isValid || !this.propsCompCache || !this.propsCompCache.isValid) {
             return null;
         }
-        return this.propsItem.getComponent(gamePropsBase);
+        return this.propsCompCache;
     }
 
     /**添加道具 */
@@ -178,7 +183,7 @@ export class tileItemController extends Component {
             return;
         }
 
-        let propsItem = instantiate(this.propsItemPre);
+        let propsItem = poolMgr.getPropsNode(this.propsItemPre);
         let propComp: gamePropsBase = null;
         if (this.tileType == tilePropsType.bed) {
             propComp = propsItem.addComponent(bedProps);
@@ -220,6 +225,8 @@ export class tileItemController extends Component {
 
         this.propsNode.addChild(propsItem);
         this.propsItem = propsItem;
+        this.propsCompCache = propComp;
+        propComp.enabled = true;
         propComp.init(this, level, isSpecialSellProps);
 
         this.checkUpgrade();
@@ -231,7 +238,7 @@ export class tileItemController extends Component {
             return;
         }
 
-        let doorComp = this.propsItem.getComponent(doorProps);
+        let doorComp = this.propsComp as doorProps;
         doorComp.initDoor(offsetDir, dir);
     }
 
@@ -241,7 +248,7 @@ export class tileItemController extends Component {
             return;
         }
 
-        let propComp = this.propsItem.getComponent(gamePropsBase);
+        let propComp = this.propsComp;
 
         let flag = propComp.operateProps();
 
@@ -257,7 +264,7 @@ export class tileItemController extends Component {
             return;
         }
 
-        let propComp = this.propsItem.getComponent(gamePropsBase);
+        let propComp = this.propsComp;
         propComp.upgradeProps();
     }
 
@@ -266,10 +273,24 @@ export class tileItemController extends Component {
         if (!this.propsItem) {
             return;
         }
-        this.propsComp?.endProps();
-        this.propsItem.removeFromParent();
+        let propComp = this.propsComp;
+        propComp?.endProps();
+        propComp?.clearData();
+        if (propComp) {
+            propComp.enabled = false;
+            propComp.destroy();
+        }
+        poolMgr.putPropsNode(this.propsItem);
         this.propsItem = null;
+        this.propsCompCache = null;
         this.tileType = tilePropsType.none;
+    }
+
+    /**回收到对象池 */
+    recycleToPool() {
+        this.removeProps();
+        this.clearData();
+        poolMgr.putTileItem(this.node);
     }
 
     /**刷新是否可升级 */

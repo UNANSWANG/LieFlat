@@ -94,12 +94,7 @@ export class loopAnimation extends Component {
     animTag = -1;
 
     protected onLoad(): void {
-        this.baseScale = new Vec3(this.node.scale);
-
-        let randomMul = Math.floor(Math.random() * 100) + 10;
-        let firstNum = this.node.uuid.match(/\d+/)[0];
-        //通过uuid获取随机倍数，保证每个对象动画不同步
-        this.animTag = Number(firstNum) * randomMul;
+        this.initAnimData();
     }
 
     start() {
@@ -150,6 +145,7 @@ export class loopAnimation extends Component {
     }
 
     stopAni() {
+        this.initAnimData();
         //只停止自身动画
         if (this.animTag == -1) {
             Tween.stopAllByTarget(this.node);
@@ -162,6 +158,32 @@ export class loopAnimation extends Component {
         } else {
             this.node.scale = new Vec3(this.baseScale);
             this.node.angle = 0;
+        }
+    }
+
+    /**初始化动画依赖数据 */
+    private initAnimData() {
+        if (!this.baseScale) {
+            this.baseScale = new Vec3(this.node.scale);
+        }
+
+        if ((this.animType == loop_anim.drop || this.animType == loop_anim.floating) && !this.rootPos) {
+            this.rootPos = new Vec3(this.node.position);
+        }
+
+        if (this.animType == loop_anim.breathe && !this.uiOpacity) {
+            this.uiOpacity = this.node.getComponent(UIOpacity);
+            if (!this.uiOpacity) {
+                this.uiOpacity = this.node.addComponent(UIOpacity);
+            }
+        }
+
+        if (this.animTag == -1) {
+            let randomMul = Math.floor(Math.random() * 100) + 10;
+            let matchData = this.node.uuid.match(/\d+/);
+            let firstNum = matchData ? matchData[0] : "1";
+            //通过uuid获取随机倍数，保证每个对象动画不同步
+            this.animTag = Number(firstNum) * randomMul;
         }
     }
 

@@ -2,6 +2,7 @@ import { _decorator, Component, Sprite, UITransform, Vec3 } from 'cc';
 import { ccTools } from '../extention/generalTools';
 import { configData } from '../manager/configData';
 import type { enemyBaseController } from './enemy/enemyBaseController';
+import { poolMgr } from '../manager/poolManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('netController')
@@ -141,8 +142,8 @@ export class netController extends Component {
         this.target = null;
         this.duration = 0;
         this.hasHit = false;
-        this.node.destroy();
+        this.enabled = false;
+        poolMgr.putGameNode(this.node);
     }
 }
-
 

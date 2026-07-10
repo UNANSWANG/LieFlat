@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, Node, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import type { enemyBaseController } from '../enemy/enemyBaseController';
@@ -6,6 +6,7 @@ import { uiMgr } from '../../manager/UIManager';
 import { netController } from '../netController';
 import { imgPath } from '../../manager/pathConfig';
 import { tilePropsType } from '../tileItemController';
+import { poolMgr } from '../../manager/poolManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('netProps')
@@ -33,6 +34,8 @@ export class netProps extends gamePropsBase {
     /**道具结束生效 */
     endProps() {
         super.endProps();
+        this.targetEnemy = null;
+        this.hasTriggered = false;
     }
 
     /**消失时向敌人发射渔网 */
@@ -78,7 +81,7 @@ export class netProps extends gamePropsBase {
             return;
         }
 
-        let netNode = instantiate(uiMgr.gameItemPrefab);
+        let netNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
         this.gameComp.gameUINode.addChild(netNode);
 
         let parentTransform = netNode.parent?.getComponent(UITransform);
@@ -93,6 +96,7 @@ export class netProps extends gamePropsBase {
         if (!netComp) {
             netComp = netNode.addComponent(netController);
         }
+        netComp.enabled = true;
 
         netComp.init(this.targetEnemy, this.netDuration, imgPath.gamePprops + this.propsType + "_" + this.level);
         this.targetEnemy = null;

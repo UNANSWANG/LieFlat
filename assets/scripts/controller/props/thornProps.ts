@@ -1,4 +1,4 @@
-import { _decorator, instantiate, Node, Sprite } from 'cc';
+import { _decorator, Node, Sprite } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
@@ -6,6 +6,7 @@ import { uiMgr } from '../../manager/UIManager';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
 import { doorProps } from './doorProps';
+import { poolMgr } from '../../manager/poolManager';
 const { ccclass } = _decorator;
 
 @ccclass('thornProps')
@@ -50,7 +51,7 @@ export class thornProps extends gamePropsBase {
         }
 
         this.clearDoorEffect();
-        this.doorEffectNode = instantiate(uiMgr.gameItemPrefab);
+        this.doorEffectNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
         this.doorEffectNode.name = "thornDoorEffect";
         doorComp.effectNode.addChild(this.doorEffectNode);
 
@@ -63,7 +64,7 @@ export class thornProps extends gamePropsBase {
     /**清理房门上的藤条效果 */
     private clearDoorEffect() {
         if (this.doorEffectNode && this.doorEffectNode.isValid) {
-            this.doorEffectNode.destroy();
+            poolMgr.putGameNode(this.doorEffectNode);
         }
 
         this.doorEffectNode = null;

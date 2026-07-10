@@ -1,4 +1,4 @@
-import { _decorator, instantiate, UITransform, Vec3 } from 'cc';
+import { _decorator, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
@@ -6,6 +6,7 @@ import type { enemyBaseController } from '../enemy/enemyBaseController';
 import { uiMgr } from '../../manager/UIManager';
 import { cageController } from '../cageController';
 import { imgPath } from '../../manager/pathConfig';
+import { poolMgr } from '../../manager/poolManager';
 const { ccclass } = _decorator;
 
 @ccclass('cageProps')
@@ -76,6 +77,8 @@ export class cageProps extends gamePropsBase {
     /**道具结束生效 */
     endProps() {
         super.endProps();
+        this.targetEnemy = null;
+        this.hasTriggered = false;
     }
 
     /**消失时在敌人头顶生成铁笼 */
@@ -89,7 +92,7 @@ export class cageProps extends gamePropsBase {
             return;
         }
 
-        let cageNode = instantiate(uiMgr.gameItemPrefab);
+        let cageNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
         this.gameComp.gameUINode.addChild(cageNode);
 
         let parentTransform = cageNode.parent?.getComponent(UITransform);
@@ -105,6 +108,7 @@ export class cageProps extends gamePropsBase {
         if (!cageComp) {
             cageComp = cageNode.addComponent(cageController);
         }
+        cageComp.enabled = true;
 
         let duration = Math.max(0, cageProps.cageControlDuration - cageProps.disappearDuration);
         cageComp.init(this.targetEnemy, duration, imgPath.gamePprops + this.propsType);

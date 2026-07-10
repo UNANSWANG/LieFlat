@@ -325,7 +325,7 @@ export class UIGame extends UIBase {
 
         this.stopGameCountDown();
 
-        ccTools.destroyAllChild(this.tileObjList);
+        this.recycleAllTileItems();
         ccTools.destroyAllChild(this.roleNode);
         ccTools.destroyAllChild(this.roleBtnLayout);
 
@@ -339,6 +339,20 @@ export class UIGame extends UIBase {
         this.bornPosArr = [];
         this.tileMap = [];
         this.rockerReset();
+    }
+
+    /**回收全部瓦片节点 */
+    private recycleAllTileItems() {
+        for (let i = this.tileObjList.children.length - 1; i >= 0; i--) {
+            let tileNode = this.tileObjList.children[i];
+            let tileComp = tileNode.getComponent(tileItemController);
+            if (tileComp) {
+                tileComp.recycleToPool();
+            } else {
+                tileNode.removeFromParent();
+                tileNode.destroy();
+            }
+        }
     }
 
     /**初始化地图图块层数据 */
@@ -416,7 +430,7 @@ export class UIGame extends UIBase {
 
                     let createItem = () => {
                         let tilePos = ccTools.getTileIndexByPos(tileObjItem.offset.x, tileObjItem.offset.y);
-                        let tileItem = instantiate(this.tileItemPre);
+                        let tileItem = poolMgr.getTileItem(this.tileItemPre);
                         this.tileObjList.addChild(tileItem);
                         let tileComp: tileItemController = tileItem.getComponent(tileItemController);
                         tileItem.position = ccTools.getPosByTileIndex(tilePos);
@@ -612,7 +626,7 @@ export class UIGame extends UIBase {
 
     /**创建瓦片节点 */
     private createTileItem(tilePos: Vec2, roomIdx: number = 0) {
-        let tileItem = instantiate(this.tileItemPre);
+        let tileItem = poolMgr.getTileItem(this.tileItemPre);
         this.tileObjList.addChild(tileItem);
         let tileComp = tileItem.getComponent(tileItemController);
         tileItem.position = ccTools.getPosByTileIndex(tilePos);
@@ -1519,11 +1533,11 @@ export class UIGame extends UIBase {
                     }
                     if (prePos.x == data.doorPos.x && prePos.y == data.doorPos.y) {
                         doorPos = new Vec2(prePos);
-                        let comp: doorProps = this.tileMap[prePos.x][prePos.y].item.propsItem.getComponent(doorProps);
+                        let comp = this.tileMap[prePos.x][prePos.y].item.propsComp as doorProps;
                         isClose = comp.isClose;
                     }
                     if (prePos.x == data.bedPos.x && prePos.y == data.bedPos.y) {
-                        let bedComp: bedProps = this.tileMap[prePos.x][prePos.y].item.propsItem.getComponent(bedProps);
+                        let bedComp = this.tileMap[prePos.x][prePos.y].item.propsComp as bedProps;
                         if (bedComp && !bedComp.isOccupied) {
                             bedPos = new Vec2(prePos);
                         }

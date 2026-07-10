@@ -24,6 +24,8 @@ export class bedProps extends gamePropsBase {
     /**道具结束生效 */
     endProps() {
         super.endProps();
+        this.isOccupied = false;
+        this.isRobotOccupied = false;
         this.isProduceCoin = false;
         this.stopProduceCoin();
     }

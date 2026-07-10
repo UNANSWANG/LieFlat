@@ -1,14 +1,13 @@
-import { _decorator, Component, instantiate, Node, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
+import { _decorator, Component, Node, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
 import { tileItemController, tilePropsType } from '../tileItemController';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
-import { produceTips, produceType } from '../../UIPage/tips/produceTips';
-import { poolMgr } from '../../manager/poolManager';
-import { uiMgr } from '../../manager/UIManager';
+import { produceType } from '../../UIPage/tips/produceTips';
 import { roleController, roleState } from '../roleController';
 import { playerMgr } from '../../manager/playerManager';
 import { UIGame } from '../../UIPage/UIGame';
 import { propsConfig } from '../../json/jsonProps';
+import { poolMgr } from '../../manager/poolManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('gamePropsBase')
@@ -97,6 +96,14 @@ export class gamePropsBase extends Component {
     }
 
     clearData() {
+        this.unscheduleAllCallbacks();
+        Tween.stopAllByTarget(this.node);
+        Tween.stopAllByTarget(this.scaleNode);
+        Tween.stopAllByTarget(this.uiOpacity);
+        Tween.stopAllByTarget(this.img1.node);
+        Tween.stopAllByTarget(this.img2.node);
+        Tween.stopAllByTarget(this.img3.node);
+
         this.img1.spriteFrame = null;
         this.img2.spriteFrame = null;
         this.img3.spriteFrame = null;
@@ -106,12 +113,19 @@ export class gamePropsBase extends Component {
         this.img1.node.position = new Vec3(0, 0, 0);
         this.img2.node.position = new Vec3(0, 0, 0);
         this.img3.node.position = new Vec3(0, 0, 0);
+        this.img1.node.angle = 0;
+        this.img2.node.angle = 0;
+        this.img3.node.angle = 0;
+        this.scaleNode.scale = Vec3.ONE;
+        this.node.angle = 0;
 
         this.level = 0;
         this.hp = 1;
+        this.maxHp = 0;
+        this.maxLevel = 10;
         this.uiOpacity.opacity = 255;
         this.damageRecords = [];
-        ccTools.destroyAllChild(this.effectNode);
+        this.recycleEffectChildren();
         this.tileItemComp = null;
         this.propsActive = false;
         this.isSpecialSellProps = false;
@@ -246,10 +260,9 @@ export class gamePropsBase extends Component {
 
     /**移除道具 */
     removeProps() {
-        this.tileItemComp.removeProps();
-        //直接销毁节点
-        this.node.destroy();
-        this.tileItemComp.checkUpgrade();
+        let tileItemComp = this.tileItemComp;
+        tileItemComp?.removeProps();
+        tileItemComp?.checkUpgrade();
     }
 
     /**受到伤害 */
@@ -320,6 +333,17 @@ export class gamePropsBase extends Component {
     private clearExpiredDamageRecords(time: number) {
         let minTime = Date.now() / 1000 - time;
         this.damageRecords = this.damageRecords.filter(record => record.time >= minTime);
+    }
+
+    /**回收逻辑生成的效果节点 */
+    private recycleEffectChildren() {
+        if (!this.effectNode) {
+            return;
+        }
+
+        for (let i = this.effectNode.children.length - 1; i >= 0; i--) {
+            poolMgr.putGameNode(this.effectNode.children[i]);
+        }
     }
 }
 

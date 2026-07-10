@@ -402,7 +402,7 @@ export class UIProps extends UIBase {
 
     /**获取拆除金币返还 */
     private getRemoveRewardCoin(propsData: any) {
-        if (this.propsComp?.isInitialRandomProps) {
+        if (this.propsComp?.isSpecialSellProps) {
             return 1;
         }
 
@@ -411,7 +411,7 @@ export class UIProps extends UIBase {
 
     /**获取拆除电能返还 */
     private getRemoveRewardPower(propsData: any) {
-        if (this.propsComp?.isInitialRandomProps) {
+        if (this.propsComp?.isSpecialSellProps) {
             return 0;
         }
 

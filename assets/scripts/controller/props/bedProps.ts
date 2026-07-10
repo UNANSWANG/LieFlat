@@ -39,9 +39,7 @@ export class bedProps extends gamePropsBase {
         this.isRobotOccupied = true;
         this.isOccupied = true;
 
-        //TODO 临时写的角色皮肤
-        ccTools.loadImg(this.img2, imgPath.roleSkin + 0);
-        this.img2.node.scale = new Vec3(0.5, 0.5, 1);
+        ccTools.loadImg(this.img2, imgPath.roleBody + skinId);
 
         //生产金币
         this.isProduceCoin = true;

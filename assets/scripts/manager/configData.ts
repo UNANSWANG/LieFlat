@@ -9,7 +9,7 @@ export const configData = {
     /**瓦片大小 */
     tileSize: 64,
     /**人物皮肤数量 */
-    roleSkinCount: 7,
+    roleSkinCount: 6,
     /**生产金币频率（秒） */
     produceCoinFreq: 1,
     /**生产电能频率（秒） */

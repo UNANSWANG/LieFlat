@@ -72,12 +72,12 @@ export enum imgPath {
     gamePprops = "texture/game/props/",
     /**游戏内道具预览 */
     gamePpropsPreview = "texture/build/propsPreview/",
-    /**角色皮肤 */
-    roleSkin = "texture/game/roleSkin/role_",
     /**武器皮肤 */
     weaponSkin = "texture/game/weapons/weapons_",
     /**子弹皮肤 */
     bulletSkin = "texture/game/bullet/bullet_",
     /**角色头像 */
     roleAvatar = "texture/role/avatar/avatar_",
+    /**角色半身 */
+    roleBody = "texture/role/body/body_",
 }

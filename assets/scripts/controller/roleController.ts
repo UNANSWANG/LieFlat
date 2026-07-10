@@ -109,9 +109,10 @@ export class roleController extends Component {
         this.roleNameLab = this.node.getChildByName("roleNameLab").getComponent(Label);
     }
 
-    init(comp: UIGame, id: number) {
+    init(comp: UIGame, id: number, skinId: number) {
         this.gameComp = comp;
         this.roleId = id;
+        this.skinId = skinId;
         this.state = roleState.normal;
         this.stopRobotUpgrade();
         this.resetDoorAttackUpgradeData();

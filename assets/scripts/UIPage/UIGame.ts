@@ -2,7 +2,7 @@ import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, in
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { UIBase } from './UIBase';
-import { ItemPath, mapNameArr, UIPath } from '../manager/pathConfig';
+import { imgPath, ItemPath, mapNameArr, UIPath } from '../manager/pathConfig';
 import { configData, enemyCommonConfig, GameEvent, robotCommonConfig } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { zoomButton } from '../extention/zoomButton';
@@ -465,13 +465,19 @@ export class UIGame extends UIBase {
         this.createRandomPropsByRoom();
     }
 
+    /**获取随机皮肤id */
+    getRandomSkinId() {
+        return Math.floor(Math.random() * configData.roleSkinCount);
+    }
+
     /**初始化玩家 */
     initPlayer() {
         playerMgr.player = instantiate(this.rolePre);
         this.roleNode.addChild(playerMgr.player);
         playerMgr.cameraFollow = true;
         this.initRolePos(playerMgr.player);
-        playerMgr.playerComp.init(this, 0);
+        let skinId = this.getRandomSkinId();
+        playerMgr.playerComp.init(this, 0, skinId);
         this.playerLastRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp.currentPos);
     }
 
@@ -483,7 +489,8 @@ export class UIGame extends UIBase {
             let robotComp: roleController = robot.getComponent(roleController);
             this.robotArr.push(robotComp);
             this.initRolePos(robot);
-            robotComp.init(this, i + 1);
+            let skinId = this.getRandomSkinId();
+            robotComp.init(this, i + 1, skinId);
         }
     }
 
@@ -513,10 +520,9 @@ export class UIGame extends UIBase {
         let roleBtn = instantiate(this.roleBtnPre);
         this.roleBtnLayout.addChild(roleBtn);
 
-        let nameLab = roleBtn.getChildByName("Label")?.getComponent(Label);
-        if (nameLab) {
-            nameLab.string = roleComp.roleId == 0 ? "玩家" : "人机" + roleComp.roleId;
-        }
+        let avatar = roleBtn.getChildByName("mask").getChildByName("avatar").getComponent(Sprite);
+        
+        ccTools.loadImg(avatar, imgPath.roleAvatar + roleComp.skinId);
 
         let btnComp = roleBtn.getComponent(zoomButton);
         if (!btnComp) {
@@ -2115,10 +2121,10 @@ export class UIGame extends UIBase {
     onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_S:
-                //跳过关卡
-                pData.addLevel();
-                this.restartGame();
-                // uiMgr.openPage(UIPath.UISuccess);
+                // //跳过关卡
+                // pData.addLevel();
+                // this.restartGame();
+                // // uiMgr.openPage(UIPath.UISuccess);
             case KeyCode.KEY_L:
                 //增加金币
                 pData.fixGameCoin(1000000);

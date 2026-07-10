@@ -78,4 +78,6 @@ export enum imgPath {
     weaponSkin = "texture/game/weapons/weapons_",
     /**子弹皮肤 */
     bulletSkin = "texture/game/bullet/bullet_",
+    /**角色头像 */
+    roleAvatar = "texture/role/avatar/avatar_",
 }

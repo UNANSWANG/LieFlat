@@ -1512,6 +1512,12 @@ export class UIGame extends UIBase {
 
     /**检测人物坐标事件 */
     checkPlayerPos() {
+        if (playerMgr.playerComp?.state == roleState.bed) {
+            this.opratePos = null;
+            this.oprateBtn.active = false;
+            return;
+        }
+
         let roomIdx = this.tileMap[playerMgr.playerComp.currentPos.x][playerMgr.playerComp.currentPos.y].roomIdx;
         let showOprateBtn = false;
         this.opratePos = null;
@@ -2170,7 +2176,6 @@ export class UIGame extends UIBase {
 
         //操作道具
         tileItem.operateProps();
-        this.checkPlayerPos();
 
         if (tileItem.tileType == tilePropsType.bed) {
             playerMgr.playerComp.roomIdx = tileItem.roomIdx;
@@ -2181,7 +2186,11 @@ export class UIGame extends UIBase {
             //金币补偿
             let offset = enemyCommonConfig.enemyStartTime - this.gameStartCountDownTime;
             pData.fixGameCoin(offset);
+            this.checkPlayerPos();
+            return;
         }
+
+        this.checkPlayerPos();
     }
 
     /**点击角色定位按钮 */

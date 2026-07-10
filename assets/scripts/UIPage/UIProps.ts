@@ -206,8 +206,8 @@ export class UIProps extends UIBase {
                 ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType + "_" + nextPropsData.level);
                 this.refreshBuyBtnState(buyBtn, nextPropsData);
             } else if (i == 1) {
-                powerNum = propsData.power / 2;
-                coinNum = propsData.coin / 2;
+                powerNum = this.getRemoveRewardPower(propsData);
+                coinNum = this.getRemoveRewardCoin(propsData);
 
                 grayBg.active = true;
                 normalBg.active = false;
@@ -382,20 +382,40 @@ export class UIProps extends UIBase {
         //将当前材料的一半返回
 
         let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
+        let rewardCoin = this.getRemoveRewardCoin(propsData);
+        let rewardPower = this.getRemoveRewardPower(propsData);
         //增加金币
-        if (propsData.coin > 0) {
-            pData.fixGameCoin(propsData.coin);
-            this.propsComp.produceItem(produceType.coin, propsData.coin / 2);
+        if (rewardCoin > 0) {
+            pData.fixGameCoin(rewardCoin);
+            this.propsComp.produceItem(produceType.coin, rewardCoin);
         }
         //增加电能
-        if (propsData.power > 0) {
-            pData.fixGamePower(propsData.power);
-            this.propsComp.produceItem(produceType.power, propsData.power / 2);
+        if (rewardPower > 0) {
+            pData.fixGamePower(rewardPower);
+            this.propsComp.produceItem(produceType.power, rewardPower);
         }
 
         //移除道具
         this.propsComp.removeProps();
         this.onClose();
+    }
+
+    /**获取拆除金币返还 */
+    private getRemoveRewardCoin(propsData: any) {
+        if (this.propsComp?.isInitialRandomProps) {
+            return 1;
+        }
+
+        return (Number(propsData?.coin) || 0) / 2;
+    }
+
+    /**获取拆除电能返还 */
+    private getRemoveRewardPower(propsData: any) {
+        if (this.propsComp?.isInitialRandomProps) {
+            return 0;
+        }
+
+        return (Number(propsData?.power) || 0) / 2;
     }
 
     /**广告升级门 */

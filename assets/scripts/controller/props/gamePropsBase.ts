@@ -27,6 +27,8 @@ export class gamePropsBase extends Component {
     tileItemComp: tileItemController = null;
     /**道具是否正在生效 */
     private propsActive: boolean = false;
+    /**是否为开局随机生成的房间道具 */
+    isInitialRandomProps: boolean = false;
 
 
     /**游戏脚本 */
@@ -108,6 +110,7 @@ export class gamePropsBase extends Component {
         this.damageRecords = [];
         this.tileItemComp = null;
         this.propsActive = false;
+        this.isInitialRandomProps = false;
     }
 
     /**是否最大等级 */
@@ -158,11 +161,12 @@ export class gamePropsBase extends Component {
     }
 
     /**初始化道具 */
-    init(tileItemComp: tileItemController, level: number = 0) {
+    init(tileItemComp: tileItemController, level: number = 0, isInitialRandomProps: boolean = false) {
         this.clearData();
         this.level = level;
         this.uiOpacity.opacity = 255;
         this.tileItemComp = tileItemComp;
+        this.isInitialRandomProps = isInitialRandomProps;
         this.initPropsImg();
         this.initMaxLevel();
         this.initMaxHp();
@@ -188,6 +192,7 @@ export class gamePropsBase extends Component {
             return;
         }
         this.level++;
+        this.isInitialRandomProps = false;
         this.initPropsImg();
     }
 

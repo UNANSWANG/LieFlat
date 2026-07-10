@@ -659,7 +659,7 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
 
-        tileComp.addProps(propsType, level);
+        tileComp.addProps(propsType, level, true);
     }
 
     /**随机获取床边上下左右空闲位置 */

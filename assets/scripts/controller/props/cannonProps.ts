@@ -10,9 +10,6 @@ import { bulletController } from '../bulletController';
 import { enemyBaseController } from '../enemy/enemyBaseController';
 import { gm } from '../../manager/gm';
 import { printerProps } from './printerProps';
-import { playerMgr } from '../../manager/playerManager';
-import { pData } from '../../manager/playerData';
-import { produceType } from '../../UIPage/tips/produceTips';
 import { telescopeProps } from './telescopeProps';
 import { bearingProps } from './bearingProps';
 import { fireProps } from './fireProps';
@@ -205,18 +202,7 @@ export class cannonProps extends gamePropsBase {
 
     /** 印钞机使炮台攻击时产出金币 */
     private produceCoinByHand() {
-        if (this.roomIdx != playerMgr.playerComp?.roomIdx) {
-            return;
-        }
-
-        let coinMultiplier = printerProps.getRoomCoinMultiplier(this.gameComp, this.roomIdx);
-        if (coinMultiplier <= 0) {
-            return;
-        }
-
-        let coin = (this.level + 1) * coinMultiplier;
-        this.produceItem(produceType.coin, coin);
-        pData.fixGameCoin(coin);
+        printerProps.produceCoinByCannonLevel(this.gameComp, this.roomIdx, this.level);
     }
 
     /**受到震慑，暂停攻击 */

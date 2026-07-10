@@ -78,6 +78,8 @@ export class gamePropsBase extends Component {
     hpBar: Sprite = null;
     /**透明组件 */
     uiOpacity: UIOpacity = null;
+    /**效果节点 */
+    effectNode: Node = null;
 
     protected onLoad(): void {
         this.scaleNode = this.node.getChildByName("scaleNode");
@@ -87,6 +89,7 @@ export class gamePropsBase extends Component {
         this.hpNode = this.scaleNode.getChildByName("hpBg");
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
         this.uiOpacity = this.scaleNode.getComponent(UIOpacity);
+        this.effectNode = this.scaleNode.getChildByName("effectNode");
     }
 
     protected onDisable(): void {
@@ -108,6 +111,7 @@ export class gamePropsBase extends Component {
         this.hp = 1;
         this.uiOpacity.opacity = 255;
         this.damageRecords = [];
+        ccTools.destroyAllChild(this.effectNode);
         this.tileItemComp = null;
         this.propsActive = false;
         this.isSpecialSellProps = false;

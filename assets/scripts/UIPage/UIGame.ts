@@ -106,6 +106,13 @@ export class UIGame extends UIBase {
     roomMap: any = {};
     /**操作按钮的坐标 */
     opratePos: Vec2 = Vec2.ZERO;
+    /**当前操作按钮行为 */
+    private oprateAction: "operate" | "pickup" = "operate";
+    pickupBtnScreenOffsetY: number = 50;
+    /**携带道具相对玩家节点的位置 */
+    private carriedPropsLocalPos: Vec3 = new Vec3(0, 90, 0);
+    /**玩家当前携带的随机道具 */
+    private carriedRandomProps: carriedRandomPropsData = null;
     /**地图层相机，用于把瓦片世界坐标转成屏幕坐标 */
     private gameCamera: Camera = null;
     /**地图层相机控制器 */
@@ -340,6 +347,7 @@ export class UIGame extends UIBase {
         this.roomMap = {};
         this.bornPosArr = [];
         this.randomPropsPosArr = [];
+        this.clearCarriedRandomProps();
         this.tileMap = [];
         this.rockerReset();
     }
@@ -723,6 +731,117 @@ export class UIGame extends UIBase {
         }
 
         tileComp.addProps(propsType, level, true, false);
+        tileComp.isRandomPickProps = true;
+    }
+
+    /**拾取地图随机道具 */
+    private pickupRandomProps(tileItem: tileItemController) {
+        if (!tileItem || !tileItem.isRandomPickProps || this.carriedRandomProps) {
+            return false;
+        }
+
+        let propComp = tileItem.propsComp;
+        let propsType = tileItem.tileType;
+        let level = propComp?.level || 0;
+        let isSpecialSellProps = propComp?.isSpecialSellProps || false;
+        let propsNode = tileItem.takePropsItem();
+        if (!propsNode) {
+            return false;
+        }
+
+        if (propComp) {
+            propComp.enabled = false;
+        }
+
+        playerMgr.player.addChild(propsNode);
+        propsNode.setPosition(this.carriedPropsLocalPos);
+        propsNode.setScale(Vec3.ONE);
+
+        this.carriedRandomProps = {
+            propsType: propsType,
+            level: level,
+            isSpecialSellProps: isSpecialSellProps,
+            propsNode: propsNode,
+            propsComp: propComp,
+        };
+        return true;
+    }
+
+    /**清理当前携带的随机道具节点 */
+    private clearCarriedRandomProps() {
+        if (!this.carriedRandomProps) {
+            return;
+        }
+
+        let carriedData = this.carriedRandomProps;
+        carriedData.propsComp?.clearData();
+        if (carriedData.propsComp) {
+            carriedData.propsComp.enabled = false;
+            carriedData.propsComp.destroy();
+        }
+        carriedData.propsNode.removeFromParent();
+        carriedData.propsNode.destroy();
+        this.carriedRandomProps = null;
+    }
+
+    /**将携带的随机道具放置到房间空位 */
+    private placeCarriedRandomPropsInRoom(roomIdx: number) {
+        if (!this.carriedRandomProps) {
+            return true;
+        }
+
+        let roomData: roomData = this.roomMap[roomIdx];
+        let buildPos = this.getRandomEmptyPosInRoom(roomData);
+        if (!buildPos) {
+            uiMgr.showTips("房间没有空位放置道具");
+            return false;
+        }
+
+        let carriedData = this.carriedRandomProps;
+        carriedData.propsComp?.clearData();
+        if (carriedData.propsComp) {
+            carriedData.propsComp.enabled = false;
+            carriedData.propsComp.destroy();
+        }
+        carriedData.propsNode.removeFromParent();
+        carriedData.propsNode.destroy();
+        this.carriedRandomProps = null;
+
+        let tileData = this.tileMap[buildPos.x]?.[buildPos.y];
+        let tileComp = tileData?.item;
+        if (!tileComp) {
+            tileComp = this.createTileItem(buildPos, roomIdx);
+        }
+
+        tileComp.addProps(carriedData.propsType, carriedData.level, carriedData.isSpecialSellProps, true);
+        tileComp.isRandomPickProps = false;
+        return true;
+    }
+
+    /**随机获取房间内空闲位置 */
+    private getRandomEmptyPosInRoom(roomData: roomData) {
+        if (!roomData || !roomData.roomArr) {
+            return null;
+        }
+
+        let emptyPosArr: Vec2[] = [];
+        for (let i = 0; i < roomData.roomArr.length; i++) {
+            let tilePos = roomData.roomArr[i];
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            let tileComp = tileData?.item;
+            if (!tileData || this.isSameTilePos(tilePos, roomData.bedPos) || this.isSameTilePos(tilePos, roomData.doorPos) || (tileComp && tileComp.tileType != tilePropsType.none)) {
+                continue;
+            }
+
+            emptyPosArr.push(tilePos);
+        }
+
+        if (emptyPosArr.length == 0) {
+            return null;
+        }
+
+        let randomIdx = Math.floor(Math.random() * emptyPosArr.length);
+        return emptyPosArr[randomIdx];
     }
 
     /**随机获取床边上下左右空闲位置 */
@@ -1569,6 +1688,17 @@ export class UIGame extends UIBase {
         let roomIdx = this.tileMap[playerMgr.playerComp.currentPos.x][playerMgr.playerComp.currentPos.y].roomIdx;
         let showOprateBtn = false;
         this.opratePos = null;
+        this.oprateAction = "operate";
+
+        let opetateLab = this.oprateBtn.getChildByName("lab").getComponent(Label);
+        let pickPropsTile = this.getPickableRandomPropsTile(playerMgr.playerComp.currentPos);
+        if (!this.carriedRandomProps && pickPropsTile) {
+            opetateLab.string = "拾取";
+            showOprateBtn = true;
+            this.opratePos = new Vec2(playerMgr.playerComp.currentPos.x, playerMgr.playerComp.currentPos.y);
+            this.oprateAction = "pickup";
+        }
+
         if (roomIdx) {
             //检测在房间的道具
             let data: roomData = this.roomMap[roomIdx];
@@ -1599,10 +1729,10 @@ export class UIGame extends UIBase {
                 }
             }
 
-            let opetateLab = this.oprateBtn.getChildByName("lab").getComponent(Label);
-
             //按照优先级检测道具
-            if (doorPos && !isClose) {
+            if (showOprateBtn) {
+                //已检测到优先级更高的操作
+            } else if (doorPos && !isClose) {
                 //检测没关的门
                 opetateLab.string = "关门";
                 showOprateBtn = true;
@@ -1621,13 +1751,23 @@ export class UIGame extends UIBase {
         }
 
         if (showOprateBtn && this.opratePos) {
-            this.updateOprateBtnPos(this.opratePos);
+            this.updateOprateBtnPos(this.opratePos, this.oprateAction == "pickup" ? this.pickupBtnScreenOffsetY : null);
         }
         this.oprateBtn.active = showOprateBtn;
     }
 
+    /**获取脚下可拾取的随机道具瓦片 */
+    private getPickableRandomPropsTile(tilePos: Vec2) {
+        let tileItem = this.tileMap[tilePos.x]?.[tilePos.y]?.item;
+        if (!tileItem || !tileItem.isRandomPickProps || !tileItem.propsItem || !tileItem.propsItem.isValid) {
+            return null;
+        }
+
+        return tileItem;
+    }
+
     /**根据地图瓦片位置更新操作按钮在UI层的位置 */
-    private updateOprateBtnPos(tilePos: Vec2) {
+    private updateOprateBtnPos(tilePos: Vec2, screenOffsetY: number = null) {
         if (!this.gameCamera || !this.UINode) {
             return;
         }
@@ -1644,17 +1784,21 @@ export class UIGame extends UIBase {
         this.gameCamera.worldToScreen(this.tempPlayerWorldPos, this.tempPlayerScreenPos);
         this.gameCamera.worldToScreen(this.tempTileCenterWorldPos, this.tempScreenPos);
 
-        let screenDirX = this.tempScreenPos.x - this.tempPlayerScreenPos.x;
-        let screenDirY = this.tempScreenPos.y - this.tempPlayerScreenPos.y;
-        let screenDirLength = Math.sqrt(screenDirX * screenDirX + screenDirY * screenDirY);
-        if (screenDirLength <= 0) {
-            screenDirX = 1;
-            screenDirY = 0;
-            screenDirLength = 1;
-        }
+        if (screenOffsetY != null) {
+            this.tempScreenPos.y += screenOffsetY;
+        } else {
+            let screenDirX = this.tempScreenPos.x - this.tempPlayerScreenPos.x;
+            let screenDirY = this.tempScreenPos.y - this.tempPlayerScreenPos.y;
+            let screenDirLength = Math.sqrt(screenDirX * screenDirX + screenDirY * screenDirY);
+            if (screenDirLength <= 0) {
+                screenDirX = 1;
+                screenDirY = 0;
+                screenDirLength = 1;
+            }
 
-        this.tempScreenPos.x += screenDirX / screenDirLength * 60;
-        this.tempScreenPos.y += screenDirY / screenDirLength * 60;
+            this.tempScreenPos.x += screenDirX / screenDirLength * 60;
+            this.tempScreenPos.y += screenDirY / screenDirLength * 60;
+        }
 
         let uiTransform = this.UINode.getComponent(UITransform);
         if (!uiTransform) {
@@ -1966,6 +2110,8 @@ export class UIGame extends UIBase {
             return;
         }
 
+        this.placeCarriedRandomPropsInRoom(playerMgr.playerComp.roomIdx);
+
         //将除了门和床以外的道具节点增加进地图并打开可选框
         for (let i = 0; i < data.roomArr.length; i++) {
             let tilePos = data.roomArr[i];
@@ -2222,6 +2368,12 @@ export class UIGame extends UIBase {
             return;
         }
 
+        if (this.oprateAction == "pickup") {
+            this.pickupRandomProps(tileItem);
+            this.checkPlayerPos();
+            return;
+        }
+
         //操作道具
         tileItem.operateProps();
 
@@ -2299,4 +2451,12 @@ interface roomData {
     roomArr: Vec2[],
     doorPos: Vec2,
     bedPos: Vec2,
+}
+
+interface carriedRandomPropsData {
+    propsType: tilePropsType,
+    level: number,
+    isSpecialSellProps: boolean,
+    propsNode: Node,
+    propsComp: any,
 }

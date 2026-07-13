@@ -102,6 +102,8 @@ export class tileItemController extends Component {
     private propsCompCache: gamePropsBase = null;
     /**是否已置灰 */
     isGrayTile: boolean = false;
+    /**是否为地图随机生成的可拾取道具 */
+    isRandomPickProps: boolean = false;
     /**常规颜色 */
     normalColor: Color = new Color("#FFFFFF");
     /**可升级颜色 */
@@ -150,6 +152,7 @@ export class tileItemController extends Component {
         this.propsItem = null;
         this.propsCompCache = null;
         this.isGrayTile = false;
+        this.isRandomPickProps = false;
         this.hideSelectBox();
         this.upgradeNode.getComponent(loopAnimation).stopAni();
         this.upgradeNode.active = false;
@@ -284,6 +287,25 @@ export class tileItemController extends Component {
         this.propsItem = null;
         this.propsCompCache = null;
         this.tileType = tilePropsType.none;
+        this.isRandomPickProps = false;
+    }
+
+    /**摘下道具节点，不销毁节点，用于玩家携带 */
+    takePropsItem() {
+        if (!this.propsItem) {
+            return null;
+        }
+
+        let propsItem = this.propsItem;
+        let propComp = this.propsComp;
+        propComp?.endProps();
+
+        this.propsItem = null;
+        this.propsCompCache = null;
+        this.tileType = tilePropsType.none;
+        this.isRandomPickProps = false;
+
+        return propsItem;
     }
 
     /**回收到对象池 */

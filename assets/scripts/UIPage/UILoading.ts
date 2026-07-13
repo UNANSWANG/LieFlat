@@ -167,6 +167,7 @@ export class UILoading extends Component {
         configData.doorRepairSpeed = commonConfig.getValueNumber("doorRepairSpeed");
         configData.doorRepairSpeedAdd = commonConfig.getValueNumber("doorRepairSpeedAdd");
         configData.roomPropsProbability = commonConfig.getValueNumber("roomPropsProbability") / 100;
+        configData.randomPropsNum = JSON.parse(commonConfig.getValue("randomPropsNum"));
         //敌人
         enemyCommonConfig.enemyHpRepairSpeed = commonConfig.getValueNumber("enemyHpRepairSpeed");
         enemyCommonConfig.enemyStartTime = commonConfig.getValueNumber("enemyStartTime");

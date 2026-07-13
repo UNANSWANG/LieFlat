@@ -28,6 +28,8 @@ export const configData = {
     doorRepairSpeedAdd: 3,
     /**房间有随机道具概率 */
     roomPropsProbability: 0.8,
+    /**随机道具的生成数量区间 */
+    randomPropsNum: [3,4],
 }
 
 /**敌人通用配置 */

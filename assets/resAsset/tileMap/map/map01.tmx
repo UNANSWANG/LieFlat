@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="35" height="42" tilewidth="64" tileheight="64" infinite="0" nextlayerid="15" nextobjectid="283">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="35" height="42" tilewidth="64" tileheight="64" infinite="0" nextlayerid="15" nextobjectid="295">
  <tileset firstgid="1" source="../set/map3.tsx"/>
  <layer id="1" name="map" width="35" height="42">
   <data encoding="csv">
@@ -111,6 +111,56 @@
   <object id="13" name="人物出生点" x="1408" y="1472" width="64" height="64">
    <properties>
     <property name="born" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="285" name="随机道具生成点位" x="1408" y="1216" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="286" name="随机道具生成点位" x="1472" y="1152" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="287" name="随机道具生成点位" x="1152" y="1344" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="288" name="随机道具生成点位" x="960" y="1344" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="289" name="随机道具生成点位" x="1024" y="1408" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="290" name="随机道具生成点位" x="1600" y="1408" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="291" name="随机道具生成点位" x="1728" y="1344" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="292" name="随机道具生成点位" x="1344" y="1600" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="293" name="随机道具生成点位" x="1408" y="1664" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="294" name="随机道具生成点位" x="1472" y="1600" width="64" height="64">
+   <properties>
+    <property name="randomProps" type="bool" value="true"/>
    </properties>
   </object>
  </objectgroup>

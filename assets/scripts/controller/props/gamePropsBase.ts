@@ -241,17 +241,17 @@ export class gamePropsBase extends Component {
             .start();
     }
 
-    /**获取角色信息通过房间号 */
-    getRoleInfoByRoomIdx(roomIdx: number) {
+    /**获取指定房间内正在床上的角色 */
+    getSleepingRoleInfoByRoomIdx(roomIdx: number) {
         let playerComp = playerMgr.playerComp;
-        if (playerComp && playerComp.node && playerComp.node.isValid && playerComp.roomIdx == roomIdx) {
+        if (playerComp && playerComp.node && playerComp.node.isValid && playerComp.roomIdx == roomIdx && playerComp.state == roleState.bed) {
             return playerComp;
         }
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {
             let robotComp = robotArr[i];
-            if (robotComp && robotComp.node && robotComp.node.isValid && robotComp.roomIdx == roomIdx) {
+            if (robotComp && robotComp.node && robotComp.node.isValid && robotComp.roomIdx == roomIdx && robotComp.state == roleState.bed) {
                 return robotComp;
             }
         }
@@ -276,7 +276,7 @@ export class gamePropsBase extends Component {
             this.hp = 0;
 
             if (this.propsType == tilePropsType.bed) {
-                let roleInfo: roleController = this.getRoleInfoByRoomIdx(this.roomIdx);
+                let roleInfo: roleController = this.getSleepingRoleInfoByRoomIdx(this.roomIdx);
                 if (roleInfo) {
                     roleInfo.state = roleState.dead;
                 }

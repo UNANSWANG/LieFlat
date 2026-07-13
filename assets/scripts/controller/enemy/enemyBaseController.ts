@@ -1608,25 +1608,29 @@ export class enemyBaseController extends Component {
 
     /**攻击道具 */
     private attackProps(propComp: gamePropsBase, tilePos: Vec2) {
-        let isAttackDoor = propComp.propsType == tilePropsType.door;
+        let propType = propComp.propsType;
+        let isAttackDoor = propType == tilePropsType.door;
         let hpBeforeDamage = propComp.hp;
+        let maxHpBeforeDamage = propComp.maxHp;
         if (isAttackDoor && !this.hasHandleTeamCannonCurAttackDoor) {
             this.hasHandleTeamCannonCurAttackDoor = true;
             this.gameComp?.handleTeamCannonByEnemyFirstDoorAttack(tilePos, this.currentPos);
         }
 
         let isDestroyed = propComp.takeDamage(this.attackDamage);
-        let actualDamage = Math.max(0, hpBeforeDamage - propComp.hp);
-        let actualDamagePercent = propComp.getDamagePercent(actualDamage);
+        let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
+        let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;
         if (isAttackDoor) {
             if (actualDamage > 0) {
                 this.recordDoorAttackTimeDamage(actualDamage);
                 this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
             }
         }
-        this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
+        if (!isDestroyed) {
+            this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
+        }
         if (isDestroyed) {
-            if (propComp.propsType == tilePropsType.bed) {
+            if (propType == tilePropsType.bed) {
                 let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
                 this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
             }

@@ -2743,7 +2743,7 @@
         "__id__": 122
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 128
@@ -2845,8 +2845,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 120,
-      "height": 44
+      "width": 150,
+      "height": 80
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -2876,9 +2876,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 166,
-      "g": 245,
-      "b": 0,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {

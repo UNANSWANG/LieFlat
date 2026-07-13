@@ -750,17 +750,17 @@ export class enemyBaseController extends Component {
         return result;
     }
 
-    /**房间是否没有角色睡觉 */
+    /**房间是否没有在床上的角色 */
     private isRoomEmpty(roomIdx: number) {
         let playerComp = playerMgr.playerComp;
-        if (this.isRoleTargetValid(playerComp) && playerComp.roomIdx == roomIdx) {
+        if (this.isRoleSleepingInRoom(playerComp, roomIdx)) {
             return false;
         }
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {
             let robotComp = robotArr[i];
-            if (this.isRoleTargetValid(robotComp) && robotComp.roomIdx == roomIdx) {
+            if (this.isRoleSleepingInRoom(robotComp, roomIdx)) {
                 return false;
             }
         }
@@ -810,6 +810,13 @@ export class enemyBaseController extends Component {
             && roleComp.node.isValid
             && roleComp.state != roleState.dead
             && !!roleComp.currentPos;
+    }
+
+    /**角色是否正在指定房间的床上 */
+    private isRoleSleepingInRoom(roleComp: roleController, roomIdx: number) {
+        return this.isRoleTargetValid(roleComp)
+            && roleComp.state == roleState.bed
+            && roleComp.roomIdx == roomIdx;
     }
 
     /**角色是否在本次需要排除的房间 */

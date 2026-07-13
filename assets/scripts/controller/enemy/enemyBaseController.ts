@@ -1707,6 +1707,11 @@ export class enemyBaseController extends Component {
             return null;
         }
 
+        let roomIdx = tileData.roomIdx || tileItem.roomIdx || 0;
+        if (tileItem.isRandomPickProps && roomIdx <= 0) {
+            return null;
+        }
+
         return tileItem.propsComp;
     }
 

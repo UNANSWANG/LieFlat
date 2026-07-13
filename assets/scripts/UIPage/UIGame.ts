@@ -749,10 +749,6 @@ export class UIGame extends UIBase {
             return false;
         }
 
-        if (propComp) {
-            propComp.enabled = false;
-        }
-
         playerMgr.player.addChild(propsNode);
         propsNode.setPosition(this.carriedPropsLocalPos);
         propsNode.setScale(Vec3.ONE);

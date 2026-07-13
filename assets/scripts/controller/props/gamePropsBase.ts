@@ -179,7 +179,7 @@ export class gamePropsBase extends Component {
     }
 
     /**初始化道具 */
-    init(tileItemComp: tileItemController, level: number = 0, isSpecialSellProps: boolean = false) {
+    init(tileItemComp: tileItemController, level: number = 0, isSpecialSellProps: boolean = false, isAutoStartProps: boolean = true) {
         this.clearData();
         this.level = level;
         this.uiOpacity.opacity = 255;
@@ -190,8 +190,10 @@ export class gamePropsBase extends Component {
         this.initMaxHp();
         this.initPropsData();
 
-        this.propsActive = true;
-        this.startProps();
+        if (isAutoStartProps) {
+            this.propsActive = true;
+            this.startProps();
+        }
     }
 
     /**初始化道具的图片(可重写，默认固定只有一个图片) */

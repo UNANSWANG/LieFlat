@@ -98,6 +98,8 @@ export class UIGame extends UIBase {
     private rockerInitPos: Vec3 = new Vec3(0, -650, 0);
     /**出生点位数组 */
     private bornPosArr: Vec2[] = [];
+    /**随机道具点位数组 */
+    private randomPropsPosArr: Vec2[] = [];
     /**障碍物地图*/
     tileMap: tileData[][] = [];
     /**所有房间信息 */
@@ -337,6 +339,7 @@ export class UIGame extends UIBase {
         this.robotArr = [];
         this.roomMap = {};
         this.bornPosArr = [];
+        this.randomPropsPosArr = [];
         this.tileMap = [];
         this.rockerReset();
     }
@@ -394,13 +397,22 @@ export class UIGame extends UIBase {
             //通用属性
             if (objItem.properties) {
                 let tilePos = ccTools.getTileIndexByPos(objItem.offset.x, objItem.offset.y);
-                if (objItem.properties["born"]) {
+
+                let propsProperties: any = objItem.properties;
+                if (propsProperties["born"] == true) {
                     this.bornPosArr.push(tilePos);
-                } else if (objItem.properties["monsterBorn"]) {
+                }
+
+                if (propsProperties["monsterBorn"] == true) {
                     enemyMgr.enemyBornPosArr.push(tilePos);
+                }
+
+                if (propsProperties["randomProps"] == true) {
+                    this.randomPropsPosArr.push(tilePos);
                 }
             }
         }
+        console.warn("随机道具点位", this.randomPropsPosArr);
 
         //处理房间数据
         let roomIdx = 1;
@@ -477,7 +489,7 @@ export class UIGame extends UIBase {
             roomIdx++;
         }
         console.warn("房间数据", this.roomMap);
-        this.createRandomPropsByRoom();
+        this.createRandomPropsByMapPoint();
     }
 
     /**获取随机皮肤id */
@@ -536,7 +548,7 @@ export class UIGame extends UIBase {
         this.roleBtnLayout.addChild(roleBtn);
 
         let avatar = roleBtn.getChildByName("mask").getChildByName("avatar").getComponent(Sprite);
-        
+
         ccTools.loadImg(avatar, imgPath.roleAvatar + roleComp.skinId);
 
         let btnComp = roleBtn.getComponent(zoomButton);
@@ -637,24 +649,60 @@ export class UIGame extends UIBase {
         return tileComp;
     }
 
-    /**开局按房间概率生成随机道具 */
-    private createRandomPropsByRoom() {
-        let roomKeys = Object.keys(this.roomMap);
-        for (let i = 0; i < roomKeys.length; i++) {
-            let roomIdx = Number(roomKeys[i]);
-            if (roomIdx <= 0 || Math.random() > configData.roomPropsProbability) {
-                continue;
-            }
+    /**开局按地图随机点位生成随机道具 */
+    private createRandomPropsByMapPoint() {
+        let buildPosArr = this.getBuildableRandomPropsPosArr();
+        let createNum = Math.min(this.getRandomPropsCreateNum(), buildPosArr.length);
+        if (createNum <= 0) {
+            return;
+        }
 
-            let roomData: roomData = this.roomMap[roomIdx];
-            let buildPos = this.getRandomEmptyPosAroundBed(roomData, roomIdx);
+        let createCount = 0;
+        while (createCount < createNum && buildPosArr.length > 0) {
+            let randomPosIdx = Math.floor(Math.random() * buildPosArr.length);
+            let buildPos = buildPosArr[randomPosIdx];
+            buildPosArr.splice(randomPosIdx, 1);
+
+            let roomIdx = this.tileMap[buildPos.x]?.[buildPos.y]?.roomIdx || 0;
             let propsData = this.getRandomBuildablePropsData(roomIdx);
-            if (!buildPos || !propsData) {
+            if (!propsData) {
                 continue;
             }
 
             this.createInitialProps(buildPos, propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData));
+            createCount++;
         }
+    }
+
+    /**获取可放置随机道具的地图点位 */
+    private getBuildableRandomPropsPosArr() {
+        let result: Vec2[] = [];
+        for (let i = 0; i < this.randomPropsPosArr.length; i++) {
+            let tilePos = this.randomPropsPosArr[i];
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            let tileComp = tileData?.item;
+            if (!tileData || tileData.block == 1 || (tileComp && tileComp.tileType != tilePropsType.none)) {
+                continue;
+            }
+
+            result.push(tilePos);
+        }
+
+        return result;
+    }
+
+    /**随机道具生成数量，左闭右闭 */
+    private getRandomPropsCreateNum() {
+        let numRange = configData.randomPropsNum || [0, 0];
+        let min = Math.floor(Number(numRange[0]) || 0);
+        let max = Math.floor(Number(numRange[1]) || min);
+        if (max < min) {
+            let temp = min;
+            min = max;
+            max = temp;
+        }
+
+        return min + Math.floor(Math.random() * (max - min + 1));
     }
 
     /**随机道具表等级从1开始，道具组件等级从0开始 */
@@ -674,7 +722,7 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
 
-        tileComp.addProps(propsType, level, true);
+        tileComp.addProps(propsType, level, true, false);
     }
 
     /**随机获取床边上下左右空闲位置 */
@@ -1534,7 +1582,7 @@ export class UIGame extends UIBase {
             for (let i = -1; i <= 1; i++) {
                 for (let j = -1; j <= 1; j++) {
                     prePos.set(playerMgr.playerComp.currentPos.x + i, playerMgr.playerComp.currentPos.y + j);
-                    if(!this.tileMap[prePos.x][prePos.y].item || !this.tileMap[prePos.x][prePos.y].item.propsItem || !this.tileMap[prePos.x][prePos.y].item.propsItem.isValid){
+                    if (!this.tileMap[prePos.x][prePos.y].item || !this.tileMap[prePos.x][prePos.y].item.propsItem || !this.tileMap[prePos.x][prePos.y].item.propsItem.isValid) {
                         continue;
                     }
                     if (prePos.x == data.doorPos.x && prePos.y == data.doorPos.y) {
@@ -1673,9 +1721,9 @@ export class UIGame extends UIBase {
             let propComp = tileItem.propsComp;
             if (tileItem.isGrayTile) {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp, isGrayProps: true });
-            } else if(propComp.isMaxLevel && (propComp.propsType == tilePropsType.bed || propComp.propsType == tilePropsType.door)){
+            } else if (propComp.isMaxLevel && (propComp.propsType == tilePropsType.bed || propComp.propsType == tilePropsType.door)) {
                 uiMgr.showTips("已达最大等级");
-            }else{
+            } else {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });
             }
         } else {
@@ -2145,10 +2193,10 @@ export class UIGame extends UIBase {
     onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_S:
-                // //跳过关卡
-                // pData.addLevel();
-                // this.restartGame();
-                // // uiMgr.openPage(UIPath.UISuccess);
+            // //跳过关卡
+            // pData.addLevel();
+            // this.restartGame();
+            // // uiMgr.openPage(UIPath.UISuccess);
             case KeyCode.KEY_L:
                 //增加金币
                 pData.fixGameCoin(1000000);

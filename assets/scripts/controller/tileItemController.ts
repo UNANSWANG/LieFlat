@@ -165,11 +165,11 @@ export class tileItemController extends Component {
     }
 
     /**添加道具 */
-    addProps(type: tilePropsType, level: number = 0, isSpecialSellProps: boolean = false) {
+    addProps(type: tilePropsType, level: number = 0, isSpecialSellProps: boolean = false, isAutoStartProps: boolean = true) {
         this.isGrayTile = false;
         this.mask.active = false;
         this.tileType = type;
-        this.createProps(Math.max(0, Math.floor(Number(level) || 0)), isSpecialSellProps);
+        this.createProps(Math.max(0, Math.floor(Number(level) || 0)), isSpecialSellProps, isAutoStartProps);
     }
 
     /**绑定游戏节点 */
@@ -178,7 +178,7 @@ export class tileItemController extends Component {
     }
 
     /**创建道具 */
-    createProps(level: number = 0, isSpecialSellProps: boolean = false) {
+    createProps(level: number = 0, isSpecialSellProps: boolean = false, isAutoStartProps: boolean = true) {
         if (this.tileType == tilePropsType.none) {
             return;
         }
@@ -227,7 +227,7 @@ export class tileItemController extends Component {
         this.propsItem = propsItem;
         this.propsCompCache = propComp;
         propComp.enabled = true;
-        propComp.init(this, level, isSpecialSellProps);
+        propComp.init(this, level, isSpecialSellProps, isAutoStartProps);
 
         this.checkUpgrade();
     }

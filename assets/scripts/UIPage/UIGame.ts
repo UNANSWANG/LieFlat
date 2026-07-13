@@ -109,8 +109,8 @@ export class UIGame extends UIBase {
     /**当前操作按钮行为 */
     private oprateAction: "operate" | "pickup" = "operate";
     pickupBtnScreenOffsetY: number = 50;
-    /**携带道具相对玩家节点的位置 */
-    private carriedPropsLocalPos: Vec3 = new Vec3(0, 90, 0);
+    /**携带道具相对玩家节点的位置，y会按角色动画高度动态计算 */
+    private carriedPropsLocalPos: Vec3 = new Vec3(0, 0, 0);
     /**玩家当前携带的随机道具 */
     private carriedRandomProps: carriedRandomPropsData = null;
     /**地图层相机，用于把瓦片世界坐标转成屏幕坐标 */
@@ -750,8 +750,8 @@ export class UIGame extends UIBase {
         }
 
         playerMgr.player.addChild(propsNode);
-        propsNode.setPosition(this.carriedPropsLocalPos);
-        propsNode.setScale(Vec3.ONE);
+        propsNode.setPosition(this.getCarriedPropsLocalPos());
+        propsNode.setScale(new Vec3(0.7, 0.7, 1));
 
         this.carriedRandomProps = {
             propsType: propsType,
@@ -761,6 +761,18 @@ export class UIGame extends UIBase {
             propsComp: propComp,
         };
         return true;
+    }
+
+    /**获取携带道具相对玩家节点的位置 */
+    private getCarriedPropsLocalPos() {
+        let pos = new Vec3(this.carriedPropsLocalPos.x, this.carriedPropsLocalPos.y, this.carriedPropsLocalPos.z);
+        let roleAnim = playerMgr.player?.getChildByName("roleAnim");
+        let roleAnimTrans = roleAnim?.getComponent(UITransform);
+        if (roleAnimTrans) {
+            pos.y = roleAnimTrans.height / 2;
+        }
+
+        return pos;
     }
 
     /**清理当前携带的随机道具节点 */

@@ -150,7 +150,7 @@
           },
           "spine": {
             "_value": true,
-            "_option": "spine-4.2"
+            "_option": "spine-3.8"
           },
           "spine-3.8": {
             "_value": true,
@@ -206,7 +206,7 @@
           "mask",
           "particle-2d",
           "profiler",
-          "spine-4.2",
+          "spine-3.8",
           "tiled-map",
           "tween",
           "ui"

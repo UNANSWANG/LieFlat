@@ -1061,6 +1061,7 @@ export class enemyBaseController extends Component {
         let offsetY = targetNodePos.y - curNodePos.y;
         let distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
         let moveDistance = configData.enemyMoveSpeed * dt;
+        this.refreshRoleAnimDirection(offsetX);
 
         if (distance <= moveDistance || distance <= 0.001) {
             this.node.setPosition(targetNodePos);
@@ -1083,6 +1084,16 @@ export class enemyBaseController extends Component {
         let moveX = offsetX * moveRatio;
         let moveY = offsetY * moveRatio;
         this.node.setPosition(new Vec3(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z));
+    }
+
+    /**根据水平移动方向刷新角色动画朝向 */
+    private refreshRoleAnimDirection(offsetX: number) {
+        let roleAnimNode = this.roleAnim?.node;
+        if (!roleAnimNode || Math.abs(offsetX) <= 0.001) {
+            return;
+        }
+
+        roleAnimNode.setScale(new Vec3(offsetX < 0 ? -1 : 1, 1, 1));
     }
 
     /**如果下一格有门、床、道具等，则停下攻击 */

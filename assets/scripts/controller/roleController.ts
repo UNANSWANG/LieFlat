@@ -462,6 +462,7 @@ export class roleController extends Component {
         let offsetY = targetNodePos.y - curNodePos.y;
         let distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
         let moveDistance = configData.moveSpeed * dt;
+        this.refreshRoleAnimDirection(offsetX);
 
         if (distance <= moveDistance || distance <= 0.001) {
             this.node.setPosition(targetNodePos);
@@ -484,6 +485,16 @@ export class roleController extends Component {
         let moveX = offsetX / distance * moveDistance;
         let moveY = offsetY / distance * moveDistance;
         this.node.setPosition(new Vec3(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z));
+    }
+
+    /**根据水平移动方向刷新角色动画朝向 */
+    private refreshRoleAnimDirection(offsetX: number) {
+        let roleAnimNode = this.roleAnim?.node;
+        if (!roleAnimNode || Math.abs(offsetX) <= 0.001) {
+            return;
+        }
+
+        roleAnimNode.setScale(new Vec3(offsetX < 0 ? -1 : 1, 1, 1));
     }
 
     /**到达随机道具 */

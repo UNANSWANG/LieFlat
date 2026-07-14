@@ -556,6 +556,10 @@ export class UIGame extends UIBase {
         this.roleBtnLayout.addChild(roleBtn);
 
         let avatar = roleBtn.getChildByName("mask").getChildByName("avatar").getComponent(Sprite);
+        let nameLab = roleBtn.getChildByName("nameLab");
+        if (nameLab) {
+            nameLab.active = playerMgr.playerComp?.roleId == roleComp.roleId;
+        }
 
         ccTools.loadImg(avatar, imgPath.roleAvatar + roleComp.skinId);
 

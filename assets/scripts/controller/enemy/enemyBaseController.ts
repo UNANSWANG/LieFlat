@@ -22,6 +22,8 @@ import { alarmProps } from '../props/alarmProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
+    /**静止 */
+    idle = "idle",
     /**攻击 */
     attack = "attack",
     /**移动 */
@@ -170,7 +172,7 @@ export class enemyBaseController extends Component {
 
         //TODO 名称后续加入配置，先临时写死
         this.roleNameLab.string = `猎梦者${this.roleId + 1}`
-        this.playRoleAnim(enemyAnim.move, true);
+        this.playRoleAnim(enemyAnim.idle, true);
     }
 
     protected update(dt: number): void {
@@ -202,7 +204,7 @@ export class enemyBaseController extends Component {
             return;
         }
         if (this.isNetControlled) {
-            this.playRoleAnim(enemyAnim.move, true);
+            this.playRoleAnim(enemyAnim.idle, true);
             return;
         }
         this.moveByPath(dt);
@@ -653,6 +655,7 @@ export class enemyBaseController extends Component {
         if (candidates.length == 0) {
             this.clearTarget();
             this.clearMovePath();
+            this.playRoleAnim(enemyAnim.idle, true);
             return;
         }
 
@@ -681,6 +684,7 @@ export class enemyBaseController extends Component {
 
         this.clearTarget();
         this.clearMovePath();
+        this.playRoleAnim(enemyAnim.idle, true);
     }
 
     /**获取敌人目标候选，包含角色和空房间床 */
@@ -1005,6 +1009,9 @@ export class enemyBaseController extends Component {
                 return;
             }
 
+            if (!this.isAttackingProps && !this.isAttackingPlayer) {
+                this.playRoleAnim(enemyAnim.idle, true);
+            }
             this.tryHandleArriveTarget();
             return;
         }
@@ -1306,7 +1313,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        this.playRoleAnim(enemyAnim.move, true);
+        this.playRoleAnim(this.movePath.length > 0 ? enemyAnim.move : enemyAnim.idle, true);
     }
 
     /**获取最近的出生点 */
@@ -1338,7 +1345,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        this.playRoleAnim(enemyAnim.move, true);
+        this.playRoleAnim(enemyAnim.idle, true);
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * enemyCommonConfig.enemyHpRepairSpeed / 100 * dt);
         this.refreshHp();
 
@@ -1353,6 +1360,7 @@ export class enemyBaseController extends Component {
             this.needWaitReturnStart = false;
             this.isWaitingReturnStart = true;
             this.returnStartTimer = 0;
+            this.playRoleAnim(enemyAnim.idle, true);
             return;
         }
 
@@ -1370,7 +1378,7 @@ export class enemyBaseController extends Component {
             return true;
         }
 
-        this.playRoleAnim(enemyAnim.move, true);
+        this.playRoleAnim(enemyAnim.idle, true);
         this.returnStartTimer += dt;
         if (this.returnStartTimer >= enemyCommonConfig.returnStartTime) {
             this.finishReturnStartWait();
@@ -1404,6 +1412,7 @@ export class enemyBaseController extends Component {
         this.stopAttackPlayer();
         this.resetRageSkill();
         this.stopNetControl();
+        this.playRoleAnim(enemyAnim.idle, true);
     }
 
     /**尝试处理到达当前目标 */

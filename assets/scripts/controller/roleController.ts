@@ -21,6 +21,13 @@ export enum roleState {
     dead = 2,
 }
 
+export enum roleAnimName {
+    /**静止 */
+    idle = "idle",
+    /**移动 */
+    move = "move",
+}
+
 @ccclass('roleController')
 export class roleController extends Component {
     /**角色当前游戏内id */
@@ -83,6 +90,8 @@ export class roleController extends Component {
     private doorAttackSessionElapsedTime: number = 0;
     /**本局建造道具次数 */
     private gamePropsBuildCountMap: { [key: string]: number } = {};
+    /**当前播放的角色动画名称 */
+    private curRoleAnimName: string = "";
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -133,6 +142,8 @@ export class roleController extends Component {
         } else {
             this.roleNameLab.string = `人机${this.roleId}`
         }
+
+        this.playRoleAnim(roleAnimName.idle, true);
     }
 
     /**累计本角色本局建造道具次数 */
@@ -166,6 +177,17 @@ export class roleController extends Component {
         for (let i = 0; i < this.node.children.length; i++) {
             this.node.children[i].active = true;
         }
+        this.playRoleAnim(roleAnimName.idle, true);
+    }
+
+    /**播放角色动画 */
+    playRoleAnim(animName: string, loop: boolean = true) {
+        if (!this.roleAnim || this.curRoleAnimName == animName) {
+            return;
+        }
+
+        this.curRoleAnimName = animName;
+        this.roleAnim.setAnimation(0, animName, loop);
     }
 
     /**寻找房间 */
@@ -300,7 +322,9 @@ export class roleController extends Component {
             return;
         }
 
-        this.moveByPath(dt);
+        if (this.roleId != 0) {
+            this.moveByPath(dt);
+        }
         this.refreshRobotUpgrade(dt);
         this.refreshDoorAttackUpgradeCoolDown(dt);
         this.refreshCannonBuildUpgradeCoolDown(dt);
@@ -424,9 +448,13 @@ export class roleController extends Component {
     /**按路径移动机器人 */
     private moveByPath(dt: number) {
         if (this.movePathIdx >= this.movePath.length) {
+            if (this.state == roleState.normal) {
+                this.playRoleAnim(roleAnimName.idle, true);
+            }
             return;
         }
 
+        this.playRoleAnim(roleAnimName.move, true);
         let nextTilePos = this.movePath[this.movePathIdx];
         let targetNodePos = ccTools.getPosByTileIndex(nextTilePos);
         let curNodePos = this.node.position;

@@ -14,7 +14,7 @@ import { doorProps } from '../controller/props/doorProps';
 import { bedProps } from '../controller/props/bedProps';
 import { thornProps } from '../controller/props/thornProps';
 import { CameraController } from '../controller/CameraController';
-import { roleController, roleState } from '../controller/roleController';
+import { roleAnimName, roleController, roleState } from '../controller/roleController';
 import { enemyMgr } from '../manager/enemyManager';
 import { enemyBaseController } from '../controller/enemy/enemyBaseController';
 import { produceTips, produceType } from './tips/produceTips';
@@ -1590,6 +1590,7 @@ export class UIGame extends UIBase {
         rockerPoint.position = Vec3.ZERO;
 
         this.isMoving = false;
+        playerMgr.playerComp?.playRoleAnim(roleAnimName.idle, true);
     }
 
     /**限制坐标移动 */
@@ -2019,15 +2020,16 @@ export class UIGame extends UIBase {
         // 移动玩家（不使用vec3计算）
         if (this.isMoving) {
             let speed = this.isEnemyCanMove ? configData.moveSpeedGame : configData.moveSpeed;
+            playerMgr.playerComp?.playRoleAnim(roleAnimName.move, true);
             //玩家移动
             let playerPos = this.limitMoveMatrixPos(new Vec3(this.currentMoveDirection.x * speed * dt, this.currentMoveDirection.y * speed * dt, 0));
 
-            let roleAnim = playerMgr.player.getChildByName("roleAnim");
+            let roleAnimNode = playerMgr.player.getChildByName("roleAnim");
             //人物左右反向
             if (this.currentMoveDirection.x < 0) {
-                roleAnim.setScale(new Vec3(-1, 1, 1));
+                roleAnimNode.setScale(new Vec3(-1, 1, 1));
             } else {
-                roleAnim.setScale(new Vec3(1, 1, 1));
+                roleAnimNode.setScale(new Vec3(1, 1, 1));
             }
             playerMgr.player.setPosition(playerPos);
 

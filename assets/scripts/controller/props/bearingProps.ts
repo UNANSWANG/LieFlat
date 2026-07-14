@@ -26,6 +26,7 @@ export class bearingProps extends gamePropsBase {
     
     /**道具开始生效 */
     startProps() {
+        super.startProps();
         this.playRotateAnim();
     }
 

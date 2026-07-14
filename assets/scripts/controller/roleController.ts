@@ -543,6 +543,7 @@ export class roleController extends Component {
         this.gameComp.closeDoorByRoom(this.roomIdx);
 
         this.hideRole();
+        this.gameComp?.refreshDoorMachineEffect(this.roomIdx);
         this.startRobotUpgrade();
 
         gm.Event.emit(GameEvent.refreshPlayerPos);

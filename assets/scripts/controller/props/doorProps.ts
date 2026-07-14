@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Node, Sprite, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { configData } from '../../manager/configData';
 import { propsConfig } from '../../json/jsonProps';
@@ -7,6 +7,10 @@ import { gm } from '../../manager/gm';
 import { enemyMgr } from '../../manager/enemyManager';
 import { machineProps } from './machineProps';
 import { coverProps } from './coverProps';
+import { uiMgr } from '../../manager/UIManager';
+import { poolMgr } from '../../manager/poolManager';
+import { ccTools } from '../../extention/generalTools';
+import { imgPath } from '../../manager/pathConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('doorProps')
@@ -17,6 +21,14 @@ export class doorProps extends gamePropsBase {
     isClose: boolean = false;
     /**使用修复按钮后的剩余加速修复时间 */
     private repairAddTime: number = 0;
+    /**维修台修复效果节点 */
+    private machineRepairEffectNode: Node = null;
+    /**维修台修复效果是否正在播放 */
+    private isMachineRepairEffectPlaying: boolean = false;
+    /**维修台修复效果左右摇晃角度 */
+    private machineRepairEffectSwingAngle: number = 8;
+    /**维修台修复效果单次摇晃时长 */
+    private machineRepairEffectSwingDuration: number = 0.2;
 
     /**道具开始生效 */
     startProps() {
@@ -28,6 +40,7 @@ export class doorProps extends gamePropsBase {
         super.endProps();
         this.repairAddTime = 0;
         Tween.stopAllByTarget(this.img1.node);
+        this.clearMachineRepairEffect();
     }
 
     /**初始化门 */
@@ -106,15 +119,21 @@ export class doorProps extends gamePropsBase {
     /**门自然修复 */
     private repairDoor(dt: number) {
         if (this.maxHp <= 0 || this.hp >= this.maxHp) {
+            this.refreshMachineRepairEffectVisible(false);
             this.updateRepairAddTime(dt);
             return;
         }
 
         let repairSpeed = configData.doorRepairSpeed;
+        let hasRepairAddSpeed = false;
         if (this.repairAddTime > 0) {
             repairSpeed += configData.doorRepairSpeedAdd;
+            hasRepairAddSpeed = true;
         }
-        repairSpeed += machineProps.getDoorRepairSpeedAdd(this.gameComp, this.roomIdx);
+        let machineRepairSpeedAdd = machineProps.getDoorRepairSpeedAdd(this.gameComp, this.roomIdx);
+        repairSpeed += machineRepairSpeedAdd;
+        hasRepairAddSpeed = hasRepairAddSpeed || machineRepairSpeedAdd > 0;
+        this.refreshMachineRepairEffectVisible(hasRepairAddSpeed);
 
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * repairSpeed / 100 * dt);
         this.hpBar.fillRange = this.hp / this.maxHp;
@@ -130,6 +149,101 @@ export class doorProps extends gamePropsBase {
         }
 
         this.repairAddTime = Math.max(0, this.repairAddTime - dt);
+    }
+
+    /**刷新维修台修复效果节点 */
+    refreshMachineRepairEffect() {
+        if (!this.effectNode || !uiMgr.gameItemPrefab || !this.hasMachineRepairEffectSource()) {
+            this.clearMachineRepairEffect();
+            return;
+        }
+
+        if (this.machineRepairEffectNode && this.machineRepairEffectNode.isValid && this.machineRepairEffectNode.parent == this.effectNode) {
+            return;
+        }
+
+        this.clearMachineRepairEffect();
+        this.machineRepairEffectNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.machineRepairEffectNode.name = "machineRepairEffect";
+        this.machineRepairEffectNode.active = false;
+        this.effectNode.addChild(this.machineRepairEffectNode);
+
+        let img = this.machineRepairEffectNode.getComponent(Sprite);
+        if (img) {
+            ccTools.loadImg(img, imgPath.gamePprops + tilePropsType.machine);
+        }
+    }
+
+    /**是否存在可以显示门修复效果的加速来源 */
+    private hasMachineRepairEffectSource() {
+        return this.repairAddTime > 0 || machineProps.getDoorRepairSpeedAdd(this.gameComp, this.roomIdx) > 0;
+    }
+
+    /**刷新维修台修复效果显示状态 */
+    private refreshMachineRepairEffectVisible(isVisible: boolean) {
+        this.refreshMachineRepairEffect();
+        if (!this.machineRepairEffectNode || !this.machineRepairEffectNode.isValid) {
+            return;
+        }
+
+        this.machineRepairEffectNode.active = isVisible;
+        if (isVisible) {
+            this.playMachineRepairEffectAnim();
+        } else {
+            this.stopMachineRepairEffectAnim();
+        }
+    }
+
+    /**播放维修台修复效果左右摇晃动画 */
+    private playMachineRepairEffectAnim() {
+        if (!this.machineRepairEffectNode || this.isMachineRepairEffectPlaying) {
+            return;
+        }
+
+        this.isMachineRepairEffectPlaying = true;
+        Tween.stopAllByTarget(this.machineRepairEffectNode);
+        tween(this.machineRepairEffectNode)
+            .set({ angle: 0 })
+            .to(this.machineRepairEffectSwingDuration, { angle: -this.machineRepairEffectSwingAngle })
+            .to(this.machineRepairEffectSwingDuration * 2, { angle: this.machineRepairEffectSwingAngle })
+            .to(this.machineRepairEffectSwingDuration, { angle: 0 })
+            .union()
+            .repeatForever()
+            .start();
+    }
+
+    /**停止维修台修复效果动画并恢复状态 */
+    private stopMachineRepairEffectAnim() {
+        if (!this.machineRepairEffectNode) {
+            this.isMachineRepairEffectPlaying = false;
+            return;
+        }
+
+        Tween.stopAllByTarget(this.machineRepairEffectNode);
+        this.machineRepairEffectNode.angle = 0;
+        this.isMachineRepairEffectPlaying = false;
+    }
+
+    /**清理维修台修复效果节点 */
+    private clearMachineRepairEffect() {
+        this.stopMachineRepairEffectAnim();
+        if (this.machineRepairEffectNode && this.machineRepairEffectNode.isValid) {
+            poolMgr.putGameNode(this.machineRepairEffectNode);
+        }
+
+        this.machineRepairEffectNode = null;
+    }
+
+    /**刷新指定房间的门维修台效果 */
+    static refreshRoomMachineRepairEffect(gameComp: any, roomIdx: number) {
+        let roomData = gameComp?.roomMap?.[roomIdx];
+        let doorPos = roomData?.doorPos;
+        if (!doorPos) {
+            return;
+        }
+
+        let doorComp = gameComp?.tileMap?.[doorPos.x]?.[doorPos.y]?.item?.propsComp as doorProps;
+        doorComp?.refreshMachineRepairEffect();
     }
 
     /**重置血量 */

@@ -41,12 +41,14 @@ export class machineProps extends gamePropsBase {
     startProps() {
         super.startProps();
         this.playSwingAnim();
+        this.gameComp?.refreshDoorMachineEffect(this.roomIdx);
     }
 
     /**道具结束生效 */
     endProps() {
         super.endProps();
         this.stopSwingAnim();
+        this.gameComp?.refreshDoorMachineEffect(this.roomIdx);
     }
 
     /**播放图2循环左右摇晃动画 */

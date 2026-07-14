@@ -2248,6 +2248,12 @@ export class UIGame extends UIBase {
 
         playerMgr.playerComp.hideRole();
         thornProps.refreshRoomDoorEffect(this, playerMgr.playerComp.roomIdx);
+        this.refreshDoorMachineEffect(playerMgr.playerComp.roomIdx);
+    }
+
+    /**刷新指定房间门上的维修台效果 */
+    refreshDoorMachineEffect(roomIdx: number) {
+        doorProps.refreshRoomMachineRepairEffect(this, roomIdx);
     }
 
     /**玩家占用房间后，刷新预定该房间的人机目标 */

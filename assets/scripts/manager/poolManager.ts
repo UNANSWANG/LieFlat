@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, NodePool, Prefab, Sprite, Tween, UIOpacity, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Node, NodePool, Prefab, Sprite, Tween, UIOpacity, UITransform, Vec3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 //对象池管理类
@@ -82,6 +82,7 @@ export class poolManager extends Component {
             node.setPosition(Vec3.ZERO);
             node.setScale(Vec3.ONE);
             node.angle = 0;
+            node.getComponent(UITransform)?.setAnchorPoint(0.5, 0.5);
         }
 
         let comps = node.getComponents(Component) || [];

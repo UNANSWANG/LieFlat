@@ -166,7 +166,11 @@ export class doorProps extends gamePropsBase {
         this.machineRepairEffectNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
         this.machineRepairEffectNode.name = "machineRepairEffect";
         this.machineRepairEffectNode.active = false;
+        this.machineRepairEffectNode.setScale(new Vec3(0.7, 0.7, 1));
         this.effectNode.addChild(this.machineRepairEffectNode);
+
+        let trans = this.machineRepairEffectNode.getComponent(UITransform);
+        trans?.setAnchorPoint(0.15, 0.25);
 
         let img = this.machineRepairEffectNode.getComponent(Sprite);
         if (img) {
@@ -317,5 +321,4 @@ export class doorProps extends gamePropsBase {
         }
     }
 }
-
 

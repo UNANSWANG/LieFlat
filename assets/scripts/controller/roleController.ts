@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, sp, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Label, Node, sp, UITransform, Vec2, Vec3 } from 'cc';
 import { pData } from '../manager/playerData';
 import { ccTools } from '../extention/generalTools';
 import { configData, GameEvent, robotCommonConfig } from '../manager/configData';
@@ -44,7 +44,7 @@ export class roleController extends Component {
     /**机器人当前是否已经预定随机道具 */
     private hasTargetRandomProps: boolean = false;
     /**机器人当前携带的随机道具数据 */
-    private carriedRandomPropsData: { propsType: tilePropsType, level: number, isSpecialSellProps: boolean } = null;
+    private carriedRandomPropsData: robotCarriedRandomPropsData = null;
     /**机器人上床后的升级配置索引 */
     private robotUpgradeIdx: number = 0;
     /**机器人当前升级计时 */
@@ -123,7 +123,7 @@ export class roleController extends Component {
         this.gamePropsBuildCountMap = {};
         this.clearTargetBedReservation();
         this.clearTargetRandomPropsReservation();
-        this.carriedRandomPropsData = null;
+        this.clearCarriedRandomProps();
         this.movePath = [];
         this.movePathIdx = 0;
 
@@ -472,6 +472,7 @@ export class roleController extends Component {
 
         this.currentPos.set(this.targetPos);
         this.carriedRandomPropsData = propsData;
+        this.attachCarriedRandomProps();
         this.suchRoom();
     }
 
@@ -492,7 +493,7 @@ export class roleController extends Component {
         this.roomIdx = tileData.roomIdx;
 
         if (this.carriedRandomPropsData && this.gameComp.placeRobotRandomPropsInRoom(this.roomIdx, this.carriedRandomPropsData, this)) {
-            this.carriedRandomPropsData = null;
+            this.clearCarriedRandomProps();
         }
 
         //床铺占用
@@ -878,4 +879,51 @@ export class roleController extends Component {
 
         return 0;
     }
+
+    /**把拾取到的随机道具挂到人机身上 */
+    private attachCarriedRandomProps() {
+        let carriedData = this.carriedRandomPropsData;
+        if (!carriedData?.propsNode) {
+            return;
+        }
+
+        this.node.addChild(carriedData.propsNode);
+        carriedData.propsNode.setPosition(this.getCarriedPropsLocalPos());
+        carriedData.propsNode.setScale(new Vec3(0.7, 0.7, 1));
+    }
+
+    /**获取携带道具相对人机节点的位置 */
+    private getCarriedPropsLocalPos() {
+        let roleAnimTrans = this.node.getChildByName("roleAnim")?.getComponent(UITransform);
+        if (!roleAnimTrans) {
+            return new Vec3(0, 0, 0);
+        }
+
+        return new Vec3(0, roleAnimTrans.height / 2, 0);
+    }
+
+    /**清理人机当前携带的随机道具节点 */
+    private clearCarriedRandomProps() {
+        if (!this.carriedRandomPropsData) {
+            return;
+        }
+
+        let carriedData = this.carriedRandomPropsData;
+        carriedData.propsComp?.clearData();
+        if (carriedData.propsComp) {
+            carriedData.propsComp.enabled = false;
+            carriedData.propsComp.destroy();
+        }
+        carriedData.propsNode?.removeFromParent();
+        carriedData.propsNode?.destroy();
+        this.carriedRandomPropsData = null;
+    }
+}
+
+interface robotCarriedRandomPropsData {
+    propsType: tilePropsType;
+    level: number;
+    isSpecialSellProps: boolean;
+    propsNode: Node;
+    propsComp: any;
 }

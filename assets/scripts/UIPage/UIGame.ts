@@ -784,9 +784,14 @@ export class UIGame extends UIBase {
             propsType: tileItem.tileType,
             level: propComp?.level || 0,
             isSpecialSellProps: propComp?.isSpecialSellProps || false,
+            propsNode: tileItem.takePropsItem(),
+            propsComp: propComp,
         };
 
-        tileItem.removeProps();
+        if (!propsData.propsNode) {
+            return null;
+        }
+
         gm.Event.emit(GameEvent.refreshPlayerPos);
         this.refreshRobotTargetByRandomProps(tilePos, robotId);
         return propsData;

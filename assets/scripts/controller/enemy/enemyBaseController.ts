@@ -143,7 +143,7 @@ export class enemyBaseController extends Component {
         this.levelLab = this.node.getChildByName("levelLab").getComponent(Label);
         this.hpNode = this.node.getChildByName("hpBg");
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
-        this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
+        this.roleAnim.setEventListener(this.onRoleAnimEvent.bind(this));
     }
 
     /**初始化 */
@@ -1468,20 +1468,30 @@ export class enemyBaseController extends Component {
         this.startAttackPlayer();
     }
 
-    /**角色动画完成回调 */
-    private onRoleAnimComplete(trackEntry: any) {
+    /**角色动画事件帧回调 */
+    private onRoleAnimEvent(trackEntry: any, event: any) {
         if (gm.isGamePause) {
             return;
         }
 
         let animName = trackEntry?.animation?.name;
-        if (this.isAttackingPlayer && animName == enemyAnim.attack) {
+        let eventName = event?.data?.name || event?.name;
+        if (animName != enemyAnim.attack || eventName != enemyAnim.attack) {
+            return;
+        }
+
+        this.handleAttackEvent();
+    }
+
+    /**处理攻击动作中的attack事件帧 */
+    private handleAttackEvent() {
+        if (this.isAttackingPlayer) {
             this.tryStartRageSkill();
             this.killTargetPlayer();
             return;
         }
 
-        if (!this.isAttackingProps || animName != enemyAnim.attack || !this.attackingTilePos) {
+        if (!this.isAttackingProps || !this.attackingTilePos) {
             return;
         }
 

@@ -518,6 +518,9 @@ export class enemyBaseController extends Component {
         if (this.hp <= 0) {
             return true;
         }
+        if (this.isSawControlled) {
+            return false;
+        }
 
         let hpPercentBeforeDamage = this.hpPercent;
         this.recordDamage(damage);
@@ -995,6 +998,20 @@ export class enemyBaseController extends Component {
         }
 
         return false;
+    }
+
+    /**被铡刀处决 */
+    executeBySaw() {
+        if (this.hp <= 0) {
+            return true;
+        }
+
+        this.unschedule(this.stopSawControl);
+        this.isSawControlled = false;
+        this.hp = 0;
+        this.refreshHp();
+        this.die();
+        return true;
     }
 
     /**指定坐标是否在房间内或房间门上 */

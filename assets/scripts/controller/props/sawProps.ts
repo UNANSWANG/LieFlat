@@ -110,7 +110,7 @@ export class sawProps extends gamePropsBase {
         }
 
         if (!uiMgr.gameItemPrefab) {
-            this.targetEnemy.takeDamage(this.targetEnemy.hp);
+            this.targetEnemy.executeBySaw();
             this.targetEnemy = null;
             return;
         }

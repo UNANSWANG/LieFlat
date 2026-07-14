@@ -102,7 +102,7 @@ export class sawController extends Component {
     /**斩杀目标 */
     private killTarget() {
         if (this.isTargetValid()) {
-            this.target.takeDamage(this.target.hp);
+            this.target.executeBySaw();
         }
 
         this.recycle();

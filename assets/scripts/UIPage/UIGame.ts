@@ -732,6 +732,89 @@ export class UIGame extends UIBase {
 
         tileComp.addProps(propsType, level, true, false);
         tileComp.isRandomPickProps = true;
+        tileComp.randomPickPropsRobotId = 0;
+    }
+
+    /**获取未被人机预定的可拾取随机道具 */
+    getUsableRandomPickPropsCandidates() {
+        let result: { propsPos: Vec2, tileItem: tileItemController }[] = [];
+        for (let i = 0; i < this.randomPropsPosArr.length; i++) {
+            let tilePos = this.randomPropsPosArr[i];
+            let tileItem = this.getPickableRandomPropsTile(tilePos);
+            if (!tileItem || tileItem.randomPickPropsRobotId > 0) {
+                continue;
+            }
+
+            result.push({ propsPos: new Vec2(tilePos.x, tilePos.y), tileItem: tileItem });
+        }
+
+        return result;
+    }
+
+    /**预定随机道具 */
+    reserveRandomPickProps(tilePos: Vec2, robotId: number) {
+        let tileItem = this.getPickableRandomPropsTile(tilePos);
+        if (!tileItem || tileItem.randomPickPropsRobotId > 0) {
+            return false;
+        }
+
+        tileItem.randomPickPropsRobotId = robotId;
+        return true;
+    }
+
+    /**清理随机道具预定 */
+    clearRandomPickPropsReservation(tilePos: Vec2, robotId: number) {
+        let tileItem = this.getPickableRandomPropsTile(tilePos);
+        if (!tileItem || tileItem.randomPickPropsRobotId != robotId) {
+            return;
+        }
+
+        tileItem.randomPickPropsRobotId = 0;
+    }
+
+    /**人机拾取地图随机道具 */
+    robotPickupRandomProps(tilePos: Vec2, robotId: number) {
+        let tileItem = this.getPickableRandomPropsTile(tilePos);
+        if (!tileItem || (tileItem.randomPickPropsRobotId > 0 && tileItem.randomPickPropsRobotId != robotId)) {
+            return null;
+        }
+
+        let propComp = tileItem.propsComp;
+        let propsData = {
+            propsType: tileItem.tileType,
+            level: propComp?.level || 0,
+            isSpecialSellProps: propComp?.isSpecialSellProps || false,
+        };
+
+        tileItem.removeProps();
+        gm.Event.emit(GameEvent.refreshPlayerPos);
+        this.refreshRobotTargetByRandomProps(tilePos, robotId);
+        return propsData;
+    }
+
+    /**人机把携带的随机道具放置到房间空位 */
+    placeRobotRandomPropsInRoom(roomIdx: number, propsData: { propsType: tilePropsType, level: number, isSpecialSellProps: boolean }, robotComp: roleController) {
+        if (!propsData) {
+            return true;
+        }
+
+        let roomData: roomData = this.roomMap[roomIdx];
+        let buildPos = this.getRandomEmptyPosInRoom(roomData);
+        if (!buildPos) {
+            return false;
+        }
+
+        let tileData = this.tileMap[buildPos.x]?.[buildPos.y];
+        let tileComp = tileData?.item;
+        if (!tileComp) {
+            tileComp = this.createTileItem(buildPos, roomIdx);
+        }
+
+        tileComp.addProps(propsData.propsType, propsData.level, propsData.isSpecialSellProps, true);
+        tileComp.isRandomPickProps = false;
+        tileComp.randomPickPropsRobotId = 0;
+        robotComp?.addGamePropsBuildCount(propsData.propsType);
+        return true;
     }
 
     /**拾取地图随机道具 */
@@ -760,6 +843,7 @@ export class UIGame extends UIBase {
             propsNode: propsNode,
             propsComp: propComp,
         };
+        this.refreshRobotTargetByRandomProps(tileItem.pos, 0);
         return true;
     }
 
@@ -2164,6 +2248,22 @@ export class UIGame extends UIBase {
         for (let i = 0; i < this.robotArr.length; i++) {
             let robotComp = this.robotArr[i];
             robotComp?.refreshTargetRoomByOccupiedRoom(roomIdx);
+        }
+    }
+
+    /**随机道具被拾取后，刷新预定该道具的人机目标 */
+    private refreshRobotTargetByRandomProps(tilePos: Vec2, pickupRobotId: number) {
+        if (!tilePos) {
+            return;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let robotComp = this.robotArr[i];
+            if (!robotComp || robotComp.roleId == pickupRobotId) {
+                continue;
+            }
+
+            robotComp.refreshTargetRandomPropsByPicked(tilePos);
         }
     }
 

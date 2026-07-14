@@ -41,6 +41,10 @@ export class roleController extends Component {
     private targetPos: Vec2 = new Vec2();
     /**机器人当前是否已经预定床位 */
     private hasTargetBed: boolean = false;
+    /**机器人当前是否已经预定随机道具 */
+    private hasTargetRandomProps: boolean = false;
+    /**机器人当前携带的随机道具数据 */
+    private carriedRandomPropsData: { propsType: tilePropsType, level: number, isSpecialSellProps: boolean } = null;
     /**机器人上床后的升级配置索引 */
     private robotUpgradeIdx: number = 0;
     /**机器人当前升级计时 */
@@ -117,6 +121,11 @@ export class roleController extends Component {
         this.stopRobotUpgrade();
         this.resetDoorAttackUpgradeData();
         this.gamePropsBuildCountMap = {};
+        this.clearTargetBedReservation();
+        this.clearTargetRandomPropsReservation();
+        this.carriedRandomPropsData = null;
+        this.movePath = [];
+        this.movePathIdx = 0;
 
         //TODO 名称后续加入配置，先临时写死
         if (this.roleId == 0) {
@@ -166,9 +175,45 @@ export class roleController extends Component {
         }
 
         this.clearTargetBedReservation();
+        this.clearTargetRandomPropsReservation();
         this.movePath = [];
         this.movePathIdx = 0;
 
+        if (!this.carriedRandomPropsData && this.trySuchRandomProps()) {
+            return;
+        }
+
+        this.suchBed();
+    }
+
+    /**寻找可抢夺的随机道具 */
+    private trySuchRandomProps() {
+        let candidates = this.gameComp.getUsableRandomPickPropsCandidates();
+        ccTools.shuffleArray(candidates);
+
+        for (let i = 0; i < candidates.length; i++) {
+            let candidate = candidates[i];
+            let path = this.findPathToBed(candidate.propsPos);
+            if (path.length == 0) {
+                continue;
+            }
+
+            if (!this.gameComp.reserveRandomPickProps(candidate.propsPos, this.roleId)) {
+                continue;
+            }
+
+            this.hasTargetRandomProps = true;
+            this.targetPos.set(candidate.propsPos.x, candidate.propsPos.y);
+            this.movePath = path;
+            this.movePathIdx = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**寻找房间床位 */
+    private suchBed() {
         let candidates = this.getUsableBedCandidates();
         ccTools.shuffleArray(candidates);
 
@@ -224,6 +269,30 @@ export class roleController extends Component {
         }
 
         this.hasTargetBed = false;
+    }
+
+    /**清理机器人当前预定随机道具 */
+    private clearTargetRandomPropsReservation() {
+        if (!this.hasTargetRandomProps) {
+            return;
+        }
+
+        this.gameComp?.clearRandomPickPropsReservation(this.targetPos, this.roleId);
+        this.hasTargetRandomProps = false;
+    }
+
+    /**如果当前预定的随机道具已被拾取，则重新判断 */
+    refreshTargetRandomPropsByPicked(tilePos: Vec2) {
+        if (this.roleId == 0 || this.state != roleState.normal || !this.hasTargetRandomProps || !tilePos) {
+            return;
+        }
+
+        if (this.targetPos.x != tilePos.x || this.targetPos.y != tilePos.y) {
+            return;
+        }
+
+        this.hasTargetRandomProps = false;
+        this.suchRoom();
     }
 
     protected update(dt: number): void {
@@ -372,7 +441,14 @@ export class roleController extends Component {
             this.movePathIdx++;
 
             if (this.movePathIdx >= this.movePath.length) {
-                this.arriveBed();
+                if (this.hasTargetRandomProps) {
+                    this.arriveRandomProps();
+                } else if (this.hasTargetBed) {
+                    this.arriveBed();
+                } else {
+                    this.movePath = [];
+                    this.movePathIdx = 0;
+                }
             }
             return;
         }
@@ -380,6 +456,23 @@ export class roleController extends Component {
         let moveX = offsetX / distance * moveDistance;
         let moveY = offsetY / distance * moveDistance;
         this.node.setPosition(new Vec3(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z));
+    }
+
+    /**到达随机道具 */
+    private arriveRandomProps() {
+        let propsData = this.gameComp.robotPickupRandomProps(this.targetPos, this.roleId);
+        this.movePath = [];
+        this.movePathIdx = 0;
+        this.hasTargetRandomProps = false;
+
+        if (!propsData) {
+            this.suchRoom();
+            return;
+        }
+
+        this.currentPos.set(this.targetPos);
+        this.carriedRandomPropsData = propsData;
+        this.suchRoom();
     }
 
     /**到达床铺 */
@@ -397,6 +490,10 @@ export class roleController extends Component {
         this.movePathIdx = 0;
         this.hasTargetBed = false;
         this.roomIdx = tileData.roomIdx;
+
+        if (this.carriedRandomPropsData && this.gameComp.placeRobotRandomPropsInRoom(this.roomIdx, this.carriedRandomPropsData, this)) {
+            this.carriedRandomPropsData = null;
+        }
 
         //床铺占用
         bedComp.isOccupied = true;

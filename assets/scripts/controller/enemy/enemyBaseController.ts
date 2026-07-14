@@ -124,6 +124,8 @@ export class enemyBaseController extends Component {
     private isCageControlled: boolean = false;
     /**是否被渔网控制 */
     private isNetControlled: boolean = false;
+    /**是否被铡刀控制 */
+    private isSawControlled: boolean = false;
 
     ///
     ///节点
@@ -166,6 +168,7 @@ export class enemyBaseController extends Component {
         this.clearFireBurn();
         this.stopCageControl();
         this.stopNetControl();
+        this.stopSawControl();
 
         this.gameComp = comp;
         this.roleId = id;
@@ -201,6 +204,10 @@ export class enemyBaseController extends Component {
         this.updateThornDamage(dt);
         this.updateFireBurn(dt);
         if (this.isCageControlled) {
+            return;
+        }
+        if (this.isSawControlled) {
+            this.playRoleAnim(enemyAnim.idle, true);
             return;
         }
         if (this.isNetControlled) {
@@ -372,6 +379,20 @@ export class enemyBaseController extends Component {
         this.isNetControlled = true;
         this.unschedule(this.stopNetControl);
         this.scheduleOnce(this.stopNetControl, time);
+    }
+
+    /**铡刀控制，等待铡刀落下期间敌人不可移动和攻击 */
+    sawControl(time: number) {
+        if (time <= 0) {
+            return;
+        }
+
+        this.isSawControlled = true;
+        this.stopAttackPlayer();
+        this.stopAttackProps();
+        this.playRoleAnim(enemyAnim.idle, true);
+        this.unschedule(this.stopSawControl);
+        this.scheduleOnce(this.stopSawControl, time);
     }
 
     /**刷新火焰锻造台灼烧状态 */
@@ -1412,6 +1433,7 @@ export class enemyBaseController extends Component {
         this.stopAttackPlayer();
         this.resetRageSkill();
         this.stopNetControl();
+        this.stopSawControl();
         this.playRoleAnim(enemyAnim.idle, true);
     }
 
@@ -1618,6 +1640,16 @@ export class enemyBaseController extends Component {
 
         this.unschedule(this.stopNetControl);
         this.isNetControlled = false;
+    }
+
+    /**结束铡刀控制 */
+    private stopSawControl() {
+        if (!this.isSawControlled) {
+            return;
+        }
+
+        this.unschedule(this.stopSawControl);
+        this.isSawControlled = false;
     }
 
     /**触发当前攻击房间内的渔网 */

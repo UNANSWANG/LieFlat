@@ -1,11 +1,15 @@
-import { _decorator } from 'cc';
+import { _decorator, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { enemyMgr } from '../../manager/enemyManager';
 import { configData } from '../../manager/configData';
 import { gm } from '../../manager/gm';
 import type { enemyBaseController } from '../enemy/enemyBaseController';
-const { ccclass, property } = _decorator;
+import { uiMgr } from '../../manager/UIManager';
+import { poolMgr } from '../../manager/poolManager';
+import { sawController } from '../sawController';
+import { imgPath } from '../../manager/pathConfig';
+const { ccclass } = _decorator;
 
 @ccclass('sawProps')
 export class sawProps extends gamePropsBase {
@@ -19,11 +23,15 @@ export class sawProps extends gamePropsBase {
     private checkTimer: number = 0;
     /**是否已经触发斩杀 */
     private hasKillEnemy: boolean = false;
+    /**当前斩杀目标 */
+    private targetEnemy: enemyBaseController = null;
+    /**临时本地坐标 */
+    private tempLocalPos: Vec3 = new Vec3();
 
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.sawThreshold = commonConfig.getValueNumber("sawThreshold") / 100;
+        this.sawThreshold = 0.3//commonConfig.getValueNumber("sawThreshold") / 100;
         this.sawRange = commonConfig.getValueNumber("sawRange");
     }
 
@@ -86,8 +94,47 @@ export class sawProps extends gamePropsBase {
         }
 
         this.hasKillEnemy = true;
-        targetEnemy.takeDamage(targetEnemy.hp);
+        this.targetEnemy = targetEnemy;
         this.playDisappearAnim();
+    }
+
+    /**消失后在敌人头顶生成铡刀 */
+    onDisappear() {
+        this.createEnemySaw();
+    }
+
+    /**生成斩杀敌人的铡刀 */
+    private createEnemySaw() {
+        if (!this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid) {
+            return;
+        }
+
+        if (!uiMgr.gameItemPrefab) {
+            this.targetEnemy.takeDamage(this.targetEnemy.hp);
+            this.targetEnemy = null;
+            return;
+        }
+
+        let sawNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.gameComp.gameUINode.addChild(sawNode);
+
+        let parentTransform = sawNode.parent?.getComponent(UITransform);
+        if (parentTransform) {
+            parentTransform.convertToNodeSpaceAR(this.targetEnemy.node.worldPosition, this.tempLocalPos);
+        } else {
+            this.tempLocalPos.set(this.targetEnemy.node.worldPosition);
+        }
+
+        sawNode.setPosition(this.tempLocalPos);
+
+        let sawComp = sawNode.getComponent(sawController);
+        if (!sawComp) {
+            sawComp = sawNode.addComponent(sawController);
+        }
+        sawComp.enabled = true;
+
+        sawComp.init(this.targetEnemy, imgPath.gamePprops + this.propsType);
+        this.targetEnemy = null;
     }
 
     /**道具结束生效 */
@@ -95,6 +142,7 @@ export class sawProps extends gamePropsBase {
         super.endProps();
         this.checkTimer = 0;
         this.hasKillEnemy = false;
+        this.targetEnemy = null;
     }
 
 }

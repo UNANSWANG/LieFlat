@@ -498,6 +498,7 @@ export class UIGame extends UIBase {
         }
         console.warn("房间数据", this.roomMap);
         this.createRandomPropsByMapPoint();
+        this.createRandomPropsAroundRoomBed();
     }
 
     /**初始化玩家 */
@@ -677,8 +678,32 @@ export class UIGame extends UIBase {
                 continue;
             }
 
-            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData));
+            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData), true, false);
             createCount++;
+        }
+    }
+
+    /**开局按房间概率在床边生成初始道具 */
+    private createRandomPropsAroundRoomBed() {
+        let roomKeys = Object.keys(this.roomMap || {});
+        for (let i = 0; i < roomKeys.length; i++) {
+            let roomIdx = Number(roomKeys[i]);
+            let roomData: roomData = this.roomMap[roomIdx];
+            if (!roomData || Math.random() > configData.roomPropsProbability) {
+                continue;
+            }
+
+            let buildPos = this.getRandomEmptyPosAroundBed(roomData, roomIdx);
+            if (!buildPos) {
+                continue;
+            }
+
+            let propsData = this.getRandomBuildablePropsData(roomIdx);
+            if (!propsData) {
+                continue;
+            }
+
+            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData), false, true);
         }
     }
 
@@ -719,7 +744,7 @@ export class UIGame extends UIBase {
     }
 
     /**在指定位置生成开局道具，不记录角色建造次数 */
-    private createInitialProps(tilePos: Vec2, propsType: tilePropsType, level: number = 0) {
+    private createInitialProps(tilePos: Vec2, propsType: tilePropsType, level: number = 0, isRandomPickProps: boolean = false, isAutoStartProps: boolean = true) {
         let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
         if (!tileData) {
             return;
@@ -730,8 +755,8 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
 
-        tileComp.addProps(propsType, level, true, false);
-        tileComp.isRandomPickProps = true;
+        tileComp.addProps(propsType, level, true, isAutoStartProps);
+        tileComp.isRandomPickProps = isRandomPickProps;
         tileComp.randomPickPropsRobotId = 0;
     }
 

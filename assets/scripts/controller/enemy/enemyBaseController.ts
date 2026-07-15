@@ -1103,7 +1103,7 @@ export class enemyBaseController extends Component {
         let offsetX = targetNodePos.x - curNodePos.x;
         let offsetY = targetNodePos.y - curNodePos.y;
         let distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-        let moveDistance = configData.enemyMoveSpeed * dt;
+        let moveDistance = enemyCommonConfig.enemyMoveSpeed * dt;
         this.refreshRoleAnimDirection(offsetX);
 
         if (distance <= moveDistance || distance <= 0.001) {

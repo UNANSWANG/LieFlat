@@ -160,7 +160,6 @@ export class UILoading extends Component {
         //通用
         configData.moveSpeed = commonConfig.getValueNumber("moveSpeed");
         configData.moveSpeedGame = commonConfig.getValueNumber("moveSpeedGame");
-        configData.enemyMoveSpeed = commonConfig.getValueNumber("enemyMoveSpeed");
         configData.bulletSpeed = commonConfig.getValueNumber("bulletSpeed");
         configData.repairTime = commonConfig.getValueNumber("repairTime");
         configData.repairCoolDown = commonConfig.getValueNumber("repairCoolDown");
@@ -170,6 +169,7 @@ export class UILoading extends Component {
         configData.randomPropsNum = JSON.parse(commonConfig.getValue("randomPropsNum"));
         configData.doorHpShowTime = commonConfig.getValueNumber("doorHpShowTime");
         //敌人
+        enemyCommonConfig.enemyMoveSpeed = commonConfig.getValueNumber("enemyMoveSpeed");
         enemyCommonConfig.enemyHpRepairSpeed = commonConfig.getValueNumber("enemyHpRepairSpeed");
         enemyCommonConfig.enemyStartTime = commonConfig.getValueNumber("enemyStartTime");
         enemyCommonConfig.enemyEscapeHpPercent = commonConfig.getValueNumber("enemyEscapeHpPercent") / 100;

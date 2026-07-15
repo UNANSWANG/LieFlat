@@ -4,8 +4,6 @@ export const configData = {
     moveSpeed: 300,
     /**游戏开始后人物移动速度 */
     moveSpeedGame: 200,
-    /**敌人移动速度 */
-    enemyMoveSpeed: 400,
     /**瓦片大小 */
     tileSize: 64,
     /**人物皮肤数量 */
@@ -38,6 +36,8 @@ export const configData = {
 
 /**敌人通用配置 */
 export const enemyCommonConfig = {
+    /**敌人移动速度 */
+    enemyMoveSpeed: 400,
     /**敌人开始时间（秒） */
     enemyStartTime: 25,
     /**敌人血量回复速度（每秒回复百分比） */

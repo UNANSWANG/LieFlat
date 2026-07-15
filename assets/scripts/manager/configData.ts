@@ -29,7 +29,9 @@ export const configData = {
     /**房间有随机道具概率 */
     roomPropsProbability: 0.8,
     /**随机道具的生成数量区间 */
-    randomPropsNum: [3,4],
+    randomPropsNum: [3, 4],
+    /**房门血条显示时间（秒） */
+    doorHpShowTime: 5,
 }
 
 /**敌人通用配置 */
@@ -68,6 +70,8 @@ export const enemyCommonConfig = {
     doorAttackTimeDamagePercent: 0.05,
     /**回到出生点的等待时间（秒） */
     returnStartTime: 10,
+    /**敌人攻击间隔倍率区间 */
+    enemyAttackInterval: [0.5, 0.8],
 }
 
 /**人机通用配置 */

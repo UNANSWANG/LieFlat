@@ -168,6 +168,7 @@ export class UILoading extends Component {
         configData.doorRepairSpeedAdd = commonConfig.getValueNumber("doorRepairSpeedAdd");
         configData.roomPropsProbability = commonConfig.getValueNumber("roomPropsProbability") / 100;
         configData.randomPropsNum = JSON.parse(commonConfig.getValue("randomPropsNum"));
+        configData.doorHpShowTime = commonConfig.getValueNumber("doorHpShowTime");
         //敌人
         enemyCommonConfig.enemyHpRepairSpeed = commonConfig.getValueNumber("enemyHpRepairSpeed");
         enemyCommonConfig.enemyStartTime = commonConfig.getValueNumber("enemyStartTime");
@@ -186,6 +187,7 @@ export class UILoading extends Component {
         enemyCommonConfig.goalHpThresholdPercent = commonConfig.getValueNumber("goalHpThresholdPercent") / 100;   
         enemyCommonConfig.doorAttackTimeDamagePercent = commonConfig.getValueNumber("doorAttackTimeDamagePercent") / 100;
         enemyCommonConfig.returnStartTime = commonConfig.getValueNumber("returnStartTime");
+        enemyCommonConfig.enemyAttackInterval = JSON.parse(commonConfig.getValue("enemyAttackInterval"));
         //人机
         robotCommonConfig.generatorBuildBedLevel = commonConfig.getValueNumber("generatorBuildBedLevel");
         robotCommonConfig.generatorBuildLevel = commonConfig.getValueNumber("generatorBuildLevel");

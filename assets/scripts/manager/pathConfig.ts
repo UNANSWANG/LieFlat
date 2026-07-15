@@ -87,5 +87,5 @@ export enum spinePath {
     /**角色spine */
     role = "spine/role/role_",
     /**敌人spine */
-    enemy = "spine/boss/boss_",
+    boss = "spine/boss/boss_",
 }

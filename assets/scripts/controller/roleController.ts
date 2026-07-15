@@ -7,7 +7,7 @@ import { bedProps } from './props/bedProps';
 import { gm } from '../manager/gm';
 import { playerMgr } from '../manager/playerManager';
 import { uiMgr } from '../manager/UIManager';
-import { UIPath } from '../manager/pathConfig';
+import { spinePath, UIPath } from '../manager/pathConfig';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 import { tilePropsType } from './tileItemController';
 const { ccclass, property } = _decorator;
@@ -135,6 +135,7 @@ export class roleController extends Component {
         this.clearCarriedRandomProps();
         this.movePath = [];
         this.movePathIdx = 0;
+        this.refreshRoleSpine();
 
         //TODO 名称后续加入配置，先临时写死
         if (this.roleId == 0) {
@@ -143,6 +144,13 @@ export class roleController extends Component {
             this.roleNameLab.string = `人机${this.roleId}`
         }
 
+        this.playRoleAnim(roleAnimName.idle, true);
+    }
+
+    /**根据皮肤id刷新角色spine */
+    private async refreshRoleSpine() {
+        await ccTools.loadSpine(this.roleAnim, spinePath.role + this.skinId);
+        this.curRoleAnimName = "";
         this.playRoleAnim(roleAnimName.idle, true);
     }
 

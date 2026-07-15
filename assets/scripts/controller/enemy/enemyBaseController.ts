@@ -8,7 +8,7 @@ import { gamePropsBase } from '../props/gamePropsBase';
 import { tilePropsType } from '../tileItemController';
 import { UIGame } from '../../UIPage/UIGame';
 import { uiMgr } from '../../manager/UIManager';
-import { UIPath } from '../../manager/pathConfig';
+import { spinePath, UIPath } from '../../manager/pathConfig';
 import { enemyMgr } from '../../manager/enemyManager';
 import { bedProps } from '../props/bedProps';
 import { enemyConfig } from '../../json/jsonEnemy';
@@ -178,9 +178,17 @@ export class enemyBaseController extends Component {
         this.gameComp = comp;
         this.roleId = id;
         this.skinId = skinId;
+        this.refreshRoleSpine();
 
         //TODO 名称后续加入配置，先临时写死
         this.roleNameLab.string = `猎梦者${this.roleId + 1}`
+        this.playRoleAnim(enemyAnim.idle, true);
+    }
+
+    /**根据皮肤id刷新敌人spine */
+    private async refreshRoleSpine() {
+        await ccTools.loadSpine(this.roleAnim, spinePath.boss + this.skinId);
+        this.curRoleAnimName = "";
         this.playRoleAnim(enemyAnim.idle, true);
     }
 

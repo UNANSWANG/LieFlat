@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Node, sp, Sprite, Vec2, Vec3 } from 'cc';
 import { gm } from '../manager/gm';
 import { audioManager, audioMgr } from '../manager/audioManager';
 import { uiMgr } from '../manager/UIManager';
@@ -116,6 +116,29 @@ export class generalTools {
             return;
         }
         sprite.spriteFrame = img;
+    }
+
+    /**异步加载spine进Skeleton */
+    async loadSpine(skeleton: sp.Skeleton, url: string) {
+        if (!skeleton || !url) {
+            return;
+        }
+
+        let spineName = this.getSpineAssetName(url);
+        let spineData = await ccResTools.loadSpine(uiMgr.resBundle, `${url}/${spineName}`);
+        if (!spineData) {
+            console.log("加载spine失败", url);
+            return;
+        }
+
+        skeleton.skeletonData = spineData;
+    }
+
+    /**通过spine目录名获取资源名，如role_0/role、boss_0/boss */
+    private getSpineAssetName(url: string) {
+        let pathArr = url.split("/");
+        let dirName = pathArr[pathArr.length - 1] || "";
+        return dirName.split("_")[0] || dirName;
     }
 
     /**打乱数组顺序 */

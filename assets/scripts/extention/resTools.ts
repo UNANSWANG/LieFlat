@@ -1,4 +1,4 @@
-import { _decorator, AssetManager, assetManager, Component, ImageAsset, JsonAsset, Node, Prefab, SpriteFrame, Texture2D, TiledMapAsset } from 'cc';
+import { _decorator, AssetManager, assetManager, Component, ImageAsset, JsonAsset, Node, Prefab, sp, SpriteFrame, Texture2D, TiledMapAsset } from 'cc';
 import { gm, PlatType } from '../manager/gm';
 import { GameEvent } from '../manager/configData';
 const { ccclass, property } = _decorator;
@@ -6,6 +6,7 @@ const { ccclass, property } = _decorator;
 @ccclass('resTools')
 export class resTools {
     picMap: Map<string, SpriteFrame> = new Map();
+    spineMap: Map<string, sp.SkeletonData> = new Map();
     //加载bundle
     loadBundle($name): Promise<AssetManager.Bundle> {
         return new Promise(($resolve) => {
@@ -106,6 +107,27 @@ export class resTools {
             $bundle.load($path, SpriteFrame, (err, res: SpriteFrame) => {
                 call && call(res);
                 this.picMap.set($path, res);
+                $resolve(res);
+            });
+        });
+    }
+
+    /**加载spine数据 */
+    loadSpine($bundle: AssetManager.Bundle, $path: string): Promise<sp.SkeletonData> {
+        return new Promise(($resolve) => {
+            if (this.spineMap.has($path)) {
+                $resolve(this.spineMap.get($path));
+                return;
+            }
+
+            $bundle.load($path, sp.SkeletonData, (err, res: sp.SkeletonData) => {
+                if (err) {
+                    console.log("加载spine失败", $path, err);
+                    $resolve(null);
+                    return;
+                }
+
+                this.spineMap.set($path, res);
                 $resolve(res);
             });
         });

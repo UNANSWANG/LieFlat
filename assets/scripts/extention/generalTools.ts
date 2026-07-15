@@ -128,6 +128,14 @@ export class generalTools {
         }
     }
 
+    /**获取随机数字（左闭右开） */
+    getRandomNum(min: number, max: number) {
+        if(min >= max){
+            return min;
+        }
+        return Math.floor(Math.random() * (max - min) + min);
+    }
+
     /**通过坐标获取瓦片索引 */
     getTileIndexByPos(x, y) {
         let tileX = Math.floor(x / configData.tileSize);

@@ -500,18 +500,13 @@ export class UIGame extends UIBase {
         this.createRandomPropsByMapPoint();
     }
 
-    /**获取随机皮肤id */
-    getRandomSkinId() {
-        return Math.floor(Math.random() * configData.roleSkinCount);
-    }
-
     /**初始化玩家 */
     initPlayer() {
         playerMgr.player = instantiate(this.rolePre);
         this.roleNode.addChild(playerMgr.player);
         playerMgr.cameraFollow = true;
         this.initRolePos(playerMgr.player);
-        let skinId = this.getRandomSkinId();
+        let skinId = ccTools.getRandomNum(0, configData.roleSkinCount);
         playerMgr.playerComp.init(this, 0, skinId);
         this.playerLastRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp.currentPos);
     }
@@ -524,7 +519,7 @@ export class UIGame extends UIBase {
             let robotComp: roleController = robot.getComponent(roleController);
             this.robotArr.push(robotComp);
             this.initRolePos(robot);
-            let skinId = this.getRandomSkinId();
+            let skinId = ccTools.getRandomNum(0, configData.roleSkinCount);
             robotComp.init(this, i + 1, skinId);
         }
     }
@@ -592,7 +587,8 @@ export class UIGame extends UIBase {
         this.roleNode.addChild(enemyNode);
         let enemyComp: enemyBaseController = enemyNode.getComponent(enemyBaseController);
         enemyMgr.enemyArr.push(enemyComp);
-        enemyComp.init(this, enemyMgr.enemyId);
+        let skinId = ccTools.getRandomNum(0, configData.enemySkinCount);
+        enemyComp.init(this, enemyMgr.enemyId, skinId);
         enemyMgr.enemyId++;
 
         let randomIdx = Math.floor(Math.random() * enemyMgr.enemyBornPosArr.length);

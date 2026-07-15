@@ -34,6 +34,8 @@ enum enemyAnim {
 export class enemyBaseController extends Component {
     /**角色当前游戏内id */
     roleId: number = 0;
+    /**皮肤id */
+    skinId: number = 0;
     /**游戏脚本 */
     gameComp: UIGame = null;
     /**当前角色所在瓦片位置 */
@@ -154,7 +156,7 @@ export class enemyBaseController extends Component {
     }
 
     /**初始化 */
-    init(comp: UIGame, id: number) {
+    init(comp: UIGame, id: number, skinId: number) {
         this.level = 0;
         this.damageRecords = [];
         this.isForceAttackingDoor = false;
@@ -175,6 +177,7 @@ export class enemyBaseController extends Component {
 
         this.gameComp = comp;
         this.roleId = id;
+        this.skinId = skinId;
 
         //TODO 名称后续加入配置，先临时写死
         this.roleNameLab.string = `猎梦者${this.roleId + 1}`

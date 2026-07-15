@@ -371,7 +371,7 @@ export class enemyBaseController extends Component {
             }
             timeScale *= this.getIceAttackTimeScale();
             timeScale /= this.attackAnimDurationScale;
-            console.log("攻击时的播放速度", this.attackAnimDurationScale);
+            // console.log("攻击时的播放速度", this.attackAnimDurationScale);
         }
         this.roleAnim.timeScale = timeScale;
     }
@@ -1167,8 +1167,11 @@ export class enemyBaseController extends Component {
     private startAttackProps() {
         this.isAttackingProps = true;
         this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
+        let isAlreadyAttack = this.curRoleAnimName == enemyAnim.attack;
         this.playRoleAnim(enemyAnim.attack, true);
-        this.refreshRoleAnimTimeScale();
+        if (isAlreadyAttack) {
+            this.refreshRoleAnimTimeScale();
+        }
     }
 
     /**停止攻击道具状态 */
@@ -1192,8 +1195,11 @@ export class enemyBaseController extends Component {
         this.clearMovePath();
         this.isAttackingPlayer = true;
         this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
+        let isAlreadyAttack = this.curRoleAnimName == enemyAnim.attack;
         this.playRoleAnim(enemyAnim.attack, true);
-        this.refreshRoleAnimTimeScale();
+        if (isAlreadyAttack) {
+            this.refreshRoleAnimTimeScale();
+        }
     }
 
     /**停止攻击角色状态 */

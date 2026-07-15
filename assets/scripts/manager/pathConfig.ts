@@ -81,3 +81,11 @@ export enum imgPath {
     /**角色半身 */
     roleBody = "texture/role/body/body_",
 }
+
+/**spine路径 */
+export enum spinePath {
+    /**角色spine */
+    role = "spine/role/role_",
+    /**敌人spine */
+    enemy = "spine/boss/boss_",
+}

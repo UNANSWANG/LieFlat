@@ -121,17 +121,18 @@ export class generalTools {
     /**异步加载spine进Skeleton */
     async loadSpine(skeleton: sp.Skeleton, url: string) {
         if (!skeleton || !url) {
-            return;
+            return false;
         }
 
         let spineName = this.getSpineAssetName(url);
         let spineData = await ccResTools.loadSpine(uiMgr.resBundle, `${url}/${spineName}`);
         if (!spineData) {
             console.log("加载spine失败", url);
-            return;
+            return false;
         }
 
         skeleton.skeletonData = spineData;
+        return true;
     }
 
     /**通过spine目录名获取资源名，如role_0/role、boss_0/boss */

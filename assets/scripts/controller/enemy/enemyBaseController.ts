@@ -182,12 +182,19 @@ export class enemyBaseController extends Component {
 
         //TODO 名称后续加入配置，先临时写死
         this.roleNameLab.string = `猎梦者${this.roleId + 1}`
-        this.playRoleAnim(enemyAnim.idle, true);
     }
 
     /**根据皮肤id刷新敌人spine */
     private async refreshRoleSpine() {
-        await ccTools.loadSpine(this.roleAnim, spinePath.boss + this.skinId);
+        if (this.roleAnim) {
+            this.roleAnim.skeletonData = null;
+        }
+
+        let isLoaded = await ccTools.loadSpine(this.roleAnim, spinePath.boss + this.skinId);
+        if (!isLoaded) {
+            return;
+        }
+
         this.curRoleAnimName = "";
         this.playRoleAnim(enemyAnim.idle, true);
     }
@@ -1676,7 +1683,7 @@ export class enemyBaseController extends Component {
 
     /**播放角色动画 */
     private playRoleAnim(animName: string, loop: boolean) {
-        if (!this.roleAnim || this.curRoleAnimName == animName) {
+        if (!this.roleAnim || !this.roleAnim.skeletonData || this.curRoleAnimName == animName) {
             return;
         }
 

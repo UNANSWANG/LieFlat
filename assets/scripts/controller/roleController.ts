@@ -143,13 +143,19 @@ export class roleController extends Component {
         } else {
             this.roleNameLab.string = `人机${this.roleId}`
         }
-
-        this.playRoleAnim(roleAnimName.idle, true);
     }
 
     /**根据皮肤id刷新角色spine */
     private async refreshRoleSpine() {
-        await ccTools.loadSpine(this.roleAnim, spinePath.role + this.skinId);
+        if (this.roleAnim) {
+            this.roleAnim.skeletonData = null;
+        }
+
+        let isLoaded = await ccTools.loadSpine(this.roleAnim, spinePath.role + this.skinId);
+        if (!isLoaded) {
+            return;
+        }
+
         this.curRoleAnimName = "";
         this.playRoleAnim(roleAnimName.idle, true);
     }
@@ -190,7 +196,7 @@ export class roleController extends Component {
 
     /**播放角色动画 */
     playRoleAnim(animName: string, loop: boolean = true) {
-        if (!this.roleAnim || this.curRoleAnimName == animName) {
+        if (!this.roleAnim || !this.roleAnim.skeletonData || this.curRoleAnimName == animName) {
             return;
         }
 

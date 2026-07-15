@@ -1099,6 +1099,7 @@ export class enemyBaseController extends Component {
         }
 
         let nextTilePos = this.movePath[this.movePathIdx];
+        this.refreshRoleAnimDirectionByTilePos(nextTilePos);
         if (this.isRepairingHp) {
             this.stopAttackProps();
         } else if (this.isEmptyRoomDoor(nextTilePos)) {
@@ -1122,7 +1123,6 @@ export class enemyBaseController extends Component {
         let offsetY = targetNodePos.y - curNodePos.y;
         let distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
         let moveDistance = enemyCommonConfig.enemyMoveSpeed * dt;
-        this.refreshRoleAnimDirection(offsetX);
 
         if (distance <= moveDistance || distance <= 0.001) {
             this.node.setPosition(targetNodePos);
@@ -1155,6 +1155,25 @@ export class enemyBaseController extends Component {
         }
 
         roleAnimNode.setScale(new Vec3(offsetX < 0 ? -1 : 1, 1, 1));
+    }
+
+    /**根据目标瓦片刷新角色动画朝向 */
+    private refreshRoleAnimDirectionByTilePos(tilePos: Vec2) {
+        if (!tilePos) {
+            return;
+        }
+
+        let targetNodePos = ccTools.getPosByTileIndex(tilePos);
+        this.refreshRoleAnimDirection(targetNodePos.x - this.node.position.x);
+    }
+
+    /**根据目标节点刷新角色动画朝向 */
+    private refreshRoleAnimDirectionByNode(targetNode: Node) {
+        if (!targetNode) {
+            return;
+        }
+
+        this.refreshRoleAnimDirection(targetNode.position.x - this.node.position.x);
     }
 
     /**如果下一格有门、床、道具等，则停下攻击 */
@@ -1212,6 +1231,7 @@ export class enemyBaseController extends Component {
     private startAttackPlayer() {
         this.clearMovePath();
         this.isAttackingPlayer = true;
+        this.refreshRoleAnimDirectionByNode(this.targetPlayer?.node);
         this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
         let isAlreadyAttack = this.curRoleAnimName == enemyAnim.attack;
         this.playRoleAnim(enemyAnim.attack, true);

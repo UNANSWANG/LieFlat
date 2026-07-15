@@ -1,0 +1,55 @@
+
+boss.png
+size: 137,137
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+shenti
+  rotate: false
+  xy: 2, 71
+  size: 58, 64
+  orig: 58, 64
+  offset: 0, 0
+  index: -1
+tou
+  rotate: false
+  xy: 106, 59
+  size: 24, 30
+  orig: 24, 30
+  offset: 0, 0
+  index: -1
+youjiao
+  rotate: false
+  xy: 106, 91
+  size: 27, 44
+  orig: 27, 44
+  offset: 0, 0
+  index: -1
+youshangbi
+  rotate: false
+  xy: 2, 6
+  size: 40, 63
+  orig: 40, 63
+  offset: 0, 0
+  index: -1
+zuojiao
+  rotate: false
+  xy: 44, 2
+  size: 32, 55
+  orig: 32, 55
+  offset: 0, 0
+  index: -1
+zuojiao+
+  rotate: false
+  xy: 78, 5
+  size: 31, 52
+  orig: 31, 52
+  offset: 0, 0
+  index: -1
+zuoshagnbi
+  rotate: false
+  xy: 62, 59
+  size: 42, 76
+  orig: 42, 76
+  offset: 0, 0
+  index: -1

@@ -29,6 +29,8 @@ export class doorProps extends gamePropsBase {
     private machineRepairEffectSwingAngle: number = 8;
     /**维修台修复效果单次摇晃时长 */
     private machineRepairEffectSwingDuration: number = 0.2;
+    /**房门血条剩余显示时间 */
+    private doorHpShowTimer: number = 0;
 
     /**道具开始生效 */
     startProps() {
@@ -39,6 +41,7 @@ export class doorProps extends gamePropsBase {
     endProps() {
         super.endProps();
         this.repairAddTime = 0;
+        this.doorHpShowTimer = 0;
         Tween.stopAllByTarget(this.img1.node);
         this.clearMachineRepairEffect();
     }
@@ -109,6 +112,7 @@ export class doorProps extends gamePropsBase {
 
         coverProps.updateRoomShieldTimer(this.roomIdx, dt);
         this.repairDoor(dt);
+        this.updateDoorHpShowTimer(dt);
     }
 
     /**开启加速修复 */
@@ -137,9 +141,20 @@ export class doorProps extends gamePropsBase {
 
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * repairSpeed / 100 * dt);
         this.hpBar.fillRange = this.hp / this.maxHp;
-        this.hpNode.active = this.hp < this.maxHp;
 
         this.updateRepairAddTime(dt);
+    }
+
+    /**刷新房门血条显示剩余时间 */
+    private updateDoorHpShowTimer(dt: number) {
+        if (this.doorHpShowTimer <= 0) {
+            return;
+        }
+
+        this.doorHpShowTimer = Math.max(0, this.doorHpShowTimer - dt);
+        if (this.doorHpShowTimer <= 0) {
+            this.hpNode.active = false;
+        }
     }
 
     /**刷新加速修复剩余时间 */
@@ -251,11 +266,14 @@ export class doorProps extends gamePropsBase {
     }
 
     /**重置血量 */
-    resetHp() {
+    resetHp(isKeepHpShowTimer: boolean = false) {
         this.maxHp = this.propsDatas[this.level].hp;
         this.hp = this.maxHp;
         this.hpBar.fillRange = 1;
         this.hpNode.active = false;
+        if (!isKeepHpShowTimer) {
+            this.doorHpShowTimer = 0;
+        }
     }
 
     /**初始化血量 */
@@ -271,6 +289,10 @@ export class doorProps extends gamePropsBase {
 
         let isDestroyed = super.takeDamage(damage);
         if (!isDestroyed) {
+            this.doorHpShowTimer = configData.doorHpShowTime;
+            this.hpNode.active = true;
+        }
+        if (!isDestroyed) {
             coverProps.tryStartShieldByDoorHp(this.gameComp, this.roomIdx, this.hpPercent);
         }
 
@@ -280,8 +302,11 @@ export class doorProps extends gamePropsBase {
     /**升级道具 */
     upgradeProps(): void {
         let levelBefore = this.level;
+        let doorHpShowTimerBefore = this.doorHpShowTimer;
         super.upgradeProps();
-        this.resetHp();
+        this.resetHp(true);
+        this.doorHpShowTimer = doorHpShowTimerBefore;
+        this.hpNode.active = this.doorHpShowTimer > 0;
         if (this.level != levelBefore) {
             this.checkEnemyEscapeAfterUpgrade();
         }
@@ -290,8 +315,11 @@ export class doorProps extends gamePropsBase {
     /**广告升级门 */
     upgradePropsAd() {
         let levelBefore = this.level;
+        let doorHpShowTimerBefore = this.doorHpShowTimer;
         super.upgradeProps();
-        this.resetHp();
+        this.resetHp(true);
+        this.doorHpShowTimer = doorHpShowTimerBefore;
+        this.hpNode.active = this.doorHpShowTimer > 0;
         if (this.level != levelBefore) {
             this.checkEnemyChoseUpgradeAd();
         }
@@ -321,4 +349,3 @@ export class doorProps extends gamePropsBase {
         }
     }
 }
-

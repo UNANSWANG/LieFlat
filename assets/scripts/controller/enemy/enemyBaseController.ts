@@ -359,7 +359,7 @@ export class enemyBaseController extends Component {
         }
 
         let isAttackAnim = this.curRoleAnimName == enemyAnim.attack;
-        let timeScale = isAttackAnim ? 0.5 : 1;
+        let timeScale = 1;
         if (this.isRaging && isAttackAnim) {
             timeScale *= enemyCommonConfig.rageAttackSpeed;
         }
@@ -367,6 +367,9 @@ export class enemyBaseController extends Component {
             timeScale *= this.getIceAttackTimeScale();
         }
 
+        if(isAttackAnim){
+            //处理攻击时的播放速度
+        }
         this.roleAnim.timeScale = timeScale;
     }
 

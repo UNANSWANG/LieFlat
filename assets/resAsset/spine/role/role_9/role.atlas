@@ -1,0 +1,55 @@
+
+role.png
+size: 132,132
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+kudou
+  rotate: true
+  xy: 52, 104
+  size: 26, 18
+  orig: 26, 18
+  offset: 0, 0
+  index: -1
+shenti
+  rotate: false
+  xy: 2, 25
+  size: 31, 44
+  orig: 31, 44
+  offset: 0, 0
+  index: -1
+tou
+  rotate: true
+  xy: 52, 86
+  size: 16, 19
+  orig: 16, 19
+  offset: 0, 0
+  index: -1
+youshou
+  rotate: false
+  xy: 35, 39
+  size: 20, 43
+  orig: 20, 43
+  offset: 0, 0
+  index: -1
+youxiaotui
+  rotate: false
+  xy: 2, 71
+  size: 27, 59
+  orig: 27, 59
+  offset: 0, 0
+  index: -1
+zuodatui
+  rotate: true
+  xy: 2, 2
+  size: 21, 63
+  orig: 21, 63
+  offset: 0, 0
+  index: -1
+zuoshangbi
+  rotate: false
+  xy: 31, 84
+  size: 19, 46
+  orig: 19, 46
+  offset: 0, 0
+  index: -1

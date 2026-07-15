@@ -16,9 +16,6 @@ export class UISetting extends UIBase {
     closeBtn: Node;
 
     @property(Node)
-    feedbackBtn: Node;
-
-    @property(Node)
     homeBtn: Node;
 
     @property(Node)
@@ -70,7 +67,6 @@ export class UISetting extends UIBase {
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
-        this.feedbackBtn.addComponent(zoomButton).onClick = this.clickFeedbackBtn.bind(this);
         this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
         this.restartBtn.addComponent(zoomButton).onClick = this.clickRestartBtn.bind(this);
     }
@@ -91,17 +87,17 @@ export class UISetting extends UIBase {
     refreshUI() {
         let bgTrans = this.bg.getComponent(UITransform);
         if (this.mode == 1) {
-            bgTrans.height = 1228;
-            this.bg.position = new Vec3(0, 95, 0);
+            bgTrans.height = 886;
+            // this.bg.position = new Vec3(0, 95, 0);
             this.restartBtn.active = true;
             this.homeBtn.active = true;
-            this.toggleList.position = new Vec3(0, -312, 0);
+            // this.toggleList.position = new Vec3(0, -312, 0);
         } else {
             bgTrans.height = 1025;
-            this.bg.position = new Vec3(0, 100, 0);
+            // this.bg.position = new Vec3(0, 100, 0);
             this.restartBtn.active = false;
             this.homeBtn.active = false;
-            this.toggleList.position = new Vec3(0, -402, 0);
+            // this.toggleList.position = new Vec3(0, -402, 0);
         }
 
         this.bg.getChildByName("topNode").getComponent(Widget).updateAlignment();
@@ -133,11 +129,6 @@ export class UISetting extends UIBase {
     /**点击振动开关 */
     clickVibratBtn() {
         audioMgr.switchVibrat(!audioMgr.isVibrat);
-    }
-
-    /**点击反馈 */
-    clickFeedbackBtn() {
-        uiMgr.showTips("正在反馈...");
     }
 
     /**点击主页 */

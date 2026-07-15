@@ -104,6 +104,8 @@ export class enemyBaseController extends Component {
     private returnStartTimer: number = 0;
     /**当前播放的角色动画名称 */
     private curRoleAnimName: string = "";
+    /**攻击动画时长倍率 */
+    private attackAnimDurationScale: number = 1;
     /**游戏暂停后是否已清理行为 */
     private hasStopByGamePause: boolean = false;
     /**升级计时 */
@@ -148,6 +150,7 @@ export class enemyBaseController extends Component {
         this.hpNode = this.node.getChildByName("hpBg");
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
         this.roleAnim.setEventListener(this.onRoleAnimEvent.bind(this));
+        this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
     }
 
     /**初始化 */
@@ -360,17 +363,37 @@ export class enemyBaseController extends Component {
 
         let isAttackAnim = this.curRoleAnimName == enemyAnim.attack;
         let timeScale = 1;
-        if (this.isRaging && isAttackAnim) {
-            timeScale *= enemyCommonConfig.rageAttackSpeed;
-        }
-        if (isAttackAnim) {
-            timeScale *= this.getIceAttackTimeScale();
-        }
 
-        if(isAttackAnim){
-            //处理攻击时的播放速度
+        //处理攻击时的播放速度
+        if (isAttackAnim) {
+            if (this.isRaging) {
+                timeScale *= enemyCommonConfig.rageAttackSpeed;
+            }
+            timeScale *= this.getIceAttackTimeScale();
+            timeScale /= this.attackAnimDurationScale;
+            console.log("攻击时的播放速度", this.attackAnimDurationScale);
         }
         this.roleAnim.timeScale = timeScale;
+    }
+
+    /**获取攻击动画随机时长倍率 */
+    private getRandomAttackAnimDurationScale() {
+        let interval = enemyCommonConfig.enemyAttackInterval || [1, 1];
+        let min = Number(interval[0]) || 1;
+        let max = Number(interval[1]) || min;
+        if (min > max) {
+            let temp = min;
+            min = max;
+            max = temp;
+        }
+
+        return min + Math.random() * (max - min);
+    }
+
+    /**刷新下次攻击动画时长倍率 */
+    private refreshNextAttackAnimDurationScale() {
+        this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
+        this.refreshRoleAnimTimeScale();
     }
 
     /**渔网控制 */
@@ -1143,6 +1166,7 @@ export class enemyBaseController extends Component {
     /**开始播放攻击道具动画 */
     private startAttackProps() {
         this.isAttackingProps = true;
+        this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
         this.playRoleAnim(enemyAnim.attack, true);
         this.refreshRoleAnimTimeScale();
     }
@@ -1167,6 +1191,7 @@ export class enemyBaseController extends Component {
     private startAttackPlayer() {
         this.clearMovePath();
         this.isAttackingPlayer = true;
+        this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
         this.playRoleAnim(enemyAnim.attack, true);
         this.refreshRoleAnimTimeScale();
     }
@@ -1545,6 +1570,15 @@ export class enemyBaseController extends Component {
         this.handleAttackEvent();
     }
 
+    /**角色动画单次播放完成回调 */
+    private onRoleAnimComplete(trackEntry: any) {
+        if (gm.isGamePause || this.curRoleAnimName != enemyAnim.attack || trackEntry?.animation?.name != enemyAnim.attack) {
+            return;
+        }
+
+        this.refreshNextAttackAnimDurationScale();
+    }
+
     /**处理攻击动作中的attack事件帧 */
     private handleAttackEvent() {
         if (this.isAttackingPlayer) {
@@ -1630,6 +1664,9 @@ export class enemyBaseController extends Component {
         }
 
         this.curRoleAnimName = animName;
+        if (animName != enemyAnim.attack) {
+            this.attackAnimDurationScale = 1;
+        }
         this.roleAnim.setAnimation(0, animName, loop);
         this.refreshRoleAnimTimeScale();
     }

@@ -71,7 +71,7 @@ export const enemyCommonConfig = {
     /**回到出生点的等待时间（秒） */
     returnStartTime: 10,
     /**敌人攻击间隔倍率区间 */
-    enemyAttackInterval: [0.5, 0.8],
+    enemyAttackInterval: [1.25, 1.75],
 }
 
 /**人机通用配置 */

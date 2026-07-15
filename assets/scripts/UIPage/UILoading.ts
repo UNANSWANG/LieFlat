@@ -184,7 +184,7 @@ export class UILoading extends Component {
         enemyCommonConfig.doorAttackTimeDamage = commonConfig.getValueNumber("doorAttackTimeDamage");
         enemyCommonConfig.enemyHpAttackPercent = commonConfig.getValueNumber("enemyHpAttackPercent") / 100;
         enemyCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("doorHpAttackPercent") / 100;
-        enemyCommonConfig.goalHpThresholdPercent = commonConfig.getValueNumber("goalHpThresholdPercent") / 100;   
+        enemyCommonConfig.goalHpThresholdPercent = commonConfig.getValueNumber("goalHpThresholdPercent") / 100;
         enemyCommonConfig.doorAttackTimeDamagePercent = commonConfig.getValueNumber("doorAttackTimeDamagePercent") / 100;
         enemyCommonConfig.returnStartTime = commonConfig.getValueNumber("returnStartTime");
         enemyCommonConfig.enemyAttackInterval = JSON.parse(commonConfig.getValue("enemyAttackInterval"));

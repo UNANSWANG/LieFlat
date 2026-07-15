@@ -4,7 +4,7 @@ import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
 import { zoomButton } from '../extention/zoomButton';
 import { pData } from '../manager/playerData';
-import {GameEvent,SaveKey } from '../manager/configData';
+import { GameEvent, SaveKey } from '../manager/configData';
 import { gm, PlatType } from '../manager/gm';
 import { ccStorageTools } from '../extention/storageTools';
 import { TTManager } from '../sdk/plat/tt/TTManager';
@@ -25,10 +25,13 @@ export class UIMain extends UIBase {
     rankBtn: Node = null;
 
     @property(Node)
-    revisitBtn: Node = null;
+    storeBtn: Node = null;
 
-    @property(Label)
-    levelLab: Label = null;
+    @property(Node)
+    skinStoreBtn: Node = null;
+
+    @property(Node)
+    revisitBtn: Node = null;
 
     /**是否展示过复访按钮 */
     isShowRevisit = false;
@@ -48,8 +51,6 @@ export class UIMain extends UIBase {
 
     /**初始化数据 */
     initData() {
-        this.levelLab.string = `第${pData.level + 1}关`;
-
         this.refreshRed();
         this.checkRevisitBtn();
     }
@@ -59,6 +60,8 @@ export class UIMain extends UIBase {
         this.setBtn.addComponent(zoomButton).onClick = this.cliskSetBtn.bind(this);
         this.rankBtn.addComponent(zoomButton).onClick = this.clickRankBtn.bind(this);
         this.revisitBtn.addComponent(zoomButton).onClick = this.clickRevisitBtn.bind(this);
+        this.storeBtn.addComponent(zoomButton).onClick = this.clickStoreBtn.bind(this);
+        this.skinStoreBtn.addComponent(zoomButton).onClick = this.clickSkinStoreBtn.bind(this);
     }
 
     /**添加监听 */
@@ -75,7 +78,7 @@ export class UIMain extends UIBase {
 
     /**刷新红点 */
     refreshRed() {
-        
+
     }
 
     /**检测复访按钮 */
@@ -114,6 +117,8 @@ export class UIMain extends UIBase {
 
     /**点击排行榜 */
     clickRankBtn() {
+        uiMgr.openPage(UIPath.UIRank);
+        return;
         //有昵称和授权或者h5平台才直接打开排行榜
         if ((gm.API.isAuthorize && userMgr.nickName) || gm.platType == PlatType.h5) {
             uiMgr.openPage(UIPath.UIRank);
@@ -145,6 +150,16 @@ export class UIMain extends UIBase {
                 getUserInfo();
             }
         }
+    }
+
+    /**点击商店 */
+    clickStoreBtn() {
+        // uiMgr.openPage(UIPath.UIStore);
+    }
+
+    /**点击皮肤商店 */
+    clickSkinStoreBtn() {
+        // uiMgr.openPage(UIPath.UISkinStore);
     }
 }
 

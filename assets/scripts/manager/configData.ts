@@ -12,7 +12,7 @@ export const configData = {
     enemySkinCount: 7,
     /**生产金币频率（秒） */
     produceCoinFreq: 1,
-    /**生产电能频率（秒） */
+    /**生产电能频率（秒） */ 
     producePowerFreq: 1,
     /**炮台的攻击间隔 */
     cannonAttackFreq: 1,

@@ -33,6 +33,11 @@ export class jsonRoleSkin extends jsonBase {
     get roleSkinAllData() : JsonRoleSkinData[]{
         return this.data;
     }
+
+    /**根据皮肤id获取皮肤数据 */
+    getSkinDataById(skinId: number) : JsonRoleSkinData {
+        return this.roleSkinAllData?.find((item) => item.skinId == skinId) || null;
+    }
 }
 export let roleSkinConfig = new jsonRoleSkin();
 

@@ -111,8 +111,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 2.9,
-      "y": 2.9,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_mobility": 0,
@@ -139,8 +139,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 50,
-      "height": 100
+      "width": 138,
+      "height": 286
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

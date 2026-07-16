@@ -1,12 +1,16 @@
-import { _decorator, Component, Node, Animation, Prefab, Sprite, ScrollView, instantiate } from 'cc';
+import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label } from 'cc';
 import { UIBase } from './UIBase';
 import { imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { roleSkinItemController } from '../controller/item/roleSkinItemController';
-import { ccTimeTools } from '../extention/timeTools';
 import { ccTools } from '../extention/generalTools';
+import { pData } from '../manager/playerData';
+import { ccStorageTools } from '../extention/storageTools';
+import { SaveKey } from '../manager/configData';
+import { videoMgr } from '../manager/videoManager';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('UISkinStore')
@@ -26,28 +30,13 @@ export class UISkinStore extends UIBase {
     @property(ScrollView)
     scrol: ScrollView;
 
-    ///
-    ///赋值节点
-    ///
-    /**购买按钮 */
-    buyBtn: Node;
-    /**视频按钮 */
-    videoBtn: Node;
-    /**使用按钮 */
-    useBtn: Node;
-    /**限制节点 */
-    limitNode: Node;
-
-    /**穿戴id */
     wearId: number = 0;
-    /**选择id */
     selectId: number = 0;
-    /**是否初始化过 */
     isInit = false;
+    private unlockedSkinMap: { [key: string]: boolean } = {};
 
     protected onLoad(): void {
         this.bindBtn();
-
     }
 
     onUI_Open() {
@@ -57,53 +46,188 @@ export class UISkinStore extends UIBase {
     initData() {
         if (!this.isInit) {
             this.isInit = true;
-            this.wearId = roleSkinConfig.defaultSkinId;
-            this.selectId = roleSkinConfig.defaultSkinId;
+            this.loadSkinData();
         }
         this.initList();
+        this.refreshShowRoleSkin();
     }
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
     }
 
-    /**刷新列表 */
     refreshList() {
         for (let i = 0; i < this.scrol.content.children.length; i++) {
             let item = this.scrol.content.children[i];
             let comp = item.getComponent(roleSkinItemController);
-            let gou = item.getChildByName("gou");
-            let select = item.getChildByName("select");
-            let lockNode = item.getChildByName("lockNode");
-
-            gou.active = comp.skinId == this.wearId;
-            select.active = comp.skinId == this.selectId;
+            this.refreshItemState(item, comp.skinId);
         }
     }
 
-    /**初始化列表 */
     initList() {
         if (this.scrol.content.children.length <= 0) {
-            let skinLenth = roleSkinConfig.roleSkinAllData.length;
-            for (let i = 0; i < skinLenth; i++) {
+            let skinLength = roleSkinConfig.roleSkinAllData.length;
+            for (let i = 0; i < skinLength; i++) {
                 let item = instantiate(this.itemPre);
                 this.scrol.content.addChild(item);
                 let comp = item.getComponent(roleSkinItemController);
                 comp.skinId = roleSkinConfig.roleSkinAllData[i].skinId;
-                let roleImg = item.getChildByName("roleImg").getComponent(Sprite);
-                ccTools.loadImg(roleImg, imgPath.roleBodyFull + comp.skinId);
+                let roleImg = item.getChildByName("roleImg")?.getComponent(Sprite);
+                if (roleImg) {
+                    ccTools.loadImg(roleImg, imgPath.roleBodyFull + comp.skinId);
+                }
+                this.bindItemBtn(item, comp.skinId);
+                this.bindItemSelect(item, comp.skinId);
             }
-            this.refreshList();
-        } else {
+        }
+        this.refreshList();
+    }
+
+    private loadSkinData() {
+        this.unlockedSkinMap = ccStorageTools.getData(SaveKey.unlockedRoleSkin) || {};
+        this.wearId = ccStorageTools.getNumberData(SaveKey.useRoleSkinId) || roleSkinConfig.defaultSkinId;
+        this.selectId = this.wearId || roleSkinConfig.defaultSkinId;
+
+        this.unlockSkin(roleSkinConfig.defaultSkinId, false);
+        if (!this.isSkinUnlocked(this.wearId)) {
+            this.wearId = roleSkinConfig.defaultSkinId;
+            this.selectId = this.wearId;
+        }
+        ccStorageTools.setData(SaveKey.useRoleSkinId, this.wearId);
+    }
+
+    private bindItemBtn(item: Node, skinId: number) {
+        let buyBtn = item.getChildByName("buyBtn");
+        let videoBtn = item.getChildByName("videoBtn");
+        let useBtn = item.getChildByName("useBtn");
+
+        if (buyBtn) {
+            buyBtn.addComponent(zoomButton).onClick = this.clickUnlockBtn.bind(this, skinId, 1);
+        }
+        if (videoBtn) {
+            videoBtn.addComponent(zoomButton).onClick = this.clickUnlockBtn.bind(this, skinId, 2);
+        }
+        if (useBtn) {
+            useBtn.addComponent(zoomButton).onClick = this.clickUseBtn.bind(this, skinId);
+        }
+    }
+
+    private bindItemSelect(item: Node, skinId: number) {
+        let btn = item.getComponent(zoomButton) || item.addComponent(zoomButton);
+        btn.onClick = this.clickSelectItem.bind(this, skinId);
+    }
+
+    private refreshItemState(item: Node, skinId: number) {
+        let skinData = roleSkinConfig.getSkinDataById(skinId);
+        let isUnlocked = this.isSkinUnlocked(skinId);
+        let gou = item.getChildByName("gou");
+        let select = item.getChildByName("select");
+        let lockNode = item.getChildByName("lockNode");
+        let buyBtn = item.getChildByName("buyBtn");
+        let videoBtn = item.getChildByName("videoBtn");
+        let useBtn = item.getChildByName("useBtn");
+        let limitNode = item.getChildByName("limitNode");
+        let limitLab = limitNode?.getComponentInChildren(Label);
+
+        if (gou) gou.active = skinId == this.wearId;
+        if (select) select.active = skinId == this.selectId;
+        if (lockNode) lockNode.active = !isUnlocked;
+        if (buyBtn) buyBtn.active = !isUnlocked && skinData?.limitType == 1;
+        if (videoBtn) videoBtn.active = !isUnlocked && skinData?.limitType == 2;
+        if (useBtn) useBtn.active = isUnlocked && skinId != this.wearId;
+        if (limitNode) limitNode.active = !isUnlocked;
+        if (limitLab && skinData) {
+            limitLab.string = this.getLimitText(skinData);
+        }
+    }
+
+    private refreshShowRoleSkin() {
+        if (!this.showRoleSkin) {
+            return;
+        }
+        ccTools.loadImg(this.showRoleSkin, imgPath.roleBodyFull + this.selectId);
+    }
+
+    private isSkinUnlocked(skinId: number) {
+        return !!this.unlockedSkinMap[skinId + ""];
+    }
+
+    private getLimitText(skinData: any) {
+        if (!skinData) {
+            return "";
+        }
+        switch (skinData.limitType) {
+            case 1:
+                return `${skinData.money}`;
+            case 2:
+                return "AD";
+            case 3:
+                return `${pData.passCount}/${skinData.levelNum}`;
+            default:
+                return "";
+        }
+    }
+
+    private unlockSkin(skinId: number, refresh = true) {
+        this.unlockedSkinMap[skinId + ""] = true;
+        ccStorageTools.setData(SaveKey.unlockedRoleSkin, this.unlockedSkinMap);
+        if (refresh) {
             this.refreshList();
         }
     }
 
-    ///
-    ///点击事件
-    ///
+    private clickUnlockBtn(skinId: number, limitType: number) {
+        let skinData = roleSkinConfig.getSkinDataById(skinId);
+        if (!skinData || this.isSkinUnlocked(skinId)) {
+            return;
+        }
 
-    /**点击关闭 */
+        if (limitType == 1) {
+            if (pData.money < skinData.money) {
+                uiMgr.showTips("Not enough money");
+                return;
+            }
+            pData.fixMoney(-skinData.money);
+            this.unlockSkin(skinId);
+            this.clickUseBtn(skinId);
+            return;
+        }
+
+        if (limitType == 2) {
+            videoMgr.watchVideo(68, () => {
+                this.unlockSkin(skinId);
+                this.clickUseBtn(skinId);
+            });
+            return;
+        }
+
+        if (limitType == 3) {
+            if (pData.passCount < skinData.levelNum) {
+                uiMgr.showTips(`Need ${skinData.levelNum - pData.passCount} more clears`);
+                return;
+            }
+            this.unlockSkin(skinId);
+            this.clickUseBtn(skinId);
+        }
+    }
+
+    private clickUseBtn(skinId: number) {
+        if (!this.isSkinUnlocked(skinId)) {
+            return;
+        }
+
+        this.wearId = skinId;
+        this.selectId = skinId;
+        ccStorageTools.setData(SaveKey.useRoleSkinId, skinId);
+        this.refreshList();
+    }
+
+    private clickSelectItem(skinId: number) {
+        this.selectId = skinId;
+        this.refreshList();
+        this.refreshShowRoleSkin();
+    }
+
     clickCloseBtn() {
         this.onClose();
     }
@@ -112,5 +236,3 @@ export class UISkinStore extends UIBase {
         uiMgr.closePage(UIPath.UISkinStore);
     }
 }
-
-

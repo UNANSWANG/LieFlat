@@ -28,6 +28,8 @@ export class playerData {
     adUpgradeDoorCount = 1;
     /**当前关卡所看广告数 */
     adNum = 0;
+    /**通关次数 */
+    passCount = 0;
 
     levelInit() {
         pData.adNum = 0;
@@ -121,6 +123,7 @@ export class playerData {
         //上报关卡完成
         this.reportLevel(true);
         this.level++;
+        this.fixPassCount();
         ccStorageTools.setData(SaveKey.level, this.level);
 
         //上传微信好友榜
@@ -133,6 +136,15 @@ export class playerData {
             gm.API.setUserCloudStorage(kvDataList);
         }
 
+    }
+
+    /**记录皮肤通关次数 */
+    fixPassCount(count = 1) {
+        this.passCount += count;
+        if (this.passCount < 0) {
+            this.passCount = 0;
+        }
+        ccStorageTools.setData(SaveKey.passCount, this.passCount);
     }
 
     /**修改局内金币 */
@@ -190,6 +202,7 @@ export class playerData {
         this.money = ccStorageTools.getData(SaveKey.money) || 0;
         this.initPropsNum();
         pData.level = ccStorageTools.getNumberData(SaveKey.level) || 0;
+        this.passCount = ccStorageTools.getNumberData(SaveKey.passCount) || ccStorageTools.getNumberData("skinPassCount") || 0;
 
         //TODO 测试用，后续注释掉
         if (gm.platType == PlatType.h5) {

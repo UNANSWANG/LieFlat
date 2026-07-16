@@ -30,9 +30,13 @@ export class UISkinStore extends UIBase {
     @property(ScrollView)
     scrol: ScrollView;
 
+    /** 当前正在穿戴的皮肤 */
     wearId: number = 0;
+    /** 当前选中的皮肤 */
     selectId: number = 0;
+    /** 是否已经完成过初始化 */
     isInit = false;
+    /** 已解锁皮肤缓存 */
     private unlockedSkinMap: { [key: string]: boolean } = {};
 
     protected onLoad(): void {
@@ -52,10 +56,12 @@ export class UISkinStore extends UIBase {
         this.refreshShowRoleSkin();
     }
 
+    /** 关闭按钮绑定 */
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
     }
 
+    /** 刷新列表所有皮肤条目状态 */
     refreshList() {
         for (let i = 0; i < this.scrol.content.children.length; i++) {
             let item = this.scrol.content.children[i];
@@ -64,6 +70,7 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /** 初始化皮肤列表 */
     initList() {
         if (this.scrol.content.children.length <= 0) {
             let skinLength = roleSkinConfig.roleSkinAllData.length;
@@ -83,6 +90,7 @@ export class UISkinStore extends UIBase {
         this.refreshList();
     }
 
+    /** 读取本地皮肤存档 */
     private loadSkinData() {
         this.unlockedSkinMap = ccStorageTools.getData(SaveKey.unlockedRoleSkin) || {};
         this.wearId = ccStorageTools.getNumberData(SaveKey.useRoleSkinId) || roleSkinConfig.defaultSkinId;
@@ -96,6 +104,7 @@ export class UISkinStore extends UIBase {
         ccStorageTools.setData(SaveKey.useRoleSkinId, this.wearId);
     }
 
+    /** 给每个皮肤条目上的功能按钮绑定事件 */
     private bindItemBtn(item: Node, skinId: number) {
         let buyBtn = item.getChildByName("buyBtn");
         let videoBtn = item.getChildByName("videoBtn");
@@ -112,11 +121,13 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /** 给皮肤条目本体绑定选中事件 */
     private bindItemSelect(item: Node, skinId: number) {
         let btn = item.getComponent(zoomButton) || item.addComponent(zoomButton);
         btn.onClick = this.clickSelectItem.bind(this, skinId);
     }
 
+    /** 刷新单个皮肤条目的显示状态 */
     private refreshItemState(item: Node, skinId: number) {
         let skinData = roleSkinConfig.getSkinDataById(skinId);
         let isUnlocked = this.isSkinUnlocked(skinId);
@@ -141,6 +152,7 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /** 刷新右侧预览皮肤 */
     private refreshShowRoleSkin() {
         if (!this.showRoleSkin) {
             return;
@@ -148,10 +160,12 @@ export class UISkinStore extends UIBase {
         ccTools.loadImg(this.showRoleSkin, imgPath.roleBodyFull + this.selectId);
     }
 
+    /** 判断皮肤是否已解锁 */
     private isSkinUnlocked(skinId: number) {
         return !!this.unlockedSkinMap[skinId + ""];
     }
 
+    /** 获取解锁条件显示文本 */
     private getLimitText(skinData: any) {
         if (!skinData) {
             return "";
@@ -168,6 +182,7 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /** 解锁皮肤并写入本地存储 */
     private unlockSkin(skinId: number, refresh = true) {
         this.unlockedSkinMap[skinId + ""] = true;
         ccStorageTools.setData(SaveKey.unlockedRoleSkin, this.unlockedSkinMap);
@@ -176,6 +191,7 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /** 按条件解锁皮肤 */
     private clickUnlockBtn(skinId: number, limitType: number) {
         let skinData = roleSkinConfig.getSkinDataById(skinId);
         if (!skinData || this.isSkinUnlocked(skinId)) {
@@ -211,6 +227,7 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /** 使用当前选中的皮肤 */
     private clickUseBtn(skinId: number) {
         if (!this.isSkinUnlocked(skinId)) {
             return;
@@ -222,12 +239,14 @@ export class UISkinStore extends UIBase {
         this.refreshList();
     }
 
+    /** 选中皮肤，仅更新选中态和预览图 */
     private clickSelectItem(skinId: number) {
         this.selectId = skinId;
         this.refreshList();
         this.refreshShowRoleSkin();
     }
 
+    /** 关闭商店 */
     clickCloseBtn() {
         this.onClose();
     }

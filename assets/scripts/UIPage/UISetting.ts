@@ -57,6 +57,8 @@ export class UISetting extends UIBase {
 
     /**模式：0：普通模式 1：关卡模式（重新开始和返回主页） */
     mode = 0;
+    /**控制台连点次数 */
+    consoleClickCount = 0;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -85,6 +87,7 @@ export class UISetting extends UIBase {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
         this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
         this.restartBtn.addComponent(zoomButton).onClick = this.clickRestartBtn.bind(this);
+        this.consoleBtn.addComponent(zoomButton).onClick = this.clickConsoleBtn.bind(this);
     }
 
     addListener() {
@@ -165,12 +168,22 @@ export class UISetting extends UIBase {
         gm.Event.emit(GameEvent.refreshGameLevel);
     }
 
+    /**点击控制台 */
+    clickConsoleBtn() {
+        this.consoleClickCount++;
+        if (this.consoleClickCount >= 5) {
+            this.consoleClickCount = 0;
+            uiMgr.openPage(UIPath.UIConsole);
+        }
+    }
+
     /**点击关闭 */
     clickCloseBtn() {
         this.onClose();
     }
 
     onClose() {
+        this.consoleClickCount = 0;
         uiMgr.closePage(UIPath.UISetting);
         if (this.mode == 1) {
             gm.gameResume();

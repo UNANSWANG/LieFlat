@@ -238,6 +238,7 @@ export class UIGame extends UIBase {
         gm.Event.on(GameEvent.upgradeProps, this.upgradeProps, this);
         gm.Event.on(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.on(GameEvent.gameResume, this.onGameResume, this);
+        gm.Event.on(GameEvent.addGameMonetary, this.addGameMonetary, this);
         // 监听键盘按下
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         // 监听触摸事件
@@ -261,6 +262,7 @@ export class UIGame extends UIBase {
         gm.Event.off(GameEvent.upgradeProps, this.upgradeProps, this);
         gm.Event.off(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.off(GameEvent.gameResume, this.onGameResume, this);
+        gm.Event.off(GameEvent.addGameMonetary, this.addGameMonetary, this);
         // 监听键盘按下
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         // 监听触摸事件
@@ -2477,6 +2479,12 @@ export class UIGame extends UIBase {
         uiMgr.showTips("没有可定位的敌人");
     }
 
+    /**增加游戏内货币 */
+    addGameMonetary() {
+        pData.fixGameCoin(1000000);
+        pData.fixGamePower(1000000);
+    }
+
     ///
     ///点击函数
     ///
@@ -2490,9 +2498,8 @@ export class UIGame extends UIBase {
             // this.restartGame();
             // // uiMgr.openPage(UIPath.UISuccess);
             case KeyCode.KEY_L:
-                //增加金币
-                pData.fixGameCoin(1000000);
-                pData.fixGamePower(1000000);
+                //增加游戏内货币
+                this.addGameMonetary();
                 break;
             case KeyCode.KEY_E:
                 //定位到敌人视角

@@ -10,28 +10,35 @@ export class jsonRoleSkin extends jsonBase {
     protected tableUrl1: string = "";
     protected tableUrl2: string = "";
 
+    isInit = false;
+    _defaultSkinId: number = 0;
+    get defaultSkinId() : number{
+        if(!this.isInit){
+            for(let i = 0; i < this.roleSkinAllData.length; i++){
+                let skin = this.roleSkinAllData[i];
+                if(skin.isDefault == 1){
+                    this._defaultSkinId = skin.skinId;
+                    break;
+                }
+            }
+
+            this.isInit = true;
+            return this._defaultSkinId;
+        }else{
+            return this._defaultSkinId;
+        }
+    }
+
     /**获取角色皮肤数据 */
     get roleSkinAllData() : JsonRoleSkinData[]{
         return this.data;
-    }
-
-    /**获取指定等级角色皮肤数据 */
-    getRoleSkinData(level: number): JsonRoleSkinData {
-        if (!this.data) {
-            return null;
-        }
-
-        if(level >= this.data.length){
-            level = this.data.length - 1;
-        }
-        return this.data[level];
     }
 }
 export let roleSkinConfig = new jsonRoleSkin();
 
 interface JsonRoleSkinData {
-    /**角色id */
-    roleId: number;
+    /**皮肤id */
+    skinId: number;
     /**名称 */
     name: string;
     /**是否为初始皮肤 */

@@ -15,9 +15,9 @@ export class TableroleSkin {
     /** 编号【KEY】 */
     id: number = 0;
 
-    /** 角色id */
-    get roleId(): number {
-        return this.data.roleId;
+    /** 皮肤id */
+    get skinId(): number {
+        return this.data.skinId;
     }
     /** 名称 */
     get name(): string {

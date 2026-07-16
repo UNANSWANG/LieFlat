@@ -86,6 +86,8 @@ export enum imgPath {
     roleAvatar = "texture/role/avatar/avatar_",
     /**角色半身 */
     roleBody = "texture/role/body/body_",
+    /**角色全身 */
+    roleBodyFull = "texture/role/all/all_",
 }
 
 /**spine路径 */

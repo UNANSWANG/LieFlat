@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Animation, Toggle, UITransform, Vec3, Widget, Label } from 'cc';
+import { _decorator, Component, Node, Animation, Toggle, UITransform, Vec3, Widget, Label, Slider } from 'cc';
 import { UIBase } from './UIBase';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -30,11 +30,11 @@ export class UISetting extends UIBase {
     @property(Label)
     uidLab: Label;
 
-    @property(Toggle)
-    musicToggle: Toggle;
-
-    @property(Toggle)
-    effctToggle: Toggle;
+    @property(Slider)
+    musicSlider: Slider;
+    
+    @property(Slider)
+    effctSlider: Slider;
 
     @property(Toggle)
     vibratToggle: Toggle;
@@ -72,14 +72,10 @@ export class UISetting extends UIBase {
     }
 
     addListener() {
-        this.musicToggle.node.on(Toggle.EventType.TOGGLE, this.clickMusicBtn, this);
-        this.effctToggle.node.on(Toggle.EventType.TOGGLE, this.clickEffctBtn, this);
         this.vibratToggle.node.on(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
     }
 
     removeListener() {
-        this.musicToggle.node.off(Toggle.EventType.TOGGLE, this.clickMusicBtn, this);
-        this.effctToggle.node.off(Toggle.EventType.TOGGLE, this.clickEffctBtn, this);
         this.vibratToggle.node.off(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
     }
 
@@ -88,16 +84,12 @@ export class UISetting extends UIBase {
         let bgTrans = this.bg.getComponent(UITransform);
         if (this.mode == 1) {
             bgTrans.height = 886;
-            // this.bg.position = new Vec3(0, 95, 0);
             this.restartBtn.active = true;
             this.homeBtn.active = true;
-            // this.toggleList.position = new Vec3(0, -312, 0);
         } else {
-            bgTrans.height = 1025;
-            // this.bg.position = new Vec3(0, 100, 0);
+            bgTrans.height = 635;
             this.restartBtn.active = false;
             this.homeBtn.active = false;
-            // this.toggleList.position = new Vec3(0, -402, 0);
         }
 
         this.bg.getChildByName("topNode").getComponent(Widget).updateAlignment();
@@ -106,8 +98,6 @@ export class UISetting extends UIBase {
     /**刷新按钮状态 */
     refreshState() {
         this.removeListener();
-        this.musicToggle.isChecked = audioMgr.isMusic;
-        this.effctToggle.isChecked = audioMgr.isEffect;
         this.vibratToggle.isChecked = audioMgr.isVibrat;
         this.addListener();
     }
@@ -115,16 +105,6 @@ export class UISetting extends UIBase {
     ///
     ///点击事件
     ///
-
-    /**点击音乐开关 */
-    clickMusicBtn() {
-        audioMgr.switchMusic(!audioMgr.isMusic);
-    }
-
-    /**点击音效开关 */
-    clickEffctBtn() {
-        audioMgr.switchEffect(!audioMgr.isEffect);
-    }
 
     /**点击振动开关 */
     clickVibratBtn() {

@@ -5,12 +5,13 @@ import { propsConfig } from '../json/jsonProps';
 import { commonConfig } from '../json/jsonCommon';
 import { enemyConfig } from '../json/jsonEnemy';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
+import { roleSkinConfig } from '../json/jsonRoleSkin';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonManager')
 export class jsonManager  {
     /**表格数量 */
-    tableNum = 4;
+    tableNum = 5;
     /**已加载的表格数量 */
     tableLoadNum = 0;
 
@@ -25,6 +26,7 @@ export class jsonManager  {
         commonConfig.initTable();
         enemyConfig.initTable();
         robotUpgradeConfig.initTable();
+        roleSkinConfig.initTable();
     }
 
     loadCall(name: string){

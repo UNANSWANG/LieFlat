@@ -159,7 +159,7 @@ export class UIMain extends UIBase {
 
     /**点击皮肤商店 */
     clickSkinStoreBtn() {
-        // uiMgr.openPage(UIPath.UISkinStore);
+        uiMgr.openPage(UIPath.UISkinStore);
     }
 }
 

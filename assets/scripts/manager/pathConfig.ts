@@ -26,6 +26,8 @@ export enum UIPath {
     UIBuild = "prefabs/UIPage/UIBuild",
     /**操作道具界面 */
     UIProps = "prefabs/UIPage/UIProps",
+    /**温馨提示页面 */
+    UIWarm = "prefabs/UIPage/UIWarm",
 }
 
 /**物品路径 */

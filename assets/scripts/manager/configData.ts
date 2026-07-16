@@ -194,6 +194,8 @@ export enum SaveKey {
     isGetRevisit = "isGetRevisit",
     /**用户头像 */
     avatarUrl = "avatarUrl",
+    /**今日是否弹出过温馨提示 */
+    isShowWarm = "isShowWarm",
 }
 
 /**道具索引 */

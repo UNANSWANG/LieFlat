@@ -39,7 +39,7 @@ export class UIFail extends UIBase {
     }
 
     initData(data?: any) {
-
+        pData.SDKReportLevelFail();
     }
 
     bindBtn() {

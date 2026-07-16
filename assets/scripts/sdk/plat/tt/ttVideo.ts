@@ -32,7 +32,11 @@ export class ttVideo {
                     console.log("加载广告视频成功>>>");
                     $resolved(undefined);
                 });
-                this._videoAd.onError(() => {
+                this._videoAd.onError((err) => {
+                    console.error("=====>视频加载失败");
+                    if (err.errCode) {
+                        console.error('广告组件失败响应码：' + err.errCode);
+                    }
                     $resolved(undefined);
                 });
                 this._videoAd.onClose(($res: { isEnded: boolean } | undefined) => {

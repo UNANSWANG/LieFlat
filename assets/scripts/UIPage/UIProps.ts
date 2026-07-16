@@ -425,7 +425,7 @@ export class UIProps extends UIBase {
             return;
         }
 
-        videoMgr.watchVideo(() => {
+        videoMgr.watchVideo(68, () => {
             pData.adUpgradeDoorCount--;
             (this.propsComp as doorProps).upgradePropsAd();
             this.onClose();

@@ -30,6 +30,8 @@ export class UILoading extends Component {
     currentProgressMap = {};
     /**当前进度条百分比 */
     currentProgressPercent = 0;
+    /**sdk登录完成 */
+    sdkLoginComplete = false;
 
     start() {
         this.initData();
@@ -50,6 +52,7 @@ export class UILoading extends Component {
     async initData() {
         gm.Event.on(GameEvent.tableLoadComplete, this.tableLoadComplete, this);
         this.initStorageData();
+        this.initSDK();
 
         await this.preLoadBundle();
 
@@ -150,7 +153,7 @@ export class UILoading extends Component {
 
     /**加载完成判断 */
     checkLoadComplete() {
-        if (this.tableComplete && this.uiComplete && gm.isLogin) {
+        if (this.tableComplete && this.uiComplete && gm.isLogin && this.sdkLoginComplete) {
             director.loadScene("main");
         }
     }
@@ -218,6 +221,29 @@ export class UILoading extends Component {
         robotCommonConfig.maxUpgradeCannonLevel = commonConfig.getValueNumber("maxUpgradeCannonLevel");
 
         console.log("------------>公共配置表数据同步完毕");
+    }
+
+    initSDK() {
+        this.sdkLoginComplete = false;
+        if (gm.API.PLAT && gm.API.PLAT.HgSdk) {
+            console.warn("初始化HgSdk");
+            gm.hgSdk = new gm.API.PLAT.HgSdk();
+            gm.hgSdk.init((res) => {
+                const gameId = res.game_id
+                const status = res.status
+                this.sdkLoginComplete = true;
+
+                if (status === 0) {
+                    // 调用登录
+                    gm.hgSdk.login((res) => {
+                        // console.warn("登录成功，uid:", res.uid, "token:", res.token);
+                    })
+                }
+            })
+        } else {
+            this.sdkLoginComplete = true;
+            console.warn("没有HgSdk对象");
+        }
     }
 
     /**初始化存储数据 */

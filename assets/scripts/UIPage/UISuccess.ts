@@ -36,6 +36,7 @@ export class UISuccess extends UIBase {
     }
 
     initData() {
+        pData.SDKReportLevelComplete();
         pData.addLevel();
     }
 

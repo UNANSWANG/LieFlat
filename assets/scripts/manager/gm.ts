@@ -4,6 +4,7 @@ import { ccStorageTools } from '../extention/storageTools';
 import { BasePlat } from '../sdk/plat/BasePlat';
 import { ccTimeTools } from '../extention/timeTools';
 import { GameEvent } from './configData';
+import { pData } from './playerData';
 const { ccclass, property } = _decorator;
 
 export enum PlatType {
@@ -51,6 +52,7 @@ export class gm extends Component {
     addListener() {
         game.on(Game.EVENT_HIDE, () => {
             console.log("进入后台");
+            pData.SDKReportLevelExit();
             audioMgr.closeBackgroundMusic();
         }, this);
         game.on(Game.EVENT_SHOW, () => {

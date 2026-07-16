@@ -12,8 +12,6 @@ const { ccclass, property } = _decorator;
 export class playerData {
     /**当前已通关关卡数 */
     level = 0;
-    /**当前关卡的关卡数据 */
-    levelData: jsonLevelData = null;
     /**道具集合 */
     propsNums = {};
     /**当前地图的大小 */
@@ -26,21 +24,55 @@ export class playerData {
     gamePower = 0;
     /**本局可使用广告升级门的次数 */
     adUpgradeDoorCount = 1;
+    /**当前关卡所看广告数 */
+    adNum = 0;
 
     levelInit() {
-        // let data = levelConfig.tableData[this.realyLevel];
-        // this.levelData = JSON.parse(data.levelData);
+        pData.adNum = 0;
         this.gameCoin = 0;
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
 
-        this.SDKReportLevel();
+        this.SDKReportLevelStart();
     }
 
-    /**SDK关卡上报 */
-    SDKReportLevel() {
+     /**SDK关卡开始上报 */
+    SDKReportLevelStart() {
         if (gm.hgSdk) {
             gm.hgSdk.track('LEVEL_ENTER', {
+                enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
+                level_id: (pData.level + 1),    	//关卡ID，数值
+            });
+        }
+    }
+
+    /**SDK关卡中途退出上报 */
+    SDKReportLevelExit() {
+        if (gm.hgSdk) {
+            gm.hgSdk.track('LEVEL_EXIT', {
+                ad_cnt: pData.adNum,
+                enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
+                level_id: (pData.level + 1),    	//关卡ID，数值
+            });
+        }
+    }
+
+    /**SDK关卡失败上报 */
+    SDKReportLevelFail() {
+        if (gm.hgSdk) {
+            gm.hgSdk.track('LEVEL_LOSE', {
+                ad_cnt: pData.adNum,
+                enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
+                level_id: (pData.level + 1),    	//关卡ID，数值
+            });
+        }
+    }
+
+    /**SDK关卡完成上报 */
+    SDKReportLevelComplete() {
+        if (gm.hgSdk) {
+            gm.hgSdk.track('LEVEL_PASS', {
+                ad_cnt: pData.adNum,
                 enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
                 level_id: (pData.level + 1),    	//关卡ID，数值
             });

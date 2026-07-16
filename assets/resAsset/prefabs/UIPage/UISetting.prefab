@@ -912,7 +912,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "jindutiao_l",
+    "_name": "progress",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -1809,7 +1809,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "jindutiao_l",
+    "_name": "progress",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -4265,8 +4265,20 @@
     "musicSlider": {
       "__id__": 55
     },
+    "musicProgress": {
+      "__id__": 34
+    },
+    "musicCloseFlag": {
+      "__id__": 38
+    },
     "effctSlider": {
       "__id__": 93
+    },
+    "effectProgress": {
+      "__id__": 72
+    },
+    "effectCloseFlag": {
+      "__id__": 76
     },
     "vibratToggle": {
       "__id__": 129

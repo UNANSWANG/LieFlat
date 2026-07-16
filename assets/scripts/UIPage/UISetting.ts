@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Animation, Toggle, UITransform, Vec3, Widget, Label, Slider } from 'cc';
+import { _decorator, Component, Node, Animation, Toggle, UITransform, Vec3, Widget, Label, Slider, Sprite } from 'cc';
 import { UIBase } from './UIBase';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -9,6 +9,7 @@ import { GameEvent } from '../manager/configData';
 import { pData } from '../manager/playerData';
 import { userMgr } from '../manager/userManager';
 const { ccclass, property } = _decorator;
+const SliderEventSlide = 'slide';
 
 @ccclass('UISetting')
 export class UISetting extends UIBase {
@@ -32,9 +33,21 @@ export class UISetting extends UIBase {
 
     @property(Slider)
     musicSlider: Slider;
+
+    @property(Sprite)
+    musicProgress: Sprite;
+
+    @property(Node)
+    musicCloseFlag: Node;
     
     @property(Slider)
     effctSlider: Slider;
+    
+    @property(Sprite)
+    effectProgress: Sprite;
+
+    @property(Node)
+    effectCloseFlag: Node;
 
     @property(Toggle)
     vibratToggle: Toggle;
@@ -73,10 +86,14 @@ export class UISetting extends UIBase {
 
     addListener() {
         this.vibratToggle.node.on(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
+        this.musicSlider.node.on(SliderEventSlide, this.changeMusicVolume, this);
+        this.effctSlider.node.on(SliderEventSlide, this.changeEffectVolume, this);
     }
 
     removeListener() {
         this.vibratToggle.node.off(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
+        this.musicSlider.node.off(SliderEventSlide, this.changeMusicVolume, this);
+        this.effctSlider.node.off(SliderEventSlide, this.changeEffectVolume, this);
     }
 
     /**刷新界面 */
@@ -99,6 +116,12 @@ export class UISetting extends UIBase {
     refreshState() {
         this.removeListener();
         this.vibratToggle.isChecked = audioMgr.isVibrat;
+        this.musicSlider.progress = audioMgr.musicVolume;
+        this.effctSlider.progress = audioMgr.effectVolume;
+        this.musicProgress.fillRange = this.musicSlider.progress;
+        this.effectProgress.fillRange = this.effctSlider.progress;
+        this.musicCloseFlag.active = this.musicSlider.progress == 0;
+        this.effectCloseFlag.active = this.effctSlider.progress == 0;
         this.addListener();
     }
 
@@ -109,6 +132,20 @@ export class UISetting extends UIBase {
     /**点击振动开关 */
     clickVibratBtn() {
         audioMgr.switchVibrat(!audioMgr.isVibrat);
+    }
+
+    /**调整背景音乐音量 */
+    changeMusicVolume() {
+        audioMgr.setMusicVolume(this.musicSlider.progress);
+        this.musicProgress.fillRange = this.musicSlider.progress;
+        this.musicCloseFlag.active = this.musicSlider.progress == 0;
+    }
+
+    /**调整音效音量 */
+    changeEffectVolume() {
+        audioMgr.setEffectVolume(this.effctSlider.progress);
+        this.effectProgress.fillRange = this.effctSlider.progress;
+        this.effectCloseFlag.active = this.effctSlider.progress == 0;
     }
 
     /**点击主页 */

@@ -180,8 +180,12 @@ export enum SaveKey {
     level = "level",
     /**音效开关 */
     effect = "effect",
+    /**音效音量 */
+    effectVolume = "effectVolume",
     /**音乐开关 */
     music = "music",
+    /**音乐音量 */
+    musicVolume = "musicVolume",
     /**振动开关 */
     vibrat = "vibrat",
     /**道具存储 */

@@ -23,6 +23,10 @@ export class audioManager {
     private _isEffect: boolean = true;
     /**背景音乐开关 */
     private _isMusic: boolean = true;
+    /**音效音量 */
+    private _effectVolume: number = 1;
+    /**背景音乐音量 */
+    private _musicVolume: number = 1;
     /**振动开关 */
     private _isVibrat: boolean = true;
     /**正在播放的背景音乐 */
@@ -48,6 +52,8 @@ export class audioManager {
     initStorageData() {
         let effectSave = ccStorageTools.getData(SaveKey.effect);
         let musicSave = ccStorageTools.getData(SaveKey.music);
+        let effectVolumeSave = ccStorageTools.getData(SaveKey.effectVolume);
+        let musicVolumeSave = ccStorageTools.getData(SaveKey.musicVolume);
         let vibratSave = ccStorageTools.getData(SaveKey.vibrat);
 
         if (effectSave != null) {
@@ -58,9 +64,20 @@ export class audioManager {
             this._isMusic = musicSave;
         }
 
+        if (effectVolumeSave != null) {
+            this._effectVolume = this.limitVolume(Number(effectVolumeSave));
+        }
+
+        if (musicVolumeSave != null) {
+            this._musicVolume = this.limitVolume(Number(musicVolumeSave));
+        }
+
         if (vibratSave != null) {
             this._isVibrat = vibratSave;
         }
+
+        this.applyEffectVolume();
+        this.applyMusicVolume();
     }
 
     get isEffect() {
@@ -73,6 +90,39 @@ export class audioManager {
 
     get isVibrat() {
         return this._isVibrat;
+    }
+
+    get effectVolume() {
+        return this._effectVolume;
+    }
+
+    get musicVolume() {
+        return this._musicVolume;
+    }
+
+    private limitVolume(value: number) {
+        if (isNaN(value)) {
+            return 1;
+        }
+        return Math.max(0, Math.min(1, value));
+    }
+
+    private applyEffectVolume() {
+        if (!this.audios) {
+            return;
+        }
+        for (let i = 0; i < this.audios.length; i++) {
+            this.audios[i].volume = this._effectVolume;
+        }
+        if (this._audioSource) {
+            this._audioSource.volume = this._effectVolume;
+        }
+    }
+
+    private applyMusicVolume() {
+        if (this.musicSource) {
+            this.musicSource.volume = this._musicVolume;
+        }
     }
 
     /**关闭所有音频 */
@@ -100,6 +150,20 @@ export class audioManager {
         } else {
             this.playBackgroundMusic();
         }
+    }
+
+    /**设置音效音量 */
+    setEffectVolume(value: number) {
+        this._effectVolume = this.limitVolume(value);
+        ccStorageTools.setData(SaveKey.effectVolume, this._effectVolume);
+        this.applyEffectVolume();
+    }
+
+    /**设置背景音乐音量 */
+    setMusicVolume(value: number) {
+        this._musicVolume = this.limitVolume(value);
+        ccStorageTools.setData(SaveKey.musicVolume, this._musicVolume);
+        this.applyMusicVolume();
     }
 
     /**关闭背景音乐 */
@@ -163,6 +227,7 @@ export class audioManager {
         }
         if (this._dic.has(key)) {
             this.musicSource.clip = this._dic.get(key);
+            this.musicSource.volume = this._musicVolume;
             this.musicSource.play();
             this._curMusicPath = $name;
             return;
@@ -177,6 +242,7 @@ export class audioManager {
                 this._dic.set(key, res);
 
                 this.musicSource.clip = res;
+                this.musicSource.volume = this._musicVolume;
                 this.musicSource.play();
                 this._curMusicPath = $name;
             });
@@ -195,6 +261,7 @@ export class audioManager {
         if (this._dic.has(key)) {
             let audio = this.getOneSoundAudio(false);
             audio.clip = this._dic.get(key);
+            audio.volume = this._musicVolume;
             audio.play();
             return;
         } else {
@@ -209,6 +276,7 @@ export class audioManager {
                 //获取一个音频组件并打断所有语音
                 let audio = this.getOneSoundAudio(false);
                 audio.clip = res;
+                audio.volume = this._musicVolume;
                 audio.play();
             });
         }
@@ -226,6 +294,7 @@ export class audioManager {
         if (this._dic.has(key)) {
             let audio = this.getOneSoundAudio();
             audio.clip = this._dic.get(key);
+            audio.volume = this._musicVolume;
             audio.play();
             return;
         } else {
@@ -240,6 +309,7 @@ export class audioManager {
                 //获取一个音频组件并打断所有语音
                 let audio = this.getOneSoundAudio();
                 audio.clip = res;
+                audio.volume = this._musicVolume;
                 audio.play();
             });
         }

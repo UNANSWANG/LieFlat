@@ -22,6 +22,8 @@ export class playerData {
     gameCoin = 0;
     /**玩家电能（场内） */
     gamePower = 0;
+    /**玩家金币（场外） */
+    money = 0;
     /**本局可使用广告升级门的次数 */
     adUpgradeDoorCount = 1;
     /**当前关卡所看广告数 */
@@ -171,6 +173,18 @@ export class playerData {
         ccStorageTools.setData(SaveKey.props, this.propsNums);
         if (isRefresh) {
             gm.Event.emit(GameEvent.refreshProps);
+        }
+    }
+
+    /**初始化存储数据 */
+    initData() {
+        this.money = ccStorageTools.getData(SaveKey.money) || 0;
+        this.initPropsNum();
+        pData.level = ccStorageTools.getNumberData(SaveKey.level) || 0;
+
+        //TODO 测试用，后续注释掉
+        if (gm.platType == PlatType.h5) {
+            // pData.level = 3;
         }
     }
 

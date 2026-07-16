@@ -248,14 +248,7 @@ export class UILoading extends Component {
 
     /**初始化存储数据 */
     initStorageData() {
-        pData.initPropsNum();
-
-        pData.level = ccStorageTools.getNumberData(SaveKey.level) || 0;
-
-        //TODO 测试用，后续注释掉
-        if (gm.platType == PlatType.h5) {
-            // pData.level = 3;
-        }
+        pData.initData();
     }
 
 }

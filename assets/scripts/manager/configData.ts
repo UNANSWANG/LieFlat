@@ -172,6 +172,10 @@ export enum GameEvent {
     upgradeProps = "upgradeProps",
     /**通用配置表加载完成 */
     commonTableFinish = "commonTableFinish",
+    /**游戏内增加货币 */
+    addGameMonetary = "addGameMonetary",
+    /**全皮肤 */
+    fullSkin = "fullSkin",
 }
 
 /**存储的键值 */

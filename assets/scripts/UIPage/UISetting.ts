@@ -20,6 +20,9 @@ export class UISetting extends UIBase {
     homeBtn: Node;
 
     @property(Node)
+    consoleBtn: Node;
+
+    @property(Node)
     bg: Node;
 
     @property(Node)

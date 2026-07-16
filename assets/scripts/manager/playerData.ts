@@ -176,6 +176,15 @@ export class playerData {
         }
     }
 
+    /**修改游戏外货币（场外） */
+    fixMoney(money: number) {
+        this.money += money;
+        if (this.money < 0) {
+            this.money = 0;
+        }
+        ccStorageTools.setData(SaveKey.money, this.money);
+    }
+
     /**初始化存储数据 */
     initData() {
         this.money = ccStorageTools.getData(SaveKey.money) || 0;

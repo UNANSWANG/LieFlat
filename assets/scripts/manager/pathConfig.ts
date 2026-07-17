@@ -111,7 +111,7 @@ export enum spinePath {
     /**银矿 */
     silverVein = "spine/silverVein/YK",
     /**火焰锻造台 */
-    fire = "spine/fire/huoyanduanzaotai ",
+    fire = "spine/fire/huoyanduanzaotai",
     /**雪花 */
     snow = "spine/snow/snow",
 }

@@ -11,9 +11,9 @@ export class cageController extends Component {
     /**铁笼停留时长 */
     private duration: number = 0;
     /**生成在敌人头顶的偏移 */
-    private startOffsetY: number = 200;
+    private startOffsetY: number = 250;
     /**下落目标相对敌人的偏移 */
-    private landedOffsetY: number = 20;
+    private landedOffsetY: number = 60;
     /**临时世界坐标 */
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */

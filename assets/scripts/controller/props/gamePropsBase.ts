@@ -107,6 +107,9 @@ export class gamePropsBase extends Component {
         this.img1.spriteFrame = null;
         this.img2.spriteFrame = null;
         this.img3.spriteFrame = null;
+        this.img1.node.active = true;
+        this.img2.node.active = true;
+        this.img3.node.active = true;
 
         this.hpNode.active = false;
 

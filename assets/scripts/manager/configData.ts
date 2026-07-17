@@ -32,6 +32,8 @@ export const configData = {
     randomPropsNum: [3, 4],
     /**房门血条显示时间（秒） */
     doorHpShowTime: 5,
+    /**道具图片切换速度（秒） */
+    propsImgSwitchSpeed: 0.5,
 }
 
 /**敌人通用配置 */

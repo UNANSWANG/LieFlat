@@ -94,12 +94,12 @@ export class UISkinStore extends UIBase {
     /** 初始化皮肤列表 */
     initList() {
         if (this.scrol.content.children.length <= 0) {
-            let skinLength = roleSkinConfig.roleSkinAllData.length;
-            for (let i = 0; i < skinLength; i++) {
+            let skinList = this.getSortedSkinList();
+            for (let i = 0; i < skinList.length; i++) {
                 let item = instantiate(this.itemPre);
                 this.scrol.content.addChild(item);
                 let comp = item.getComponent(roleSkinItemController);
-                comp.skinId = roleSkinConfig.roleSkinAllData[i].skinId;
+                comp.skinId = skinList[i].skinId;
                 let roleImg = item.getChildByName("roleImg")?.getComponent(Sprite);
                 if (roleImg) {
                     ccTools.loadImg(roleImg, imgPath.roleBodyFull + comp.skinId);
@@ -108,6 +108,23 @@ export class UISkinStore extends UIBase {
             }
         }
         this.refreshList();
+    }
+
+    /** 获取排序后的皮肤列表：已拥有在前，组内保持表格顺序 */
+    private getSortedSkinList() {
+        let skinList = roleSkinConfig.roleSkinAllData.concat();
+        skinList.sort((a, b) => {
+            let aUnlock = this.isSkinUnlocked(a.skinId) ? 1 : 0;
+            let bUnlock = this.isSkinUnlocked(b.skinId) ? 1 : 0;
+            return bUnlock - aUnlock;
+        });
+        return skinList;
+    }
+
+    /** 重建皮肤列表 */
+    private rebuildList() {
+        ccTools.destroyAllChild(this.scrol.content);
+        this.initList();
     }
 
     /** 读取皮肤存档 */
@@ -211,7 +228,7 @@ export class UISkinStore extends UIBase {
         this.unlockedSkinMap[skinId + ""] = true;
         ccStorageTools.setData(SaveKey.unlockedRoleSkin, this.unlockedSkinMap);
         if (refresh) {
-            this.refreshList();
+            this.rebuildList();
         }
     }
 

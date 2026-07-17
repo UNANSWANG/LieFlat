@@ -1,7 +1,7 @@
 import { _decorator, math, Vec2, Vec3 } from 'cc';
 import { levelConfig } from '../json/jsonLevel';
 import { ccStorageTools } from '../extention/storageTools';
-import { GameEvent, PropsName, SaveKey } from './configData';
+import { configData, GameEvent, PropsName, SaveKey } from './configData';
 import { gm, PlatType } from './gm';
 import { httpMgr } from '../sdk/network/httpManager';
 import { urlConfig } from '../sdk/network/netConfig';
@@ -219,7 +219,12 @@ export class playerData {
 
     /**设置全皮肤拥有 */
     getAllSkin() {
-        
+        let unlockedSkinMap = ccStorageTools.getData(SaveKey.unlockedRoleSkin) || {};
+        for (let i = 0; i < configData.roleSkinCount; i++) {
+            unlockedSkinMap[i + ""] = true;
+        }
+
+        ccStorageTools.setData(SaveKey.unlockedRoleSkin, unlockedSkinMap);
     }
 
     /**初始化存储数据 */

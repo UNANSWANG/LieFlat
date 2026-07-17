@@ -1,4 +1,4 @@
-import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label } from 'cc';
+import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label, UITransform } from 'cc';
 import { UIBase } from './UIBase';
 import { imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -164,12 +164,31 @@ export class UISkinStore extends UIBase {
         ccTools.loadImg(this.showRoleSkin, imgPath.roleBodyFull + this.selectId);
     }
 
+    /** 更新提示节点宽度 */
+    private refreshTipsNodeSize(text: string) {
+        if (!this.tipsNode) {
+            return;
+        }
+
+        let textWidth = text.length;
+        let tipsLab = this.tipsNode.getComponentInChildren(Label);
+        if (tipsLab) {
+            tipsLab.string = text;
+            tipsLab.updateRenderData();
+            textWidth = tipsLab.node.getComponent(UITransform)?.width || textWidth;
+        }
+
+        let tipsTrans = this.tipsNode.getComponent(UITransform);
+        if (tipsTrans) {
+            tipsTrans.width = textWidth + 40;
+        }
+    }
+
     /** 刷新公共操作区按钮 */
     private refreshActionNodes() {
         let skinData = roleSkinConfig.getSkinDataById(this.selectId);
         let isUnlocked = this.isSkinUnlocked(this.selectId);
         let buyLab = this.buyBtn?.getComponentInChildren(Label);
-        let tipsLab = this.tipsNode?.getComponentInChildren(Label);
 
         if (this.buyBtn) this.buyBtn.active = false;
         if (this.videoBtn) this.videoBtn.active = false;
@@ -181,6 +200,11 @@ export class UISkinStore extends UIBase {
         }
 
         if (isUnlocked) {
+            if (this.selectId == pData.skinId) {
+                if (this.tipsNode) this.tipsNode.active = true;
+                this.refreshTipsNodeSize("已穿戴");
+                return;
+            }
             if (this.useBtn) this.useBtn.active = true;
             return;
         }
@@ -206,9 +230,7 @@ export class UISkinStore extends UIBase {
                 return;
             }
             if (this.tipsNode) this.tipsNode.active = true;
-            if (tipsLab) {
-                tipsLab.string = `游戏${pData.passCount}/${skinData.levelNum}局获得`;
-            }
+            this.refreshTipsNodeSize(`游戏${pData.passCount}/${skinData.levelNum}局获得`);
         }
     }
 

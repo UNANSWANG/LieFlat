@@ -2504,6 +2504,10 @@ export class UIGame extends UIBase {
                 //定位到敌人视角
                 this.lookAtEnemy();
                 break;
+            case KeyCode.KEY_A:
+                //增加通关次数
+                pData.fixPassCount();
+                break;
         }
     }
 

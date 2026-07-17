@@ -373,17 +373,17 @@ export class tileItemController extends Component {
         Tween.stopAllByTarget(outLineUiop);
 
         tween(boxUiop)
-            .set({ opacity: 0 })
-            .to(2.5, { opacity: 200 })
-            .to(2.5, { opacity: 0 })
+            .set({ opacity: 10 })
+            .to(2, { opacity: 50 })
+            .to(2, { opacity: 10 })
             .union()
             .repeatForever()
             .start();
 
         tween(outLineUiop)
-            .set({ opacity: 0 })
-            .to(2.5, { opacity: 255 })
-            .to(2.5, { opacity: 0 })
+            .set({ opacity: 20 })
+            .to(2, { opacity: 100 })
+            .to(2, { opacity: 20 })
             .union()
             .repeatForever()
             .start();

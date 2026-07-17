@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "d28ab10c-600e-480f-b296-41f64ab924a1",
+  "uuid": "a359b7d5-d131-4d0f-8048-21c898cb8f13",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "d28ab10c-600e-480f-b296-41f64ab924a1@6c48a",
-      "displayName": "kuang",
+      "uuid": "a359b7d5-d131-4d0f-8048-21c898cb8f13@6c48a",
+      "displayName": "baidi",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "d28ab10c-600e-480f-b296-41f64ab924a1",
+        "imageUuidOrDatabaseUri": "a359b7d5-d131-4d0f-8048-21c898cb8f13",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "d28ab10c-600e-480f-b296-41f64ab924a1@f9941",
-      "displayName": "kuang",
+      "uuid": "a359b7d5-d131-4d0f-8048-21c898cb8f13@f9941",
+      "displayName": "baidi",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "d28ab10c-600e-480f-b296-41f64ab924a1@6c48a",
+        "imageUuidOrDatabaseUri": "a359b7d5-d131-4d0f-8048-21c898cb8f13@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "d28ab10c-600e-480f-b296-41f64ab924a1@6c48a"
+    "redirect": "a359b7d5-d131-4d0f-8048-21c898cb8f13@6c48a"
   }
 }

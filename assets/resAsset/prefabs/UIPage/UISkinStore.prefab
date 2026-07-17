@@ -2116,7 +2116,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "limitNode",
+    "_name": "tipsNode",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {

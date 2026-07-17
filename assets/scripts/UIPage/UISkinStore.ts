@@ -42,14 +42,14 @@ export class UISkinStore extends UIBase {
     buyBtn: Node;
     videoBtn: Node;
     useBtn: Node;
-    limitNode: Node;
+    tipsNode: Node;
 
     protected onLoad(): void {
         this.bindBtn();
         this.buyBtn = this.getNode?.getChildByName("buyBtn");
         this.videoBtn = this.getNode?.getChildByName("videoBtn");
         this.useBtn = this.getNode?.getChildByName("useBtn");
-        this.limitNode = this.getNode?.getChildByName("limitNode");
+        this.tipsNode = this.getNode?.getChildByName("tipsNode");
         this.bindActionBtn();
     }
 
@@ -169,13 +169,12 @@ export class UISkinStore extends UIBase {
         let skinData = roleSkinConfig.getSkinDataById(this.selectId);
         let isUnlocked = this.isSkinUnlocked(this.selectId);
         let buyLab = this.buyBtn?.getComponentInChildren(Label);
-        let videoLab = this.videoBtn?.getComponentInChildren(Label);
-        let limitLab = this.limitNode?.getComponentInChildren(Label);
+        let tipsLab = this.tipsNode?.getComponentInChildren(Label);
 
         if (this.buyBtn) this.buyBtn.active = false;
         if (this.videoBtn) this.videoBtn.active = false;
         if (this.useBtn) this.useBtn.active = false;
-        if (this.limitNode) this.limitNode.active = false;
+        if (this.tipsNode) this.tipsNode.active = false;
 
         if (!skinData) {
             return;
@@ -206,9 +205,9 @@ export class UISkinStore extends UIBase {
                 if (this.useBtn) this.useBtn.active = true;
                 return;
             }
-            if (this.limitNode) this.limitNode.active = true;
-            if (limitLab) {
-                limitLab.string = `游戏${pData.passCount}/${skinData.levelNum}局获得`;
+            if (this.tipsNode) this.tipsNode.active = true;
+            if (tipsLab) {
+                tipsLab.string = `游戏${pData.passCount}/${skinData.levelNum}局获得`;
             }
         }
     }

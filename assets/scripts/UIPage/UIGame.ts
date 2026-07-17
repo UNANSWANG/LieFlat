@@ -239,6 +239,7 @@ export class UIGame extends UIBase {
         gm.Event.on(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.on(GameEvent.gameResume, this.onGameResume, this);
         gm.Event.on(GameEvent.addGameMonetary, this.addGameMonetary, this);
+        gm.Event.on(GameEvent.forceStart, this.forceStartGame, this);
         // 监听键盘按下
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         // 监听触摸事件
@@ -263,6 +264,7 @@ export class UIGame extends UIBase {
         gm.Event.off(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.off(GameEvent.gameResume, this.onGameResume, this);
         gm.Event.off(GameEvent.addGameMonetary, this.addGameMonetary, this);
+        gm.Event.off(GameEvent.forceStart, this.forceStartGame, this);
         // 监听键盘按下
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         // 监听触摸事件

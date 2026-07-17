@@ -177,6 +177,8 @@ export enum GameEvent {
     addGameMonetary = "addGameMonetary",
     /**全皮肤 */
     fullSkin = "fullSkin",
+    /**强制开始游戏 */
+    forceStart = "forceStart",
 }
 
 /**存储的键值 */

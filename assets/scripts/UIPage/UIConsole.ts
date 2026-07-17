@@ -5,6 +5,7 @@ import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { gm } from '../manager/gm';
 import { GameEvent } from '../manager/configData';
+import { pData } from '../manager/playerData';
 const { ccclass, property } = _decorator;
 
 
@@ -18,6 +19,12 @@ export class UIConsole extends UIBase {
 
     @property(Node)
     fullSkinBtn: Node;
+
+    @property(Node)
+    addPlayerMonetaryBtn: Node;
+
+    @property(Node)
+    forceStartBtn: Node;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -37,6 +44,8 @@ export class UIConsole extends UIBase {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
         this.addGameMonetaryBtn.addComponent(zoomButton).onClick = this.clickAddGameMonetaryBtn.bind(this);
         this.fullSkinBtn.addComponent(zoomButton).onClick = this.clickFullSkinBtn.bind(this);
+        this.addPlayerMonetaryBtn.addComponent(zoomButton).onClick = this.clickAddPlayerMonetaryBtn.bind(this);
+        this.forceStartBtn.addComponent(zoomButton).onClick = this.clickForceStartBtn.bind(this);
     }
 
     ///
@@ -50,6 +59,16 @@ export class UIConsole extends UIBase {
     /**点击全皮肤 */
     clickFullSkinBtn() {
         gm.Event.emit(GameEvent.fullSkin);
+    }
+
+    /**点击增加玩家货币 */
+    clickAddPlayerMonetaryBtn() {
+        pData.fixMoney(100000);
+    }
+
+    /**点击强制开始 */
+    clickForceStartBtn() {
+        gm.Event.emit(GameEvent.forceStart);
     }
 
     /**点击关闭 */

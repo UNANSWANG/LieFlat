@@ -92,8 +92,26 @@ export enum imgPath {
 
 /**spine路径 */
 export enum spinePath {
-    /**角色spine */
+    /**角色spine（文件夹） */
     role = "spine/role/role_",
-    /**敌人spine */
+    /**敌人spine（文件夹） */
     boss = "spine/boss/boss_",
+    /**光罩 */
+    light = "spine/light/GAZ",
+    /**宝箱 */
+    box = "spine/box/box",
+    /**抓痕 */
+    scratch = "spine/scratch/cwk",
+    /**眩晕 */
+    dizziness = "spine/dizziness/vertigo",
+    /**警示铃 */
+    alarm = "spine/alarm/Bell",
+    /**金矿 */
+    goldVein = "spine/goldVein/Rk",
+    /**银矿 */
+    silverVein = "spine/silverVein/YK",
+    /**火焰锻造台 */
+    fire = "spine/fire/huoyanduanzaotai ",
+    /**雪花 */
+    snow = "spine/snow/snow",
 }

@@ -1,0 +1,20 @@
+
+cwk.png
+size: 804,804
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: true
+  xy: 431, 396
+  size: 406, 371
+  orig: 406, 371
+  offset: 0, 0
+  index: -1
+2
+  rotate: false
+  xy: 2, 410
+  size: 427, 392
+  orig: 439, 405
+  offset: 6, 6
+  index: -1

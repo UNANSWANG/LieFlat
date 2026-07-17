@@ -1,0 +1,55 @@
+
+huoyanduanzaotai .png
+size: 78,78
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: true
+  xy: 2, 2
+  size: 29, 32
+  orig: 29, 32
+  offset: 0, 0
+  index: -1
+2
+  rotate: false
+  xy: 36, 16
+  size: 3, 3
+  orig: 3, 3
+  offset: 0, 0
+  index: -1
+3
+  rotate: false
+  xy: 36, 11
+  size: 3, 3
+  orig: 3, 3
+  offset: 0, 0
+  index: -1
+4
+  rotate: false
+  xy: 36, 6
+  size: 3, 3
+  orig: 3, 3
+  offset: 0, 0
+  index: -1
+5
+  rotate: false
+  xy: 36, 27
+  size: 3, 4
+  orig: 3, 4
+  offset: 0, 0
+  index: -1
+6
+  rotate: false
+  xy: 36, 21
+  size: 3, 4
+  orig: 3, 4
+  offset: 0, 0
+  index: -1
+duanzaotai
+  rotate: false
+  xy: 2, 33
+  size: 38, 43
+  orig: 38, 43
+  offset: 0, 0
+  index: -1

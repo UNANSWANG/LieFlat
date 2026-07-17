@@ -1,0 +1,27 @@
+
+YK.png
+size: 519,519
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: false
+  xy: 2, 41
+  size: 479, 476
+  orig: 505, 492
+  offset: 13, 10
+  index: -1
+2
+  rotate: false
+  xy: 483, 467
+  size: 14, 14
+  orig: 17, 16
+  offset: 1, 1
+  index: -1
+3
+  rotate: false
+  xy: 483, 483
+  size: 34, 34
+  orig: 40, 40
+  offset: 3, 3
+  index: -1

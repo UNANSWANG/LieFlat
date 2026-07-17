@@ -217,6 +217,11 @@ export class playerData {
         ccStorageTools.setData(SaveKey.skinId, this.skinId);
     }
 
+    /**设置全皮肤拥有 */
+    getAllSkin() {
+        
+    }
+
     /**初始化存储数据 */
     initData() {
         this.money = ccStorageTools.getNumberData(SaveKey.money);

@@ -1,12 +1,10 @@
 import { _decorator, Component, getSymbolLength, Node } from 'cc';
-import { UIManager, uiMgr } from './UIManager';
+import { uiMgr } from './UIManager';
 import { UIPath } from './pathConfig';
-import { ccResTools } from '../extention/resTools';
-import { gm, PlatType } from './gm';
-import { userMgr } from './userManager';
-import { pData } from './playerData';
 import { ccStorageTools } from '../extention/storageTools';
-import { SaveKey } from './configData';
+import { GameEvent, SaveKey } from './configData';
+import { gm } from './gm';
+import { pData } from './playerData';
 const { ccclass, property } = _decorator;
 
 @ccclass('preloadManager')
@@ -26,6 +24,8 @@ export class preloadManager extends Component {
             uiMgr.openPage(UIPath.UIWarm);
             ccStorageTools.setLimitTimeData(SaveKey.isShowWarm, 1);
         }
+
+        gm.Event.on(GameEvent.fullSkin, pData.getAllSkin, this);
     }
 }
 

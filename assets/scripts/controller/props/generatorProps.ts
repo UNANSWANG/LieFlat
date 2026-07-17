@@ -1,4 +1,4 @@
-import { _decorator } from 'cc';
+import { _decorator, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { configData } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
@@ -20,6 +20,8 @@ export class generatorProps extends gamePropsBase {
         super.initPropsImg();
         ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
         this.showBaseImg();
+
+        this.scaleNode.position = new Vec3(0, 5, 0);
     }
 
     /**道具开始生效 */

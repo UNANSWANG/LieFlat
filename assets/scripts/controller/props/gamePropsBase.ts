@@ -113,13 +113,14 @@ export class gamePropsBase extends Component {
 
         this.hpNode.active = false;
 
-        this.img1.node.position = new Vec3(0, 0, 0);
-        this.img2.node.position = new Vec3(0, 0, 0);
-        this.img3.node.position = new Vec3(0, 0, 0);
+        this.img1.node.position = Vec3.ZERO;
+        this.img2.node.position = Vec3.ZERO;
+        this.img3.node.position = Vec3.ZERO;
         this.img1.node.angle = 0;
         this.img2.node.angle = 0;
         this.img3.node.angle = 0;
         this.scaleNode.scale = Vec3.ONE;
+        this.scaleNode.position = Vec3.ZERO;
         this.node.angle = 0;
 
         this.level = 0;

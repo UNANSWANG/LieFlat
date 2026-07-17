@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, NodePool, Prefab, Sprite, Tween, UIOpacity, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Node, NodePool, Prefab, sp, Sprite, Tween, UIOpacity, UITransform, Vec3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 //对象池管理类
@@ -29,6 +29,24 @@ export class poolManager extends Component {
     putGameNode(node: Node) {
         this.resetNode(node, true);
         this.gameNodePool.put(node);
+    }
+
+    /**获取或添加通用节点Sprite组件 */
+    getGameNodeSprite(node: Node) {
+        if (!node || !node.isValid) {
+            return null;
+        }
+
+        return node.getComponent(Sprite) || node.addComponent(Sprite);
+    }
+
+    /**获取或添加通用节点Skeleton组件 */
+    getGameNodeSkeleton(node: Node) {
+        if (!node || !node.isValid) {
+            return null;
+        }
+
+        return node.getComponent(sp.Skeleton) || node.addComponent(sp.Skeleton);
     }
 
     /**获取瓦片节点 */
@@ -97,13 +115,27 @@ export class poolManager extends Component {
             opacity.opacity = 255;
         }
 
-        let sprite = isRoot && clearRootSprite ? node.getComponent(Sprite) : null;
-        if (sprite) {
-            sprite.spriteFrame = null;
+        if (isRoot && clearRootSprite) {
+            this.clearGameNodeRenderComponents(node);
         }
 
         for (let i = 0; i < node.children.length; i++) {
             this.resetNodeTree(node.children[i]);
+        }
+    }
+
+    /**清理通用节点运行时添加的渲染组件 */
+    private clearGameNodeRenderComponents(node: Node) {
+        let sprite = node.getComponent(Sprite);
+        if (sprite) {
+            sprite.spriteFrame = null;
+            sprite.destroy();
+        }
+
+        let skeleton = node.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.skeletonData = null;
+            skeleton.destroy();
         }
     }
 }

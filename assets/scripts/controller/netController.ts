@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, UITransform, Vec3 } from 'cc';
 import { ccTools } from '../extention/generalTools';
 import { configData } from '../manager/configData';
 import type { enemyBaseController } from './enemy/enemyBaseController';
@@ -26,7 +26,7 @@ export class netController extends Component {
         this.duration = duration;
         this.hasHit = false;
 
-        let img = this.node.getComponent(Sprite);
+        let img = poolMgr.getGameNodeSprite(this.node);
         if (img) {
             ccTools.loadImg(img, imgPath);
         }
@@ -146,4 +146,3 @@ export class netController extends Component {
         poolMgr.putGameNode(this.node);
     }
 }
-

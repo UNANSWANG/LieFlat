@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ccTools } from '../extention/generalTools';
 import type { enemyBaseController } from './enemy/enemyBaseController';
 import { poolMgr } from '../manager/poolManager';
@@ -24,7 +24,7 @@ export class cageController extends Component {
         this.target = target;
         this.duration = duration;
 
-        let img = this.node.getComponent(Sprite);
+        let img = poolMgr.getGameNodeSprite(this.node);
         if (img) {
             ccTools.loadImg(img, imgPath);
         }

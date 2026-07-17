@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Node, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { configData } from '../../manager/configData';
 import { propsConfig } from '../../json/jsonProps';
@@ -187,7 +187,7 @@ export class doorProps extends gamePropsBase {
         let trans = this.machineRepairEffectNode.getComponent(UITransform);
         trans?.setAnchorPoint(0.15, 0.25);
 
-        let img = this.machineRepairEffectNode.getComponent(Sprite);
+        let img = poolMgr.getGameNodeSprite(this.machineRepairEffectNode);
         if (img) {
             ccTools.loadImg(img, imgPath.gamePprops + tilePropsType.machine);
         }

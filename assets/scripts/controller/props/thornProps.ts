@@ -1,4 +1,4 @@
-import { _decorator, Node, Sprite } from 'cc';
+import { _decorator, Node } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
@@ -55,7 +55,7 @@ export class thornProps extends gamePropsBase {
         this.doorEffectNode.name = "thornDoorEffect";
         doorComp.effectNode.addChild(this.doorEffectNode);
 
-        let img = this.doorEffectNode.getComponent(Sprite);
+        let img = poolMgr.getGameNodeSprite(this.doorEffectNode);
         if (img) {
             ccTools.loadImg(img, imgPath.gamePprops + this.propsType);
         }

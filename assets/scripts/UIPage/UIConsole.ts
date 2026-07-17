@@ -18,6 +18,9 @@ export class UIConsole extends UIBase {
     addGameMonetaryBtn: Node;
 
     @property(Node)
+    addGameMonetaryBtn2: Node;
+
+    @property(Node)
     fullSkinBtn: Node;
 
     @property(Node)
@@ -45,6 +48,7 @@ export class UIConsole extends UIBase {
         this.addGameMonetaryBtn.addComponent(zoomButton).onClick = this.clickAddGameMonetaryBtn.bind(this);
         this.fullSkinBtn.addComponent(zoomButton).onClick = this.clickFullSkinBtn.bind(this);
         this.addPlayerMonetaryBtn.addComponent(zoomButton).onClick = this.clickAddPlayerMonetaryBtn.bind(this);
+        this.addGameMonetaryBtn2.addComponent(zoomButton).onClick = this.clickAddGameMonetary2Btn.bind(this);
         this.forceStartBtn.addComponent(zoomButton).onClick = this.clickForceStartBtn.bind(this);
     }
 
@@ -53,6 +57,11 @@ export class UIConsole extends UIBase {
     ///
     /**点击增加货币 */
     clickAddGameMonetaryBtn() {
+        gm.Event.emit(GameEvent.addGameMonetary, 100);
+    }
+
+    /**点击增加货币2 */
+    clickAddGameMonetary2Btn() {
         gm.Event.emit(GameEvent.addGameMonetary);
     }
 

@@ -2485,9 +2485,9 @@ export class UIGame extends UIBase {
     }
 
     /**增加游戏内货币 */
-    addGameMonetary() {
-        pData.fixGameCoin(1000000);
-        pData.fixGamePower(1000000);
+    addGameMonetary(num = 1000000) {
+        pData.fixGameCoin(num);
+        pData.fixGamePower(num);
     }
 
     /**强制开始游戏 */

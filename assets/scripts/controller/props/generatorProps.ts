@@ -1,20 +1,31 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
-import { propsConfig } from '../../json/jsonProps';
-import { tilePropsType } from '../tileItemController';
 import { configData } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
 import { playerMgr } from '../../manager/playerManager';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { gm } from '../../manager/gm';
 import { roleState } from '../roleController';
-const { ccclass, property } = _decorator;
+import { ccTools } from '../../extention/generalTools';
+import { imgPath } from '../../manager/pathConfig';
+const { ccclass } = _decorator;
 
 @ccclass('generatorProps')
 export class generatorProps extends gamePropsBase {
+    /**当前是否显示底图 */
+    private isShowBaseImg: boolean = true;
+
+    /**初始化道具图片 */
+    initPropsImg() {
+        super.initPropsImg();
+        ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
+        this.showBaseImg();
+    }
 
     /**道具开始生效 */
     startProps() {
+        super.startProps();
+        this.startSwitchImg();
         this.startProducePower();
     }
 
@@ -22,6 +33,27 @@ export class generatorProps extends gamePropsBase {
     endProps() {
         super.endProps();
         this.stopProducePower();
+        this.showBaseImg();
+    }
+
+    /**开始循环切换图1和图2显隐 */
+    private startSwitchImg() {
+        this.unschedule(this.switchImg);
+        this.schedule(this.switchImg, configData.propsImgSwitchSpeed);
+    }
+
+    /**切换图1和图2显隐 */
+    private switchImg() {
+        this.isShowBaseImg = !this.isShowBaseImg;
+        this.img1.node.active = this.isShowBaseImg;
+        this.img2.node.active = !this.isShowBaseImg;
+    }
+
+    /**显示底图 */
+    private showBaseImg() {
+        this.isShowBaseImg = true;
+        this.img1.node.active = true;
+        this.img2.node.active = false;
     }
 
     /**开始生产电能 */

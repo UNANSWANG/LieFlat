@@ -31,7 +31,6 @@ export class UISkinStore extends UIBase {
     scrol: ScrollView;
 
     /** 当前正在穿戴的皮肤 */
-    wearId: number = 0;
     /** 当前选中的皮肤 */
     selectId: number = 0;
     /** 是否完成过初始化 */
@@ -130,15 +129,13 @@ export class UISkinStore extends UIBase {
     /** 读取皮肤存档 */
     private loadSkinData() {
         this.unlockedSkinMap = ccStorageTools.getData(SaveKey.unlockedRoleSkin) || {};
-        this.wearId = ccStorageTools.getNumberData(SaveKey.useRoleSkinId) || roleSkinConfig.defaultSkinId;
-        this.selectId = this.wearId || roleSkinConfig.defaultSkinId;
+        this.selectId = pData.skinId;
 
         this.unlockSkin(roleSkinConfig.defaultSkinId, false);
-        if (!this.isSkinUnlocked(this.wearId)) {
-            this.wearId = roleSkinConfig.defaultSkinId;
-            this.selectId = this.wearId;
+        if (!this.isSkinUnlocked(pData.skinId)) {
+            pData.setSkinId(roleSkinConfig.defaultSkinId);
+            this.selectId = pData.skinId;
         }
-        ccStorageTools.setData(SaveKey.useRoleSkinId, this.wearId);
     }
 
     /** 给皮肤条目绑定点击选中事件 */
@@ -154,7 +151,7 @@ export class UISkinStore extends UIBase {
         let select = item.getChildByName("select");
         let lockNode = item.getChildByName("lockNode");
 
-        if (gou) gou.active = skinId == this.wearId;
+        if (gou) gou.active = skinId == pData.skinId;
         if (select) select.active = skinId == this.selectId;
         if (lockNode) lockNode.active = !isUnlocked;
     }
@@ -202,10 +199,8 @@ export class UISkinStore extends UIBase {
 
         if (skinData.limitType == 3) {
             if (!isUnlocked && pData.passCount >= skinData.levelNum) {
-                this.unlockSkin(this.selectId, false);
-                this.wearId = this.selectId;
-                ccStorageTools.setData(SaveKey.useRoleSkinId, this.wearId);
-                isUnlocked = true;
+                this.unlockSkin(this.selectId);
+                return;
             }
             if (isUnlocked) {
                 if (this.useBtn) this.useBtn.active = true;
@@ -274,9 +269,8 @@ export class UISkinStore extends UIBase {
             return;
         }
 
-        this.wearId = skinId;
         this.selectId = skinId;
-        ccStorageTools.setData(SaveKey.useRoleSkinId, skinId);
+        pData.setSkinId(skinId);
         this.refreshList();
     }
 

@@ -1,216 +1,215 @@
-﻿/**娓告垙閰嶇疆 */
+/**游戏配置 */
 export const configData = {
-    /**浜虹墿绉诲姩閫熷害 */
+    /**人物移动速度 */
     moveSpeed: 300,
-    /**娓告垙寮€濮嬪悗浜虹墿绉诲姩閫熷害 */
+    /**游戏开始后人物移动速度 */
     moveSpeedGame: 200,
-    /**鐡︾墖澶у皬 */
+    /**瓦片大小 */
     tileSize: 64,
-    /**浜虹墿鐨偆鏁伴噺 */
+    /**人物皮肤数量 */
     roleSkinCount: 10,
-    /**鎬墿鐨偆鏁伴噺 */
+    /**怪物皮肤数量 */
     enemySkinCount: 7,
-    /**鐢熶骇閲戝竵棰戠巼锛堢锛?*/
+    /**生产金币频率（秒） */
     produceCoinFreq: 1,
-    /**鐢熶骇鐢佃兘棰戠巼锛堢锛?*/ 
+    /**生产电能频率（秒） */
     producePowerFreq: 1,
-    /**鐐彴鐨勬敾鍑婚棿闅?*/
+    /**炮台的攻击间隔 */
     cannonAttackFreq: 1,
-    /**瀛愬脊閫熷害 */
+    /**子弹速度 */
     bulletSpeed: 1000,
-    /**淇鏃堕棿 */
+    /**修复时间 */
     repairTime: 10,
-    /**淇鍐峰嵈鏃堕棿 */
+    /**修复冷却时间 */
     repairCoolDown: 20,
-    /**闂ㄥ熀纭€淇閫熷害锛堟瘡绉掍慨澶嶇櫨鍒嗘瘮锛?*/
+    /**门基础修复速度（每秒修复百分比） */
     doorRepairSpeed: 2,
-    /**闂ㄤ娇鐢ㄤ慨澶嶅鍔犵殑淇閫熷害锛堟瘡绉掍慨澶嶇櫨鍒嗘瘮锛?*/
+    /**门使用修复增加的修复速度（每秒修复百分比） */
     doorRepairSpeedAdd: 3,
-    /**鎴块棿鏈夐殢鏈洪亾鍏锋鐜?*/
+    /**房间有随机道具概率 */
     roomPropsProbability: 0.8,
-    /**闅忔満閬撳叿鐨勭敓鎴愭暟閲忓尯闂?*/
+    /**随机道具的生成数量区间 */
     randomPropsNum: [3, 4],
-    /**鎴块棬琛€鏉℃樉绀烘椂闂达紙绉掞級 */
+    /**房门血条显示时间（秒） */
     doorHpShowTime: 5,
 }
 
-/**鏁屼汉閫氱敤閰嶇疆 */
+/**敌人通用配置 */
 export const enemyCommonConfig = {
-    /**鏁屼汉绉诲姩閫熷害 */
+    /**敌人移动速度 */
     enemyMoveSpeed: 400,
-    /**鏁屼汉寮€濮嬫椂闂达紙绉掞級 */
+    /**敌人开始时间（秒） */
     enemyStartTime: 25,
-    /**鏁屼汉琛€閲忓洖澶嶉€熷害锛堟瘡绉掑洖澶嶇櫨鍒嗘瘮锛?*/
+    /**敌人血量回复速度（每秒回复百分比） */
     enemyHpRepairSpeed: 10,
-    /**鏁屼汉閫冭蛋鐢熷懡鍊兼瘮渚?*/
+    /**敌人逃走生命值比例 */
     enemyEscapeHpPercent: 0.3,
-    /**鏁屼汉浣跨敤闇囨厬鏃剁殑闂ㄧ敓鍛界櫨鍒嗘瘮锛堝皬浜庯級 */
+    /**敌人使用震慑时的门生命百分比（小于） */
     doorEscapeHpPercent: 0.2,
-    /**鏁屼汉浣跨敤闇囨厬鏃剁殑鑷韩鐢熷懡鐧惧垎姣?澶т簬) */
+    /**敌人使用震慑时的自身生命百分比（大于） */
     selfEscapeHpPercent: 0.3,
-    /**闇囨厬鑼冨洿锛堟牸鏁帮級 */
+    /**震慑范围（格数） */
     fearRange: 4,
-    /**闇囨厬鏃堕棿锛堢锛?*/
+    /**震慑时间（秒） */
     fearTime: 3,
-    /**鐙傛€掓妧鑳芥敾閫熷€嶇巼 */
+    /**狂怒技能攻速倍率 */
     rageAttackSpeed: 2,
-    /**鐙傛€掓妧鑳芥寔缁椂闂?*/
+    /**狂怒技能持续时间 */
     rageTime: 3,
-    /**鐙傛€掓妧鑳戒娇鐢ㄩ棿闅?*/
+    /**狂怒技能使用间隔 */
     rageUseInterval: 30,
-    /**鏁屼汉鏀诲嚮鏃惰閲忔娴嬮槇鍊肩櫨鍒嗘瘮锛堟娴嬮€冪锛?*/
+    /**敌人攻击时血量检测阈值百分比（检测逃离） */
     enemyHpAttackPercent: 0.3,
-    /**鎴块棬琚敾鍑昏閲忔娴嬮槇鍊肩櫨鍒嗘瘮 */
+    /**房门被攻击血量检测阈值百分比 */
     doorHpAttackPercent: 0.2,
-    /**鐮撮棬鍚庤嚜韬閲忛槇鍊肩櫨鍒嗘瘮 */
+    /**破门后自身血量阈值百分比 */
     goalHpThresholdPercent: 0.2,
-    /**鎴块棬鏀诲嚮鏃堕棿妫€娴嬮槇鍊?*/
+    /**房门攻击时间检测阈值 */
     doorAttackTimeThreshold: 20,
-    /**鎴块棬琚敾鍑荤殑妫€娴嬫椂闂达紙浼ゅ锛?*/
+    /**房门被攻击的检测时间（伤害） */
     doorAttackTimeDamage: 10,
-    /**鎴块棬琚敾鍑荤殑绉掍激闃堝€肩櫨鍒嗘瘮 */
+    /**房门被攻击的秒伤阈值百分比 */
     doorAttackTimeDamagePercent: 0.05,
-    /**鍥炲埌鍑虹敓鐐圭殑绛夊緟鏃堕棿锛堢锛?*/
+    /**回到出生点的等待时间（秒） */
     returnStartTime: 10,
-    /**鏁屼汉鏀诲嚮闂撮殧鍊嶇巼鍖洪棿 */
+    /**敌人攻击间隔倍率区间 */
     enemyAttackInterval: [1.25, 1.75],
 }
 
-/**浜烘満閫氱敤閰嶇疆 */
+/**人机通用配置 */
 export const robotCommonConfig = {
-    /**鍙戠數鏈哄缓閫犲墠鎻愶紙鏃堕棿绾跨瓑绾э級 */
+    /**发电机建造前提（时间线等级） */
     generatorBuildLevel: 5,
-    /**鍙戠數鏈轰笂闄愶紙涓暟锛?*/
+    /**发电机上限（个数） */
     generatorMax: 4,
-    /**鍙戠數鏈哄缓閫犻棿闅旓紙绉掞級 */
+    /**发电机建造间隔（秒） */
     generatorBuildInterval: [15, 25],
-    /**鍗囩骇鍙戠數鏈哄墠鎻愭潯浠讹紙搴婄瓑绾э紝瀹為檯8绾х殑鏃跺€檒evel=7鍥犱负浠?寮€濮嬶級 */
+    /**升级发电机前提条件（床等级，实际8级时level=7，因为从0开始） */
     generatorBuildBedLevel: 8,
-    /**鍗囩骇鍙戠數鏈洪棿闅旓紙绉掞級 */
+    /**升级发电机间隔（秒） */
     generatorUpgradeInterval: [30, 60],
-    /**鍙戠數鏈烘渶楂樼瓑绾?*/
+    /**发电机最高等级 */
     generatorMaxLevel: 5,
-    /**鐭胯剦鐨勫缓閫犲墠鎻愶紙鍙戠數鏈烘渶楂樼瓑绾э紝瀹為檯3绾х殑鏃跺€檒evel=2鍥犱负浠?寮€濮嬶級 */
+    /**矿脉的建造前提（发电机最高等级，实际3级时level=2，因为从0开始） */
     veinBuildLevel: 3,
-    /**鐭胯剦鐨勫缓閫犻棿闅旓紙绉掞級 */
+    /**矿脉的建造间隔（秒） */
     veinBuildInterval: [30, 60],
-    /**鐭胯剦鐨勬渶澶т笂闄愶紙涓暟锛?*/
+    /**矿脉的最大上限（个数） */
     veinMax: 2,
-    /**鐭胯剦鍚勭瓑绾у缓閫犳潈閲?*/
+    /**矿脉各等级建造权重 */
     veinBuildWeight: [0.95, 0.03, 0.02, 0.01],
 
-    /**琚€墿鏀诲嚮鏃舵娴嬬殑鏃堕棿闃堝€硷紙浠庡€掕鏃剁粨鏉熷悗寮€濮嬭鏃讹紝鍖哄垎鍓嶆湡鍜屽悗鏈燂級 */
+    /**被怪物攻击时检测的时间阈值（从倒计时结束后开始计时，区分前期和后期） */
     enemyAttackTimeThreshold: 40,
-    /**鍓嶆湡鍗囩骇闂ㄧ殑娆℃暟涓婇檺 */
+    /**前期升级门的次数上限 */
     enemyUpgradeDoorMax: 2,
-    /**鍓嶆湡琚敾鍑绘椂鍗囩骇闂ㄧ殑鏃堕棿闂撮殧锛堢锛?*/
+    /**前期被攻击时升级门的时间间隔（秒） */
     enemyAttackTimeUpgrade: 20,
-    /**闂ㄦ帀琛€閫熺巼闃堝€?鍗曟浼ゅ鐧惧垎姣? */
+    /**门掉血速率阈值，单次伤害百分比 */
     doorHpAttackPercent: 0.05,
-    /** 鐐彴寤洪€犵殑璺濈锛堟牸鏁帮級 */
+    /**炮台建造的距离（格数） */
     cannonBuildDistance: 4,
-    /**鐐彴寤洪€犵殑鏃堕棿闃堝€硷紙鐢ㄤ互鍖哄垎鐐彴鐨勫墠鍗婃鏃堕棿锛?*/
+    /**炮台建造的时间阈值（用以区分炮台的前半段时间） */
     cannonBuildTimeThreshold: [10, 100],
-    /**鍓嶅崐娈电偖鍙扮殑鏈€楂樼瓑绾?*/
+    /**前半段炮台的最高等级 */
     cannonBuildLevel: 3,
-    /**鍓嶅崐娈电偖鍙扮殑鍗囩骇鍐峰嵈鏃堕棿锛堢锛?*/
+    /**前半段炮台的升级冷却时间（秒） */
     cannonBuildUpgradeCoolDown: 5,
-    /**鐐彴鍚庡崐娈靛缓閫犵殑鏃堕棿闃堝€硷紙鐢ㄤ互鍖哄垎鐐彴鐨勫悗鍗婃鏃堕棿锛?*/
+    /**炮台后半段建造的时间阈值（用以区分炮台的后半段时间） */
     cannonBuildTimeThresholdLater: 120,
-    /**鍚庡崐娈电偖鍙扮殑鏈€楂樼瓑绾?*/
+    /**后半段炮台的最高等级 */
     cannonBuildLevelLater: 5,
-    /**鍚庡崐娈电偖鍙扮殑鍗囩骇鍐峰嵈鏃堕棿锛堢锛?*/
+    /**后半段炮台的升级冷却时间（秒） */
     cannonBuildUpgradeCoolDownLater: 10,
-    /**鍚庢湡闂ㄦ帀琛€閫熷害杩囧揩鏃讹紝鐢熸垚閬撳叿鐨勭殑鏃堕棿 */
+    /**后期门掉血速度过快时，生成道具的时间 */
     propsBuildTimedLater: 20,
-    /**寤洪€犳満搴婄殑鍓嶆彁鏃堕棿锛堢锛?*/
+    /**建造机床的前提时间（秒） */
     machineBuildTimeThreshold: 180,
-    /**寤洪€犲瘨鍐扮殑鍓嶆彁鏃堕棿锛堢锛?*/
+    /**建造寒冰的前提时间（秒） */
     iceBuildTimeThreshold: 240,
-    /**妫€娴嬮槦鍙嬭鏀诲嚮鑼冨洿锛堟牸鏁帮級 */
+    /**检测队友被攻击范围（格数） */
     checkTeamRange: 10,
-    /**闃熷弸琚敾鍑绘椂鍙崌绾х殑鏈€澶х瓑绾х偖鍙?*/
+    /**队友被攻击时可升级的最大等级炮台 */
     maxUpgradeCannonLevel: 2,
 }
 
-
-/**娓告垙浜嬩欢 */
+/**游戏事件 */
 export enum GameEvent {
-    /**娓告垙鏆傚仠 */
+    /**游戏暂停 */
     gamePause = "gamePause",
-    /**娓告垙缁х画 */
+    /**游戏继续 */
     gameResume = "gameResume",
-    /**鍒锋柊绾㈢偣 */
+    /**刷新红点 */
     refreshRed = "refreshRed",
-    /**鍔犺浇琛ㄦ牸 */
+    /**加载表格 */
     loadTable = "loadTable",
-    /**妫€娴嬬櫥褰曢〉鍔犺浇鍥炶皟 */
+    /**检测登录页加载回调 */
     checkLoginLoad = "checkLoginLoad",
-    /**鍏ㄩ儴琛ㄦ牸鍔犺浇瀹屾垚鍥炶皟 */
+    /**全部表格加载完成回调 */
     tableLoadComplete = "tableLoadComplete",
-    /**鍔犺浇棰勫埗浣?*/
+    /**加载预制体 */
     loading = "loading",
-    /**鍒锋柊娓告垙鍏冲崱 */
+    /**刷新游戏关卡 */
     refreshGameLevel = "refreshGameLevel",
-    /**澶嶆椿娓告垙 */
+    /**复活游戏 */
     resurrectionGame = "resurrectionGame",
-    /**鍒锋柊閬撳叿 */
+    /**刷新道具 */
     refreshProps = "refreshProps",
-    /**鍏抽棴濂栧姳鐣岄潰 */
+    /**关闭奖励界面 */
     closeRewardPage = "closeRewardPage",
-    /**渚ц竟鏍忓洖璁?*/
+    /**侧边栏回调 */
     revisitSidebar = "revisitSidebar",
-    /**鍒锋柊娓告垙鎽勫儚鏈鸿瑙?*/
+    /**刷新游戏摄像机视角 */
     refreshGameCamera = "refreshGameCamera",
-    /**鍒锋柊娓告垙鍐呰揣甯侊紙鍦哄唴锛?*/
+    /**刷新游戏内货币（场内） */
     refreshGameMonetary = "refreshGameMonetary",
-    /**鍒锋柊鐜╁鍧愭爣浜嬩欢 */
+    /**刷新玩家坐标事件 */
     refreshPlayerPos = "refreshPlayerPos",
-    /**鐢熸垚寤虹瓚閬撳叿 */
+    /**生成建筑道具 */
     createProps = "createProps",
-    /**鍗囩骇寤虹瓚閬撳叿 */
+    /**升级建筑道具 */
     upgradeProps = "upgradeProps",
-    /**閫氱敤閰嶇疆琛ㄥ姞杞藉畬鎴?*/
+    /**通用配置表加载完成 */
     commonTableFinish = "commonTableFinish",
-    /**娓告垙鍐呭鍔犺揣甯?*/
+    /**游戏内增加货币 */
     addGameMonetary = "addGameMonetary",
-    /**鍏ㄧ毊鑲?*/
+    /**全皮肤 */
     fullSkin = "fullSkin",
 }
 
-/**瀛樺偍鐨勯敭鍊?*/
+/**存储的键值 */
 export enum SaveKey {
-    /**鍏冲崱鏁版嵁 */
+    /**关卡数据 */
     level = "level",
-    /**娓告垙澶栬揣甯侊紙鍦哄锛?*/
+    /**游戏外货币（场外） */
     money = "money",
-    /**闊虫晥寮€鍏?*/
+    /**音效开关 */
     effect = "effect",
-    /**闊虫晥闊抽噺 */
+    /**音效音量 */
     effectVolume = "effectVolume",
-    /**闊充箰寮€鍏?*/
+    /**音乐开关 */
     music = "music",
-    /**闊充箰闊抽噺 */
+    /**音乐音量 */
     musicVolume = "musicVolume",
-    /**鎸姩寮€鍏?*/
+    /**振动开关 */
     vibrat = "vibrat",
-    /**閬撳叿瀛樺偍 */
+    /**道具存储 */
     props = "props",
-    /**浠婃棩鏄惁棰嗗彇杩囦晶杈规爮濂栧姳 */
+    /**今日是否领取过侧边栏奖励 */
     isGetRevisit = "isGetRevisit",
-    /**鐢ㄦ埛澶村儚 */
+    /**用户头像 */
     avatarUrl = "avatarUrl",
-    /**浠婃棩鏄惁寮瑰嚭杩囨俯棣ㄦ彁绀?*/
+    /**今日是否弹出过温馨提示 */
     isShowWarm = "isShowWarm",
+    /**通关次数 */
     passCount = "passCount",
+    /**已解锁角色皮肤 */
     unlockedRoleSkin = "unlockedRoleSkin",
-    useRoleSkinId = "useRoleSkinId",
+    /**当前穿戴皮肤 */
+    skinId = "skinId",
 }
 
-/**閬撳叿绱㈠紩 */
+/**道具索引 */
 export enum PropsName {
 
 }
-
-
-

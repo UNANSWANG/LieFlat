@@ -509,8 +509,7 @@ export class UIGame extends UIBase {
         this.roleNode.addChild(playerMgr.player);
         playerMgr.cameraFollow = true;
         this.initRolePos(playerMgr.player);
-        let skinId = ccTools.getRandomNum(0, configData.roleSkinCount);
-        playerMgr.playerComp.init(this, 0, skinId);
+        playerMgr.playerComp.init(this, 0, pData.skinId);
         this.playerLastRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp.currentPos);
     }
 

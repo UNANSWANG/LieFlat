@@ -30,6 +30,8 @@ export class playerData {
     adNum = 0;
     /**通关次数 */
     passCount = 0;
+    /**当前皮肤id */
+    skinId = 0;
 
     levelInit() {
         pData.adNum = 0;
@@ -195,6 +197,23 @@ export class playerData {
             this.money = 0;
         }
         ccStorageTools.setData(SaveKey.money, this.money);
+    }
+
+    /**初始化当前穿戴皮肤 */
+    initSkinData(defaultSkinId: number) {
+        let skinData = ccStorageTools.getData(SaveKey.skinId);
+        if(skinData == null || skinData == undefined){
+            this.setSkinId(defaultSkinId);
+            ccStorageTools.setData(SaveKey.skinId, this.skinId);
+        }else{
+            this.skinId = ccStorageTools.getNumberData(SaveKey.skinId) || 0;
+        }
+    }
+
+    /**设置当前穿戴皮肤 */
+    setSkinId(skinId: number) {
+        this.skinId = skinId;
+        ccStorageTools.setData(SaveKey.skinId, this.skinId);
     }
 
     /**初始化存储数据 */

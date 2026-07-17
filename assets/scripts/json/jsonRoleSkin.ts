@@ -1,5 +1,6 @@
 import { _decorator, Component, Node } from 'cc';
 import { jsonBase } from './jsonBase';
+import { pData } from '../manager/playerData';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonRoleSkin')
@@ -37,6 +38,11 @@ export class jsonRoleSkin extends jsonBase {
     /**根据皮肤id获取皮肤数据 */
     getSkinDataById(skinId: number) : JsonRoleSkinData {
         return this.roleSkinAllData?.find((item) => item.skinId == skinId) || null;
+    }
+
+    protected processTableData(): void {
+        super.processTableData();
+        pData.initSkinData(this.defaultSkinId);
     }
 }
 export let roleSkinConfig = new jsonRoleSkin();

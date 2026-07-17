@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, tween, Tween, Vec3 } from 'cc';
+import { _decorator, Component, Node, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
@@ -92,6 +92,8 @@ export class bedProps extends gamePropsBase {
     initPropsImg() {
         super.initPropsImg();
         ccTools.loadImg(this.img3, imgPath.gamePprops + "quilt_" + this.level);
+        this.img3.getComponent(UITransform).setAnchorPoint(new Vec2(0.5, 1));
+        this.img3.node.setPosition(new Vec3(0, 12, 0));
     }
 }
 

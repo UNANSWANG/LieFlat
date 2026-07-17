@@ -51,6 +51,7 @@ export class UISkinStore extends UIBase {
         this.videoBtn = this.getNode?.getChildByName("videoBtn");
         this.useBtn = this.getNode?.getChildByName("useBtn");
         this.limitNode = this.getNode?.getChildByName("limitNode");
+        this.bindActionBtn();
     }
 
     onUI_Open() {
@@ -71,6 +72,13 @@ export class UISkinStore extends UIBase {
     /** 关闭按钮绑定 */
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
+    }
+
+    /** 公共操作区按钮绑定 */
+    bindActionBtn() {
+        this.buyBtn.addComponent(zoomButton).onClick = this.clickBuyBtn.bind(this);
+        this.videoBtn.addComponent(zoomButton).onClick = this.clickVideoBtn.bind(this);
+        this.useBtn.addComponent(zoomButton).onClick = this.clickUseSelectedBtn.bind(this);
     }
 
     /** 刷新皮肤列表的选中和穿戴状态 */
@@ -176,6 +184,16 @@ export class UISkinStore extends UIBase {
         }
 
         if (skinData.limitType == 3) {
+            if (!isUnlocked && pData.passCount >= skinData.levelNum) {
+                this.unlockSkin(this.selectId, false);
+                this.wearId = this.selectId;
+                ccStorageTools.setData(SaveKey.useRoleSkinId, this.wearId);
+                isUnlocked = true;
+            }
+            if (isUnlocked) {
+                if (this.useBtn) this.useBtn.active = true;
+                return;
+            }
             if (this.limitNode) this.limitNode.active = true;
             if (limitLab) {
                 limitLab.string = `游戏${pData.passCount}/${skinData.levelNum}局获得`;
@@ -206,7 +224,7 @@ export class UISkinStore extends UIBase {
 
         if (limitType == 1) {
             if (pData.money < skinData.money) {
-                uiMgr.showTips("Not enough money");
+                uiMgr.showTips("货币不够");
                 return;
             }
             pData.fixMoney(-skinData.money);
@@ -220,17 +238,17 @@ export class UISkinStore extends UIBase {
                 this.unlockSkin(skinId);
                 this.clickUseBtn(skinId);
             });
-            return;
         }
+    }
 
-        if (limitType == 3) {
-            if (pData.passCount < skinData.levelNum) {
-                uiMgr.showTips(`Need ${skinData.levelNum - pData.passCount} more clears`);
-                return;
-            }
-            this.unlockSkin(skinId);
-            this.clickUseBtn(skinId);
-        }
+    /** 点击购买按钮 */
+    private clickBuyBtn() {
+        this.clickUnlockBtn(this.selectId, 1);
+    }
+
+    /** 点击广告按钮 */
+    private clickVideoBtn() {
+        this.clickUnlockBtn(this.selectId, 2);
     }
 
     /** 使用当前选中的皮肤 */
@@ -245,11 +263,17 @@ export class UISkinStore extends UIBase {
         this.refreshList();
     }
 
+    /** 使用当前选中皮肤 */
+    private clickUseSelectedBtn() {
+        this.clickUseBtn(this.selectId);
+    }
+
     /** 选中皮肤，只更新选中态和预览图 */
     private clickSelectItem(skinId: number) {
         this.selectId = skinId;
         this.refreshList();
         this.refreshShowRoleSkin();
+        this.refreshActionNodes();
     }
 
     /** 关闭商店 */

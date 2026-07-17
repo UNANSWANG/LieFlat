@@ -1520,13 +1520,17 @@ export class UIGame extends UIBase {
 
     /**倒计时结束 */
     countDownEnd() {
+        if (this.isGameStartCountDownEnd) {
+            return;
+        }
+
         this.timeNode.active = false;
         this.isGameStartCountDownEnd = true;
         this.stopGameCountDown();
         this.refreshRepairBtnVisible();
 
         uiMgr.showTips("猎梦者开始行动");
-        enemyMgr.enemyArr[0].chooseTargetAndFindPath();
+        enemyMgr.enemyArr[0]?.chooseTargetAndFindPath();
     }
 
     /**刷新倒计时 */
@@ -2484,6 +2488,19 @@ export class UIGame extends UIBase {
         pData.fixGamePower(1000000);
     }
 
+    /**强制开始游戏 */
+    forceStartGame() {
+        this.stopGameCountDown();
+        this.timeNode.active = false;
+
+        if (this.isGameStartCountDownEnd) {
+            return;
+        }
+
+        this.gameStartCountDownTime = 0;
+        this.countDownEnd();
+    }
+
     ///
     ///点击函数
     ///
@@ -2492,10 +2509,9 @@ export class UIGame extends UIBase {
     onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_S:
-            // //跳过关卡
-            // pData.addLevel();
-            // this.restartGame();
-            // // uiMgr.openPage(UIPath.UISuccess);
+                //强制开始游戏
+                this.forceStartGame();
+                break;
             case KeyCode.KEY_L:
                 //增加游戏内货币
                 this.addGameMonetary();

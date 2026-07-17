@@ -1,7 +1,11 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, sp, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { gm } from '../../manager/gm';
+import { uiMgr } from '../../manager/UIManager';
+import { poolMgr } from '../../manager/poolManager';
+import { ccTools } from '../../extention/generalTools';
+import { spinePath } from '../../manager/pathConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('coverProps')
@@ -13,12 +17,58 @@ export class coverProps extends gamePropsBase {
     coverThreshold: number = 0.3;
     /** 护盾持续时长 */
     coverDuration: number = 3;
+    /** 光罩spine节点 */
+    private lightNode: Node = null;
+
+    /**初始化道具的图片 */
+    initPropsImg() {
+        super.initPropsImg();
+        this.createLightNode();
+    }
 
     /** 初始化专属配置数据 */
     initPropsData() {
         super.initPropsData();
         this.coverThreshold = commonConfig.getValueNumber("coverThreshold") / 100;
         this.coverDuration = commonConfig.getValueNumber("coverDuration");
+    }
+
+    /** 创建光罩spine节点 */
+    private createLightNode() {
+        this.clearLightNode();
+        if (!uiMgr.gameItemPrefab || !this.img2?.node) {
+            return;
+        }
+
+        this.lightNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.lightNode.name = "coverLight";
+        this.lightNode.setScale(new Vec3(0.1, 0.1, 1));
+        this.lightNode.setPosition(1, -4, 0);
+        this.img2.node.addChild(this.lightNode);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.lightNode);
+        if (skeleton) {
+            this.playLightAttackAnim(skeleton);
+        }
+    }
+
+    /** 播放光罩attack循环动画 */
+    private async playLightAttackAnim(skeleton: sp.Skeleton) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.light);
+        if (!isLoaded || !skeleton || !skeleton.isValid) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /** 清理光罩spine节点 */
+    private clearLightNode() {
+        if (this.lightNode && this.lightNode.isValid) {
+            poolMgr.putGameNode(this.lightNode);
+        }
+
+        this.lightNode = null;
     }
 
     /** 道具开始生效 */
@@ -140,6 +190,7 @@ export class coverProps extends gamePropsBase {
 
     /** 道具结束生效 */
     endProps() {
+        this.clearLightNode();
         super.endProps();
     }
 

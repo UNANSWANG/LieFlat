@@ -124,8 +124,8 @@ export class generalTools {
             return false;
         }
 
-        let spineName = this.getSpineAssetName(url);
-        let spineData = await ccResTools.loadSpine(uiMgr.resBundle, `${url}/${spineName}`);
+        let spinePath = this.getSpineLoadPath(url);
+        let spineData = await ccResTools.loadSpine(uiMgr.resBundle, spinePath);
         if (!spineData) {
             console.log("加载spine失败", url);
             return false;
@@ -135,11 +135,16 @@ export class generalTools {
         return true;
     }
 
-    /**通过spine目录名获取资源名，如role_0/role、boss_0/boss */
-    private getSpineAssetName(url: string) {
+    /**获取spine加载路径，只有role和boss需要通过目录名拼资源名 */
+    private getSpineLoadPath(url: string) {
+        if (!url.startsWith("spine/role/") && !url.startsWith("spine/boss/")) {
+            return url;
+        }
+
         let pathArr = url.split("/");
         let dirName = pathArr[pathArr.length - 1] || "";
-        return dirName.split("_")[0] || dirName;
+        let spineName = dirName.split("_")[0] || dirName;
+        return `${url}/${spineName}`;
     }
 
     /**打乱数组顺序 */

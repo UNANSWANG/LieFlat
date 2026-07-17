@@ -18,7 +18,7 @@ export class playerData {
     mapSize: math.Size = math.Size.ZERO;
     /**地图半宽高 */
     mapHalfSize: Vec2 = Vec2.ZERO;
-    /**玩家金币（场内） */
+    /**游戏币（场内） */
     gameCoin = 0;
     /**玩家电能（场内） */
     gamePower = 0;
@@ -197,6 +197,7 @@ export class playerData {
             this.money = 0;
         }
         ccStorageTools.setData(SaveKey.money, this.money);
+        gm.Event.emit(GameEvent.refreshPlayerMonetary);
     }
 
     /**初始化当前穿戴皮肤 */
@@ -218,10 +219,10 @@ export class playerData {
 
     /**初始化存储数据 */
     initData() {
-        this.money = ccStorageTools.getData(SaveKey.money) || 0;
+        this.money = ccStorageTools.getNumberData(SaveKey.money);
         this.initPropsNum();
-        pData.level = ccStorageTools.getNumberData(SaveKey.level) || 0;
-        this.passCount = ccStorageTools.getNumberData(SaveKey.passCount) || ccStorageTools.getNumberData("skinPassCount") || 0;
+        pData.level = ccStorageTools.getNumberData(SaveKey.level);
+        this.passCount = ccStorageTools.getNumberData(SaveKey.passCount) || 0;
 
         //TODO 测试用，后续注释掉
         if (gm.platType == PlatType.h5) {

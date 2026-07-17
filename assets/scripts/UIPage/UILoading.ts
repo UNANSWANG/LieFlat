@@ -69,7 +69,7 @@ export class UILoading extends Component {
             resolve();
         });
     }
-    loadItems = [UIPath.UIMain, gamePath.UIGame, UIPath.UISetting, UIPath.UIBuild, UIPath.UIProps];
+    loadItems = [UIPath.UIMain, gamePath.UIGame, UIPath.UISetting, UIPath.UISkinStore, UIPath.UIBuild, UIPath.UIProps];
 
     /**预加载界面 */
     async preLoadPage() {

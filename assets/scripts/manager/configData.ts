@@ -163,6 +163,8 @@ export enum GameEvent {
     refreshGameCamera = "refreshGameCamera",
     /**刷新游戏内货币（场内） */
     refreshGameMonetary = "refreshGameMonetary",
+    /**刷新游戏外货币（场外） */
+    refreshPlayerMonetary = "refreshPlayerMonetary",
     /**刷新玩家坐标事件 */
     refreshPlayerPos = "refreshPlayerPos",
     /**生成建筑道具 */

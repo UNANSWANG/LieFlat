@@ -1,4 +1,4 @@
-import { _decorator, Vec3 } from 'cc';
+import { _decorator, Node, sp, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { configData } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
@@ -7,18 +7,25 @@ import { produceType } from '../../UIPage/tips/produceTips';
 import { gm } from '../../manager/gm';
 import { roleState } from '../roleController';
 import { ccTools } from '../../extention/generalTools';
-import { imgPath } from '../../manager/pathConfig';
+import { imgPath, spinePath } from '../../manager/pathConfig';
+import { uiMgr } from '../../manager/UIManager';
+import { poolMgr } from '../../manager/poolManager';
 const { ccclass } = _decorator;
 
 @ccclass('generatorProps')
 export class generatorProps extends gamePropsBase {
     /**当前是否显示底图 */
     private isShowBaseImg: boolean = true;
+    /**发电机spine节点 */
+    private generatorNode: Node = null;
+    /**当前发电机spine路径 */
+    private generatorSpinePath: string = "";
 
     /**初始化道具图片 */
     initPropsImg() {
         super.initPropsImg();
         ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
+        this.refreshGeneratorAnim();
         this.showBaseImg();
 
         this.scaleNode.position = new Vec3(0, 5, 0);
@@ -33,9 +40,15 @@ export class generatorProps extends gamePropsBase {
 
     /**道具结束生效 */
     endProps() {
+        this.clearGeneratorNode();
         super.endProps();
         this.stopProducePower();
         this.showBaseImg();
+    }
+
+    protected onDisable(): void {
+        super.onDisable();
+        this.clearGeneratorNode();
     }
 
     /**开始循环切换图1和图2显隐 */
@@ -97,10 +110,84 @@ export class generatorProps extends gamePropsBase {
 
     upgradeProps(): void {
         super.upgradeProps();
+        this.refreshGeneratorAnim();
         if(this.level == 1){
             this.startProducePower();
         }
     }
-}
 
+    /**刷新发电机动画 */
+    private refreshGeneratorAnim() {
+        let path = this.getGeneratorSpinePath();
+        if (!path) {
+            this.clearGeneratorNode();
+            return;
+        }
+
+        if (this.generatorNode && this.generatorNode.isValid && this.generatorNode.parent && this.generatorSpinePath == path) {
+            return;
+        }
+
+        if (this.generatorNode && this.generatorNode.isValid && this.generatorNode.parent) {
+            this.generatorSpinePath = path;
+            let skeleton = poolMgr.getGameNodeSkeleton(this.generatorNode);
+            if (skeleton) {
+                this.playGeneratorAnim(skeleton, this.generatorNode, path);
+            }
+            return;
+        }
+
+        this.clearGeneratorNode();
+        if (!uiMgr.gameSpineItemPrefab || !this.img2?.node) {
+            return;
+        }
+
+        this.generatorSpinePath = path;
+        this.generatorNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.generatorNode.name = "generatorSpine";
+        this.img2.node.addChild(this.generatorNode);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.generatorNode);
+        if (skeleton) {
+            this.playGeneratorAnim(skeleton, this.generatorNode, path);
+        }
+    }
+
+    /**获取当前等级发电机动画路径 */
+    private getGeneratorSpinePath() {
+        if (this.level == 0) {
+            return spinePath.generator1;
+        }
+
+        if (this.level == 1) {
+            return spinePath.generator2;
+        }
+
+        if (this.level == 2) {
+            return spinePath.generator3;
+        }
+
+        return spinePath.generator4;
+    }
+
+    /**播放发电机animation循环动画 */
+    private async playGeneratorAnim(skeleton: sp.Skeleton, node: Node, path: string) {
+        let isLoaded = await ccTools.loadSpine(skeleton, path);
+        if (!isLoaded || !skeleton || !skeleton.isValid || this.generatorNode != node || this.generatorSpinePath != path) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理发电机spine节点 */
+    private clearGeneratorNode() {
+        if (this.generatorNode && this.generatorNode.isValid) {
+            poolMgr.putGameSpineNode(this.generatorNode);
+        }
+
+        this.generatorNode = null;
+        this.generatorSpinePath = "";
+    }
+}
 

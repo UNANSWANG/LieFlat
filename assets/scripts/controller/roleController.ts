@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, sp, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Label, Node, sp, tween, Tween, UIOpacity, UITransform, Vec2, Vec3 } from 'cc';
 import { pData } from '../manager/playerData';
 import { ccTools } from '../extention/generalTools';
 import { configData, GameEvent, robotCommonConfig } from '../manager/configData';
@@ -92,6 +92,8 @@ export class roleController extends Component {
     private gamePropsBuildCountMap: { [key: string]: number } = {};
     /**当前播放的角色动画名称 */
     private curRoleAnimName: string = "";
+    /**是否正在播放主角死亡消失动画 */
+    private isPlayingDeathDisappear: boolean = false;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -100,13 +102,47 @@ export class roleController extends Component {
     }
     public set state(value: roleState) {
         if (value == roleState.dead && this.roleId == playerMgr.playerComp.roleId) {
-            //玩家死亡
-            uiMgr.openPage(UIPath.UIFail);
+            this.playMainPlayerDeathDisappear();
         }
         if (value != roleState.bed) {
             this.stopRobotUpgrade();
         }
         this._state = value;
+    }
+
+    /**播放主角死亡消失动画，结束后再弹失败 */
+    private playMainPlayerDeathDisappear() {
+        if (this.isPlayingDeathDisappear) {
+            return;
+        }
+
+        this.isPlayingDeathDisappear = true;
+        if (this.gameComp) {
+            this.gameComp.isRoleDisappearPlaying = true;
+        }
+
+        this.showRole();
+        let animNode = this.roleAnim?.node || this.node.getChildByName("roleAnim");
+        if (!animNode) {
+            uiMgr.openPage(UIPath.UIFail);
+            return;
+        }
+
+        let opacity = animNode.getComponent(UIOpacity) || animNode.addComponent(UIOpacity);
+        Tween.stopAllByTarget(animNode);
+        Tween.stopAllByTarget(opacity);
+        opacity.opacity = 255;
+
+        let duration = Math.max(0, configData.roleDisappearTime);
+        tween(opacity)
+            .to(duration, { opacity: 0 })
+            .call(() => {
+                if (this.gameComp) {
+                    this.gameComp.isRoleDisappearPlaying = false;
+                }
+                uiMgr.openPage(UIPath.UIFail);
+            })
+            .start();
     }
 
     ///

@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, sp, Sprite, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Label, Node, sp, Sprite, tween, Tween, UIOpacity, Vec2, Vec3 } from 'cc';
 import { ccTools } from '../../extention/generalTools';
 import { configData, enemyCommonConfig } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
@@ -111,6 +111,8 @@ export class enemyBaseController extends Component {
     private attackAnimDurationScale: number = 1;
     /**游戏暂停后是否已清理行为 */
     private hasStopByGamePause: boolean = false;
+    /**暂停前播放的角色动画名称 */
+    private roleAnimNameBeforePause: string = "";
     /**升级计时 */
     private upgradeTimer: number = 0;
     /**本次升级需要时间 */
@@ -135,6 +137,8 @@ export class enemyBaseController extends Component {
     private attackIceNode: Node = null;
     /**回出生点回血时挂在身上的回血动画节点 */
     private repairBloodNode: Node = null;
+    /**是否正在播放死亡消失动画 */
+    private isPlayingDeathDisappear: boolean = false;
 
     ///
     ///节点
@@ -208,12 +212,17 @@ export class enemyBaseController extends Component {
     }
 
     protected update(dt: number): void {
+        if (this.isPlayingDeathDisappear) {
+            return;
+        }
+
         if (!this.gameComp) {
             this.stopByGamePause();
             return;
         }
 
         if (gm.isGamePause) {
+            this.stopByGamePause();
             return;
         }
 
@@ -222,7 +231,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        this.hasStopByGamePause = false;
+        this.resumeRoleAnimAfterGamePause();
         this.updateUpgradeTimer(dt);
         this.updateRageSkill(dt);
         if (this.updateReturnStartWait(dt)) {
@@ -619,7 +628,7 @@ export class enemyBaseController extends Component {
 
     /**刷新升级计时 */
     private updateUpgradeTimer(dt: number) {
-        if (this.isMaxLevel || this.upgradeTime <= 0) {
+        if (this.gameComp?.isRoleDisappearPlaying || this.isMaxLevel || this.upgradeTime <= 0) {
             return;
         }
 
@@ -647,17 +656,55 @@ export class enemyBaseController extends Component {
 
     /**死亡 */
     die() {
+        if (this.isPlayingDeathDisappear) {
+            return;
+        }
+
+        this.isPlayingDeathDisappear = true;
         this.clearAttackIceEffect();
         this.clearRepairBloodEffect();
         enemyMgr.removeEnemy(this.roleId);
-        this.node.destroy();
-        if (enemyMgr.enemyArr.length == 0) {
-            uiMgr.openPage(UIPath.UISuccess);
+        this.playRoleAnim(enemyAnim.idle, true);
+        this.playDeathDisappearAnim();
+    }
+
+    /**播放死亡消失动画，结束后销毁节点并检测成功 */
+    private playDeathDisappearAnim() {
+        let animNode = this.roleAnim?.node || this.node.getChildByName("roleAnim");
+        if (!animNode) {
+            if (this.node && this.node.isValid) {
+                this.node.destroy();
+            }
+            if (enemyMgr.enemyArr.length == 0) {
+                uiMgr.openPage(UIPath.UISuccess);
+            }
+            return;
         }
+
+        let opacity = animNode.getComponent(UIOpacity) || animNode.addComponent(UIOpacity);
+        Tween.stopAllByTarget(animNode);
+        Tween.stopAllByTarget(opacity);
+        opacity.opacity = 255;
+
+        let duration = Math.max(0, configData.roleDisappearTime);
+        tween(opacity)
+            .to(duration, { opacity: 0 })
+            .call(() => {
+                if (this.node && this.node.isValid) {
+                    this.node.destroy();
+                }
+                if (enemyMgr.enemyArr.length == 0) {
+                    uiMgr.openPage(UIPath.UISuccess);
+                }
+            })
+            .start();
     }
 
     /**受到伤害 */
     takeDamage(damage: number) {
+        if (this.isPlayingDeathDisappear) {
+            return true;
+        }
         if (this.hp <= 0) {
             return true;
         }
@@ -667,7 +714,7 @@ export class enemyBaseController extends Component {
 
         let hpPercentBeforeDamage = this.hpPercent;
         this.recordDamage(damage);
-        this.hp -= damage;
+        this.hp = this.gameComp?.isRoleDisappearPlaying ? Math.max(1, this.hp - damage) : this.hp - damage;
         this.refreshHp();
         if (this.hp <= 0) {
             this.hp = 0;
@@ -1145,7 +1192,7 @@ export class enemyBaseController extends Component {
 
     /**被铡刀处决 */
     executeBySaw() {
-        if (this.hp <= 0) {
+        if (this.hp <= 0 || this.isPlayingDeathDisappear) {
             return true;
         }
 
@@ -1627,20 +1674,24 @@ export class enemyBaseController extends Component {
         }
 
         this.hasStopByGamePause = true;
-        this.clearTarget();
-        this.emptyRoomIgnoreDoorRoomIdx = 0;
-        this.isRepairingHp = false;
-        this.repairBornPos = null;
-        this.clearRepairBloodEffect();
-        this.needWaitReturnStart = false;
-        this.isWaitingReturnStart = false;
-        this.returnStartTimer = 0;
-        this.clearMovePath();
-        this.stopAttackPlayer();
-        this.resetRageSkill();
-        this.stopNetControl();
-        this.stopSawControl();
-        this.playRoleAnim(enemyAnim.idle, true);
+        this.roleAnimNameBeforePause = this.curRoleAnimName;
+        this.playRoleAnimForce(enemyAnim.idle, true);
+    }
+
+    /**游戏恢复时继续暂停前动画 */
+    private resumeRoleAnimAfterGamePause() {
+        if (!this.hasStopByGamePause) {
+            return;
+        }
+
+        this.hasStopByGamePause = false;
+        let animName = this.roleAnimNameBeforePause;
+        this.roleAnimNameBeforePause = "";
+        if (!animName || this.isPlayingDeathDisappear) {
+            return;
+        }
+
+        this.playRoleAnimForce(animName, true);
     }
 
     /**尝试处理到达当前目标 */
@@ -1764,8 +1815,10 @@ export class enemyBaseController extends Component {
             let isMainPlayer = targetPlayer.roleId == playerMgr.playerComp?.roleId;
             this.clearBedPropsByRole(targetPlayer);
             targetPlayer.state = roleState.dead;
-            for (let i = 0; i < targetPlayer.node.children.length; i++) {
-                targetPlayer.node.children[i].active = false;
+            if (!isMainPlayer) {
+                for (let i = 0; i < targetPlayer.node.children.length; i++) {
+                    targetPlayer.node.children[i].active = false;
+                }
             }
 
             if (isMainPlayer) {
@@ -1820,6 +1873,16 @@ export class enemyBaseController extends Component {
         }
         this.roleAnim.setAnimation(0, animName, loop);
         this.refreshRoleAnimTimeScale();
+    }
+
+    /**强制播放角色动画 */
+    private playRoleAnimForce(animName: string, loop: boolean) {
+        if (!this.roleAnim || !this.roleAnim.skeletonData) {
+            return;
+        }
+
+        this.curRoleAnimName = "";
+        this.playRoleAnim(animName, loop);
     }
 
     /**尝试在释放技能时触发铁笼控制 */

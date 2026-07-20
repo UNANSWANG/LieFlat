@@ -31,7 +31,7 @@ export class sawProps extends gamePropsBase {
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.sawThreshold = commonConfig.getValueNumber("sawThreshold") / 100;
+        this.sawThreshold = 0.5//commonConfig.getValueNumber("sawThreshold") / 100;
         this.sawRange = commonConfig.getValueNumber("sawRange");
     }
 

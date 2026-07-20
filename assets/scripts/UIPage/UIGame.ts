@@ -181,6 +181,8 @@ export class UIGame extends UIBase {
     private currentMapName = "";
     /**游戏页打开序号，用于避免异步加载回写旧局 */
     private openVersion = 0;
+    /**主角死亡消失动画是否正在播放 */
+    isRoleDisappearPlaying: boolean = false;
     protected onLoad(): void {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
@@ -337,6 +339,7 @@ export class UIGame extends UIBase {
         this.isGameStartCountDownEnd = false;
         this.isGamePause = false;
         this.repairCoolDownTime = 0;
+        this.isRoleDisappearPlaying = false;
         this.robotSuchRoomDelayTime = 0;
         this.playerLastRoomIdx = 0;
         this.gameStartElapsedTime = 0;
@@ -1632,7 +1635,7 @@ export class UIGame extends UIBase {
 
     /**游戏开始倒计时是否已结束 */
     get isEnemyCanMove() {
-        return this.isGameStartCountDownEnd && !this.isGamePause;
+        return this.isGameStartCountDownEnd && !this.isGamePause && !this.isRoleDisappearPlaying;
     }
 
     /**响应全局游戏暂停 */

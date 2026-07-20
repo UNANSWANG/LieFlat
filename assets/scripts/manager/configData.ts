@@ -35,7 +35,7 @@ export const configData = {
     /**道具图片切换速度（秒） */
     propsImgSwitchSpeed: 0.5,
     /**人物消失时间（秒） */
-    roleDisappearTime: 2,
+    roleDisappearTime: 3,
 }
 
 /**敌人通用配置 */

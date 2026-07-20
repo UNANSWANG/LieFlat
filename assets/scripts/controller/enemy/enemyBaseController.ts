@@ -147,6 +147,8 @@ export class enemyBaseController extends Component {
     hpNode: Node = null;
     /**血量图片 */
     hpBar: Sprite = null;
+    /**特效动画节点 */
+    effectNode: Node = null;
 
     protected onLoad(): void {
         this.roleAnim = this.node.getChildByName("roleAnim").getComponent(sp.Skeleton);
@@ -156,6 +158,7 @@ export class enemyBaseController extends Component {
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
         this.roleAnim.setEventListener(this.onRoleAnimEvent.bind(this));
         this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
+        this.effectNode = this.node.getChildByName("effectNode");
     }
 
     /**初始化 */
@@ -469,19 +472,19 @@ export class enemyBaseController extends Component {
         }
 
         let roomIdx = this.getCurAttackRoomIdx();
-        if (!iceProps.hasRoomIce(this.gameComp, roomIdx) || !uiMgr.gameSpineItemPrefab) {
+        if (!iceProps.hasRoomIce(this.gameComp, roomIdx) || !uiMgr.gameSpineItemPrefab || !this.effectNode) {
             this.clearAttackIceEffect();
             return;
         }
 
-        if (this.attackIceNode && this.attackIceNode.isValid && this.attackIceNode.parent == this.node) {
+        if (this.attackIceNode && this.attackIceNode.isValid && this.attackIceNode.parent == this.effectNode) {
             return;
         }
 
         this.clearAttackIceEffect();
         this.attackIceNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.attackIceNode.name = "attackIceSpine";
-        this.node.addChild(this.attackIceNode);
+        this.effectNode.addChild(this.attackIceNode);
         this.attackIceNode.setPosition(0, 50, 0);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.attackIceNode);

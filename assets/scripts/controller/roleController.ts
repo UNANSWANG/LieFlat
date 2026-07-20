@@ -102,12 +102,25 @@ export class roleController extends Component {
     }
     public set state(value: roleState) {
         if (value == roleState.dead && this.roleId == playerMgr.playerComp.roleId) {
-            this.playMainPlayerDeathDisappear();
+            if (this._state == roleState.bed) {
+                this.openFailPageImmediately();
+            } else {
+                this.playMainPlayerDeathDisappear();
+            }
         }
         if (value != roleState.bed) {
             this.stopRobotUpgrade();
         }
         this._state = value;
+    }
+
+    /**主角立即死亡并弹失败 */
+    private openFailPageImmediately() {
+        this.isPlayingDeathDisappear = false;
+        if (this.gameComp) {
+            this.gameComp.isRoleDisappearPlaying = false;
+        }
+        uiMgr.openPage(UIPath.UIFail);
     }
 
     /**播放主角死亡消失动画，结束后再弹失败 */

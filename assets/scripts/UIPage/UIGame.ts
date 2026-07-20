@@ -1,4 +1,4 @@
-import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset } from 'cc';
+import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset, UIOpacity, tween } from 'cc';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { UIBase } from './UIBase';
@@ -183,6 +183,8 @@ export class UIGame extends UIBase {
     private openVersion = 0;
     /**主角死亡消失动画是否正在播放 */
     isRoleDisappearPlaying: boolean = false;
+    /**角色头像按钮状态 */
+    private roleBtnStateMap: { [roleId: number]: roleBtnStateData } = {};
     protected onLoad(): void {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
@@ -362,6 +364,7 @@ export class UIGame extends UIBase {
         enemyMgr.enemyBornPosArr = [];
         this.robotArr = [];
         this.roomMap = {};
+        this.roleBtnStateMap = {};
         this.bornPosArr = [];
         this.randomPropsPosArr = [];
         this.clearCarriedRandomProps();
@@ -622,12 +625,158 @@ export class UIGame extends UIBase {
         }
 
         ccTools.loadImg(avatar, imgPath.roleAvatar + roleComp.skinId);
+        this.initRoleBtnState(roleBtn, roleComp.roleId, avatar);
 
         let btnComp = roleBtn.getComponent(zoomButton);
         if (!btnComp) {
             btnComp = roleBtn.addComponent(zoomButton);
         }
         btnComp.onClick = this.clickRoleBtn.bind(this, roleComp.roleId);
+    }
+
+    /**初始化角色头像按钮状态 */
+    private initRoleBtnState(roleBtn: Node, roleId: number, avatar: Sprite) {
+        let attackNode = roleBtn.getChildByName("mask")?.getChildByName("attack");
+        let redMask = roleBtn.getChildByName("redMask");
+        let avatarNode = avatar?.node || roleBtn.getChildByName("mask")?.getChildByName("avatar");
+        let redMaskOpacity = redMask ? (redMask.getComponent(UIOpacity) || redMask.addComponent(UIOpacity)) : null;
+
+        let stateData: roleBtnStateData = {
+            roleBtn: roleBtn,
+            avatarNode: avatarNode,
+            avatarSprite: avatar,
+            attackNode: attackNode,
+            redMaskOpacity: redMaskOpacity,
+            isAttackAnimPlaying: false,
+            needLoopAttackAnim: false,
+            baseAvatarPos: avatarNode ? avatarNode.position.clone() : new Vec3(),
+        };
+        this.roleBtnStateMap[roleId] = stateData;
+        this.resetRoleBtnState(stateData, true);
+    }
+
+    /**刷新角色头像按钮受击和死亡显示 */
+    private refreshRoleBtnAttackState() {
+        let attackRoomMap: { [roomIdx: number]: boolean } = {};
+        for (let i = 0; i < enemyMgr.enemyArr.length; i++) {
+            let enemyComp = enemyMgr.enemyArr[i];
+            if (!enemyComp || enemyComp.hp <= 0) {
+                continue;
+            }
+
+            let roomIdx = enemyComp.attackingRoomIdx;
+            if (roomIdx > 0) {
+                attackRoomMap[roomIdx] = true;
+            }
+        }
+
+        let roleIdArr = Object.keys(this.roleBtnStateMap);
+        for (let i = 0; i < roleIdArr.length; i++) {
+            let roleId = Number(roleIdArr[i]);
+            let roleComp = this.getRoleCompById(roleId);
+            let stateData = this.roleBtnStateMap[roleId];
+            if (!stateData || !stateData.roleBtn?.isValid) {
+                continue;
+            }
+
+            let isDead = roleComp?.state == roleState.dead;
+            this.refreshRoleBtnDeadState(stateData, isDead);
+            if (isDead) {
+                this.setRoleBtnAttackAnim(stateData, false, true, false);
+                continue;
+            }
+
+            let isRoomAttacked = roleComp?.roomIdx > 0 && attackRoomMap[roleComp.roomIdx];
+            this.setRoleBtnAttackAnim(stateData, !!isRoomAttacked);
+        }
+    }
+
+    /**刷新角色头像死亡状态 */
+    private refreshRoleBtnDeadState(stateData: roleBtnStateData, isDead: boolean) {
+        if (stateData.attackNode) {
+            stateData.attackNode.active = isDead;
+        }
+        if (stateData.avatarSprite) {
+            stateData.avatarSprite.grayscale = isDead;
+        }
+    }
+
+    /**设置角色头像受击动画状态 */
+    private setRoleBtnAttackAnim(stateData: roleBtnStateData, needPlay: boolean, forceReset: boolean = false, resetDeadDisplay: boolean = true) {
+        stateData.needLoopAttackAnim = needPlay;
+        if (needPlay && !stateData.isAttackAnimPlaying) {
+            this.playRoleBtnAttackAnim(stateData);
+            return;
+        }
+
+        if (!needPlay && (forceReset || !stateData.isAttackAnimPlaying)) {
+            this.resetRoleBtnState(stateData, resetDeadDisplay);
+        }
+    }
+
+    /**重置角色头像按钮常规状态 */
+    private resetRoleBtnState(stateData: roleBtnStateData, resetDeadDisplay: boolean = true) {
+        if (!stateData) {
+            return;
+        }
+
+        stateData.isAttackAnimPlaying = false;
+        stateData.needLoopAttackAnim = false;
+
+        if (stateData.avatarNode && stateData.avatarNode.isValid) {
+            Tween.stopAllByTarget(stateData.avatarNode);
+            stateData.avatarNode.setPosition(stateData.baseAvatarPos);
+        }
+        if (stateData.redMaskOpacity && stateData.redMaskOpacity.isValid) {
+            Tween.stopAllByTarget(stateData.redMaskOpacity);
+            stateData.redMaskOpacity.opacity = 0;
+        }
+        if (resetDeadDisplay) {
+            if (stateData.attackNode) {
+                stateData.attackNode.active = false;
+            }
+            if (stateData.avatarSprite) {
+                stateData.avatarSprite.grayscale = false;
+            }
+        }
+    }
+
+    /**播放单次头像受击动画 */
+    private playRoleBtnAttackAnim(stateData: roleBtnStateData) {
+        let avatarNode = stateData.avatarNode;
+        if (!avatarNode || !avatarNode.isValid) {
+            return;
+        }
+
+        stateData.isAttackAnimPlaying = true;
+        Tween.stopAllByTarget(avatarNode);
+        if (stateData.redMaskOpacity) {
+            Tween.stopAllByTarget(stateData.redMaskOpacity);
+            stateData.redMaskOpacity.opacity = 0;
+        }
+        avatarNode.setPosition(stateData.baseAvatarPos);
+
+        let animTime = 0.4;
+
+        tween(avatarNode)
+            .to(animTime/4, { position: new Vec3(stateData.baseAvatarPos.x - 4, stateData.baseAvatarPos.y, stateData.baseAvatarPos.z) })
+            .to(animTime/2, { position: new Vec3(stateData.baseAvatarPos.x + 4, stateData.baseAvatarPos.y, stateData.baseAvatarPos.z) })
+            .to(animTime/4, { position: stateData.baseAvatarPos.clone() })
+            .call(() => {
+                stateData.isAttackAnimPlaying = false;
+                avatarNode.setPosition(stateData.baseAvatarPos);
+                if (stateData.needLoopAttackAnim) {
+                    this.playRoleBtnAttackAnim(stateData);
+                }
+            })
+            .start();
+
+        if (stateData.redMaskOpacity) {
+            tween(stateData.redMaskOpacity)
+                .to(animTime/2, { opacity: 255 })
+                .to(animTime/2, { opacity: 0 })
+                .start();
+        }
     }
 
     /**通过角色id获取角色组件 */
@@ -2109,6 +2258,7 @@ export class UIGame extends UIBase {
         this.refreshGameStartElapsedTime(dt);
         this.refreshRobotSuchRoomDelay(dt);
         this.refreshRepairMask(dt);
+        this.refreshRoleBtnAttackState();
 
         // 移动玩家（不使用vec3计算）
         if (this.isMoving) {
@@ -2696,4 +2846,15 @@ interface carriedRandomPropsData {
     isSpecialSellProps: boolean,
     propsNode: Node,
     propsComp: any,
+}
+
+interface roleBtnStateData {
+    roleBtn: Node,
+    avatarNode: Node,
+    avatarSprite: Sprite,
+    attackNode: Node,
+    redMaskOpacity: UIOpacity,
+    isAttackAnimPlaying: boolean,
+    needLoopAttackAnim: boolean,
+    baseAvatarPos: Vec3,
 }

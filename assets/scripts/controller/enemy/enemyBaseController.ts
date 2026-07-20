@@ -265,6 +265,11 @@ export class enemyBaseController extends Component {
         return this.hp / this.maxHp;
     }
 
+    /**当前正在攻击的房间 */
+    get attackingRoomIdx() {
+        return this.getCurAttackRoomIdx();
+    }
+
     /**初始化最大等级 */
     initMaxLevel() {
         this.maxLevel = enemyConfig.enemyAllData.length;
@@ -914,7 +919,7 @@ export class enemyBaseController extends Component {
         }
 
         //TODO 暂时只让抓玩家一个人
-        return result;
+        // return result;
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {

@@ -35,6 +35,7 @@ export class fireProps extends gamePropsBase {
         this.fireNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
         this.fireNode.name = "fireSpine";
         this.img1.node.addChild(this.fireNode);
+        this.fireNode.setPosition(0, -10);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.fireNode);
         if (skeleton) {

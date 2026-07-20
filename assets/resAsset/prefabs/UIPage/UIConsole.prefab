@@ -4927,6 +4927,9 @@
     "forceStartBtn": {
       "__id__": 136
     },
+    "onlyAttackSelfToggle": {
+      "__id__": 181
+    },
     "_id": ""
   },
   {

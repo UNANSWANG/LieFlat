@@ -4,8 +4,9 @@ import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { gm } from '../manager/gm';
-import { GameEvent } from '../manager/configData';
+import { GameEvent, gmConfig, SaveKey } from '../manager/configData';
 import { pData } from '../manager/playerData';
+import { ccStorageTools } from '../extention/storageTools';
 const { ccclass, property } = _decorator;
 
 
@@ -43,7 +44,7 @@ export class UIConsole extends UIBase {
     }
 
     initData() {
-
+        this.refreshOnlyAttackSelfToggle();
     }
 
     bindBtn() {
@@ -53,6 +54,16 @@ export class UIConsole extends UIBase {
         this.addPlayerMonetaryBtn.addComponent(zoomButton).onClick = this.clickAddPlayerMonetaryBtn.bind(this);
         this.addGameMonetaryBtn2.addComponent(zoomButton).onClick = this.clickAddGameMonetary2Btn.bind(this);
         this.forceStartBtn.addComponent(zoomButton).onClick = this.clickForceStartBtn.bind(this);
+        this.onlyAttackSelfToggle.node.on(Toggle.EventType.TOGGLE, this.clickOnlyAttackSelfToggle, this);
+    }
+
+    /**刷新只攻击玩家自身开关 */
+    refreshOnlyAttackSelfToggle() {
+        if (!this.onlyAttackSelfToggle) {
+            return;
+        }
+
+        this.onlyAttackSelfToggle.isChecked = gmConfig.onlyAttackSelf;
     }
 
     ///
@@ -81,6 +92,12 @@ export class UIConsole extends UIBase {
     /**点击强制开始 */
     clickForceStartBtn() {
         gm.Event.emit(GameEvent.forceStart);
+    }
+
+    /**点击只攻击玩家自身开关 */
+    clickOnlyAttackSelfToggle() {
+        gmConfig.onlyAttackSelf = !!this.onlyAttackSelfToggle?.isChecked;
+        ccStorageTools.setData(SaveKey.onlyAttackSelf, gmConfig.onlyAttackSelf ? 1 : 0);
     }
 
     /**点击关闭 */

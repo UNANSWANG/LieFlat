@@ -119,7 +119,7 @@ export enum spinePath {
     /**雪花 */
     snow = "spine/snow/snow",
     /**回血 */
-    blood = "spine/blood/blood",
+    blood = "spine/blood/buff",
     /**发电机1 */
     generator1 = "spine/generator1/D1",
     /**发电机2 */

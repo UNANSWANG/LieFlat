@@ -1,7 +1,7 @@
-import { _decorator, instantiate, UITransform, Vec3 } from 'cc';
+import { _decorator, instantiate, Node, sp, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { ccTools } from '../../extention/generalTools';
-import { imgPath } from '../../manager/pathConfig';
+import { imgPath, spinePath } from '../../manager/pathConfig';
 import { enemyMgr } from '../../manager/enemyManager';
 import { configData } from '../../manager/configData';
 import { poolMgr } from '../../manager/poolManager';
@@ -35,6 +35,8 @@ export class cannonProps extends gamePropsBase {
     private attackStartDelay: number = 0;
     /**震慑剩余时间 */
     private fearTimer: number = 0;
+    /**眩晕spine节点 */
+    private dizzinessNode: Node = null;
 
     /**道具开始生效 */
     startProps() {
@@ -50,6 +52,7 @@ export class cannonProps extends gamePropsBase {
         this.attackTimer = 0;
         this.attackStartDelay = 0;
         this.fearTimer = 0;
+        this.clearDizzinessNode();
     }
 
     protected onDisable(): void {
@@ -58,6 +61,7 @@ export class cannonProps extends gamePropsBase {
         this.attackTimer = 0;
         this.attackStartDelay = 0;
         this.fearTimer = 0;
+        this.clearDizzinessNode();
     }
 
     protected update(dt: number): void {
@@ -213,17 +217,64 @@ export class cannonProps extends gamePropsBase {
 
         this.fearTimer = Math.max(this.fearTimer, time);
         this.targetEnemy = null;
+        this.createDizzinessNode();
     }
 
     /**刷新震慑计时，返回当前是否仍被震慑 */
     private refreshFearTimer(dt: number) {
         if (this.fearTimer <= 0) {
+            this.clearDizzinessNode();
             return false;
         }
 
         this.fearTimer = Math.max(0, this.fearTimer - dt);
         this.targetEnemy = null;
-        return this.fearTimer > 0;
+        if (this.fearTimer <= 0) {
+            this.clearDizzinessNode();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**创建眩晕spine节点 */
+    private createDizzinessNode() {
+        if (this.dizzinessNode && this.dizzinessNode.isValid && this.dizzinessNode.parent) {
+            return;
+        }
+        this.dizzinessNode = null;
+        if (!uiMgr.gameItemPrefab || !this.effectNode) {
+            return;
+        }
+
+        this.dizzinessNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.dizzinessNode.name = "dizzinessSpine";
+        this.effectNode.addChild(this.dizzinessNode);
+        this.dizzinessNode.setPosition(0, 30, 0);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.dizzinessNode);
+        if (skeleton) {
+            this.playDizzinessAnim(skeleton, this.dizzinessNode);
+        }
+    }
+
+    /**播放眩晕animation循环动画 */
+    private async playDizzinessAnim(skeleton: sp.Skeleton, node: Node) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.dizziness);
+        if (!isLoaded || !skeleton || !skeleton.isValid || this.dizzinessNode != node) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理眩晕spine节点 */
+    private clearDizzinessNode() {
+        if (this.dizzinessNode && this.dizzinessNode.isValid) {
+            poolMgr.putGameNode(this.dizzinessNode);
+        }
+
+        this.dizzinessNode = null;
     }
 
     /**获取炮口前方的子弹出生世界坐标 */

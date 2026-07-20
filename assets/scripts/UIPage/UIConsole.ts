@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Animation } from 'cc';
+import { _decorator, Component, Node, Animation, Toggle } from 'cc';
 import { UIBase } from './UIBase';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -28,6 +28,9 @@ export class UIConsole extends UIBase {
 
     @property(Node)
     forceStartBtn: Node;
+
+    @property(Toggle)
+    onlyAttackSelfToggle: Toggle;
 
     protected onLoad(): void {
         this.bindBtn();

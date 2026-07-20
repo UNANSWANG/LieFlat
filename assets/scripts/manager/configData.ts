@@ -137,6 +137,12 @@ export const robotCommonConfig = {
     maxUpgradeCannonLevel: 2,
 }
 
+/**gm配置 */
+export const gmConfig = {
+    /**是否只攻击自身 */
+    onlyAttackSelf: false,
+}
+
 /**游戏事件 */
 export enum GameEvent {
     /**游戏暂停 */
@@ -215,6 +221,8 @@ export enum SaveKey {
     unlockedRoleSkin = "unlockedRoleSkin",
     /**当前穿戴皮肤 */
     skinId = "skinId",
+    /**敌人是否只攻击自身（gm配置） */
+    onlyAttackSelf = "onlyAttackSelf",
 }
 
 /**道具索引 */

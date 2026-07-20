@@ -1,7 +1,7 @@
 import { _decorator, math, Vec2, Vec3 } from 'cc';
 import { levelConfig } from '../json/jsonLevel';
 import { ccStorageTools } from '../extention/storageTools';
-import { configData, GameEvent, PropsName, SaveKey } from './configData';
+import { configData, GameEvent, gmConfig, PropsName, SaveKey } from './configData';
 import { gm, PlatType } from './gm';
 import { httpMgr } from '../sdk/network/httpManager';
 import { urlConfig } from '../sdk/network/netConfig';
@@ -42,7 +42,7 @@ export class playerData {
         this.SDKReportLevelStart();
     }
 
-     /**SDK关卡开始上报 */
+    /**SDK关卡开始上报 */
     SDKReportLevelStart() {
         if (gm.hgSdk) {
             gm.hgSdk.track('LEVEL_ENTER', {
@@ -203,10 +203,10 @@ export class playerData {
     /**初始化当前穿戴皮肤 */
     initSkinData(defaultSkinId: number) {
         let skinData = ccStorageTools.getData(SaveKey.skinId);
-        if(skinData == null || skinData == undefined){
+        if (skinData == null || skinData == undefined) {
             this.setSkinId(defaultSkinId);
             ccStorageTools.setData(SaveKey.skinId, this.skinId);
-        }else{
+        } else {
             this.skinId = ccStorageTools.getNumberData(SaveKey.skinId) || 0;
         }
     }
@@ -233,6 +233,7 @@ export class playerData {
         this.initPropsNum();
         pData.level = ccStorageTools.getNumberData(SaveKey.level);
         this.passCount = ccStorageTools.getNumberData(SaveKey.passCount) || 0;
+        gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
 
         //TODO 测试用，后续注释掉
         if (gm.platType == PlatType.h5) {

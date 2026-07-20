@@ -1,6 +1,6 @@
 import { _decorator, Component, Label, Node, sp, Sprite, tween, Tween, UIOpacity, Vec2, Vec3 } from 'cc';
 import { ccTools } from '../../extention/generalTools';
-import { configData, enemyCommonConfig } from '../../manager/configData';
+import { configData, enemyCommonConfig, gmConfig } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
 import { playerMgr } from '../../manager/playerManager';
 import { roleController, roleState } from '../roleController';
@@ -919,7 +919,9 @@ export class enemyBaseController extends Component {
         }
 
         //TODO 暂时只让抓玩家一个人
-        // return result;
+        if(gmConfig.onlyAttackSelf){
+            return result;
+        }
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {

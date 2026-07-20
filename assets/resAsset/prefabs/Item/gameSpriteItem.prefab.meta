@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "01c30d41-0bc3-4279-8d40-4a452dd9aef4",
+  "uuid": "ddd8ec69-97b7-40d5-a934-1b8dad255a38",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "gameItem"
+    "syncNodeName": "gameSpriteItem"
   }
 }

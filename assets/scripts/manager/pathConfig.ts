@@ -46,6 +46,10 @@ export enum ItemPath {
     bullet = "prefabs/Item/bullet",
     /**游戏通用物体 */
     gameItem = "prefabs/Item/gameItem",
+    /**游戏图片物体 */
+    gameSpriteItem = "prefabs/Item/gameSpriteItem",
+    /**游戏spine物体 */
+    gameSpineItem = "prefabs/Item/gameSpineItem",
     /**瓦片地图 */
     tileMap = "tileMap/map/",
 }

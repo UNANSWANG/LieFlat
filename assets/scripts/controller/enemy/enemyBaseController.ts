@@ -19,6 +19,7 @@ import { cageProps } from '../props/cageProps';
 import { thornProps } from '../props/thornProps';
 import { netProps } from '../props/netProps';
 import { alarmProps } from '../props/alarmProps';
+import { poolMgr } from '../../manager/poolManager';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -1654,6 +1655,7 @@ export class enemyBaseController extends Component {
     private killTargetPlayer() {
         let targetPlayer = this.targetPlayer;
         if (this.isTargetPlayerValid()) {
+            this.playScratchEffect(targetPlayer.node);
             let isMainPlayer = targetPlayer.roleId == playerMgr.playerComp?.roleId;
             this.clearBedPropsByRole(targetPlayer);
             targetPlayer.state = roleState.dead;
@@ -1775,6 +1777,7 @@ export class enemyBaseController extends Component {
         let isAttackDoor = propType == tilePropsType.door;
         let hpBeforeDamage = propComp.hp;
         let maxHpBeforeDamage = propComp.maxHp;
+        let scratchWorldPos = propComp.node.worldPosition.clone();
         if (isAttackDoor && !this.hasHandleTeamCannonCurAttackDoor) {
             this.hasHandleTeamCannonCurAttackDoor = true;
             this.gameComp?.handleTeamCannonByEnemyFirstDoorAttack(tilePos, this.currentPos);
@@ -1783,6 +1786,9 @@ export class enemyBaseController extends Component {
         let isDestroyed = propComp.takeDamage(this.attackDamage);
         let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
         let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;
+        if (actualDamage > 0) {
+            this.playScratchEffectAtWorldPos(scratchWorldPos);
+        }
         if (isAttackDoor) {
             if (actualDamage > 0) {
                 this.recordDoorAttackTimeDamage(actualDamage);
@@ -1810,6 +1816,60 @@ export class enemyBaseController extends Component {
                 this.chooseTargetAndFindPath();
             }
         }
+    }
+
+    /**在受击节点位置播放抓痕动画 */
+    private playScratchEffect(targetNode: Node) {
+        if (!targetNode || !targetNode.isValid) {
+            return;
+        }
+
+        this.playScratchEffectAtWorldPos(targetNode.worldPosition);
+    }
+
+    /**在指定世界坐标播放抓痕动画 */
+    private playScratchEffectAtWorldPos(worldPos: Vec3) {
+        if (!worldPos || !this.gameComp || !uiMgr.gameSpineItemPrefab) {
+            return;
+        }
+
+        let scratchNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        scratchNode.name = "scratchSpine";
+        scratchNode.setScale(0.6, 0.6, 1);
+        if (!this.gameComp.addGameBottomUINodeChild(scratchNode, worldPos)) {
+            poolMgr.putGameSpineNode(scratchNode);
+            return;
+        }
+
+        let skeleton = poolMgr.getGameNodeSkeleton(scratchNode);
+        if (!skeleton) {
+            poolMgr.putGameSpineNode(scratchNode);
+            return;
+        }
+
+        this.playScratchAnim(skeleton, scratchNode);
+    }
+
+    /**播放抓痕单次animation动画，结束后回收 */
+    private async playScratchAnim(skeleton: sp.Skeleton, node: Node) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.scratch);
+        if (!isLoaded || !skeleton || !skeleton.isValid || !node || !node.isValid) {
+            if (node && node.isValid) {
+                poolMgr.putGameSpineNode(node);
+            }
+            return;
+        }
+
+        skeleton.setCompleteListener((trackEntry: any) => {
+            if (trackEntry?.animation?.name != "animation") {
+                return;
+            }
+
+            if (node && node.isValid) {
+                poolMgr.putGameSpineNode(node);
+            }
+        });
+        skeleton.setAnimation(0, "animation", false);
     }
 
     private tryReleaseFearSkill(propComp: gamePropsBase, tilePos: Vec2, isAttackDoor: boolean) {

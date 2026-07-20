@@ -20,6 +20,10 @@ import { enemyBaseController } from '../controller/enemy/enemyBaseController';
 import { produceTips, produceType } from './tips/produceTips';
 import { poolMgr } from '../manager/poolManager';
 import { JsonPropsData, propsConfig } from '../json/jsonProps';
+import { bulletController } from '../controller/bulletController';
+import { cageController } from '../controller/cageController';
+import { netController } from '../controller/netController';
+import { sawController } from '../controller/sawController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIGame')
@@ -44,6 +48,9 @@ export class UIGame extends UIBase {
 
     @property(Node)
     UINode: Node;
+
+    @property(Node)
+    gameBottomUINode: Node;
 
     @property(Node)
     gameUINode: Node;
@@ -339,6 +346,8 @@ export class UIGame extends UIBase {
         this.stopGameCountDown();
 
         this.recycleAllTileItems();
+        this.recycleGameBottomUINodeChildren();
+        this.recycleGameUINodeChildren();
         ccTools.destroyAllChild(this.roleNode);
         ccTools.destroyAllChild(this.roleBtnLayout);
 
@@ -368,6 +377,54 @@ export class UIGame extends UIBase {
                 tileNode.destroy();
             }
         }
+    }
+
+    /**回收底层游戏UI节点中的运行时效果 */
+    private recycleGameBottomUINodeChildren() {
+        if (!this.gameBottomUINode) {
+            return;
+        }
+
+        for (let i = this.gameBottomUINode.children.length - 1; i >= 0; i--) {
+            poolMgr.putGameSpineNode(this.gameBottomUINode.children[i]);
+        }
+    }
+
+    /**回收游戏UI节点中的运行时效果 */
+    private recycleGameUINodeChildren() {
+        if (!this.gameUINode) {
+            return;
+        }
+
+        for (let i = this.gameUINode.children.length - 1; i >= 0; i--) {
+            let child = this.gameUINode.children[i];
+            if (child.getComponent(produceTips)) {
+                child.removeFromParent();
+                child.active = false;
+                poolMgr.produceTipsPool.put(child);
+            } else if (child.getComponent(bulletController)) {
+                child.removeFromParent();
+                child.active = false;
+                poolMgr.bulletPool.put(child);
+            } else if (child.getComponent(cageController) || child.getComponent(netController) || child.getComponent(sawController)) {
+                poolMgr.putGameSpriteNode(child);
+            } else {
+                child.removeFromParent();
+                child.destroy();
+            }
+        }
+    }
+
+    /**添加底层游戏UI节点，并把世界坐标转换为节点本地坐标 */
+    addGameBottomUINodeChild(node: Node, worldPos: Vec3) {
+        if (!this.gameBottomUINode || !node || !node.isValid || !worldPos) {
+            return false;
+        }
+
+        this.gameBottomUINode.addChild(node);
+        let localPos = this.gameBottomUINode.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
+        node.setPosition(localPos);
+        return true;
     }
 
     /**初始化地图图块层数据 */

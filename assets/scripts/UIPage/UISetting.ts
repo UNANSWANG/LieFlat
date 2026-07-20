@@ -88,18 +88,9 @@ export class UISetting extends UIBase {
         this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
         this.restartBtn.addComponent(zoomButton).onClick = this.clickRestartBtn.bind(this);
         this.consoleBtn.addComponent(zoomButton).onClick = this.clickConsoleBtn.bind(this);
-    }
-
-    addListener() {
         this.vibratToggle.node.on(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
         this.musicSlider.node.on(SliderEventSlide, this.changeMusicVolume, this);
         this.effctSlider.node.on(SliderEventSlide, this.changeEffectVolume, this);
-    }
-
-    removeListener() {
-        this.vibratToggle.node.off(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
-        this.musicSlider.node.off(SliderEventSlide, this.changeMusicVolume, this);
-        this.effctSlider.node.off(SliderEventSlide, this.changeEffectVolume, this);
     }
 
     /**刷新界面 */
@@ -120,7 +111,6 @@ export class UISetting extends UIBase {
 
     /**刷新按钮状态 */
     refreshState() {
-        this.removeListener();
         this.vibratToggle.isChecked = audioMgr.isVibrat;
         this.musicSlider.progress = audioMgr.musicVolume;
         this.effctSlider.progress = audioMgr.effectVolume;
@@ -128,7 +118,6 @@ export class UISetting extends UIBase {
         this.effectProgress.fillRange = this.effctSlider.progress;
         this.musicCloseFlag.active = this.musicSlider.progress == 0;
         this.effectCloseFlag.active = this.effctSlider.progress == 0;
-        this.addListener();
     }
 
     ///

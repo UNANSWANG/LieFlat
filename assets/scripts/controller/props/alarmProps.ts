@@ -32,11 +32,11 @@ export class alarmProps extends gamePropsBase {
     /**创建警示铃spine节点 */
     private createAlarmNode() {
         this.clearAlarmNode();
-        if (!uiMgr.gameItemPrefab || !this.img1?.node) {
+        if (!uiMgr.gameSpineItemPrefab || !this.img1?.node) {
             return;
         }
 
-        this.alarmNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.alarmNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.alarmNode.name = "alarmSpine";
         this.img1.node.addChild(this.alarmNode);
 
@@ -59,7 +59,7 @@ export class alarmProps extends gamePropsBase {
     /**清理警示铃spine节点 */
     private clearAlarmNode() {
         if (this.alarmNode && this.alarmNode.isValid) {
-            poolMgr.putGameNode(this.alarmNode);
+            poolMgr.putGameSpineNode(this.alarmNode);
         }
 
         this.alarmNode = null;
@@ -110,4 +110,3 @@ export class alarmProps extends gamePropsBase {
     }
 
 }
-

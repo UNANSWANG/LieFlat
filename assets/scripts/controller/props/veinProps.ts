@@ -97,12 +97,12 @@ export class veinProps extends gamePropsBase {
         }
 
         this.clearVeinNode();
-        if (!uiMgr.gameItemPrefab || !this.img2?.node) {
+        if (!uiMgr.gameSpineItemPrefab || !this.img2?.node) {
             return;
         }
 
         this.veinSpinePath = path;
-        this.veinNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.veinNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.veinNode.name = "veinSpine";
         this.img2.node.addChild(this.veinNode);
 
@@ -127,24 +127,21 @@ export class veinProps extends gamePropsBase {
 
     /**播放矿脉animation循环动画 */
     private async playVeinAnim(skeleton: sp.Skeleton, node: Node, path: string) {
-        skeleton.premultipliedAlpha = false;
         let isLoaded = await ccTools.loadSpine(skeleton, path);
         if (!isLoaded || !skeleton || !skeleton.isValid || this.veinNode != node || this.veinSpinePath != path) {
             return;
         }
 
-        skeleton.premultipliedAlpha = false;
         skeleton.setAnimation(0, "animation", true);
     }
 
     /**清理矿脉spine节点 */
     private clearVeinNode() {
         if (this.veinNode && this.veinNode.isValid) {
-            poolMgr.putGameNode(this.veinNode);
+            poolMgr.putGameSpineNode(this.veinNode);
         }
 
         this.veinNode = null;
         this.veinSpinePath = "";
     }
 }
-

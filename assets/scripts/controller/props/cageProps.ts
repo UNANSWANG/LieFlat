@@ -88,11 +88,11 @@ export class cageProps extends gamePropsBase {
 
     /**生成控制敌人的铁笼 */
     private createEnemyCage() {
-        if (!this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid || !uiMgr.gameItemPrefab) {
+        if (!this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid || !uiMgr.gameSpriteItemPrefab) {
             return;
         }
 
-        let cageNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        let cageNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.gameComp.gameUINode.addChild(cageNode);
 
         let parentTransform = cageNode.parent?.getComponent(UITransform);

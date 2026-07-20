@@ -143,6 +143,6 @@ export class netController extends Component {
         this.duration = 0;
         this.hasHit = false;
         this.enabled = false;
-        poolMgr.putGameNode(this.node);
+        poolMgr.putGameSpriteNode(this.node);
     }
 }

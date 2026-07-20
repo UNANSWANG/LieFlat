@@ -109,13 +109,13 @@ export class sawProps extends gamePropsBase {
             return;
         }
 
-        if (!uiMgr.gameItemPrefab) {
+        if (!uiMgr.gameSpriteItemPrefab) {
             this.targetEnemy.executeBySaw();
             this.targetEnemy = null;
             return;
         }
 
-        let sawNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        let sawNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.gameComp.gameUINode.addChild(sawNode);
 
         let parentTransform = sawNode.parent?.getComponent(UITransform);

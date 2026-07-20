@@ -77,11 +77,11 @@ export class netProps extends gamePropsBase {
 
     /**发射渔网 */
     private shootNet() {
-        if (!this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid || !uiMgr.gameItemPrefab) {
+        if (!this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid || !uiMgr.gameSpriteItemPrefab) {
             return;
         }
 
-        let netNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        let netNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.gameComp.gameUINode.addChild(netNode);
 
         let parentTransform = netNode.parent?.getComponent(UITransform);

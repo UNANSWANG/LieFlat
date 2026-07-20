@@ -243,11 +243,11 @@ export class cannonProps extends gamePropsBase {
             return;
         }
         this.dizzinessNode = null;
-        if (!uiMgr.gameItemPrefab || !this.effectNode) {
+        if (!uiMgr.gameSpineItemPrefab || !this.effectNode) {
             return;
         }
 
-        this.dizzinessNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.dizzinessNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.dizzinessNode.name = "dizzinessSpine";
         this.effectNode.addChild(this.dizzinessNode);
         this.dizzinessNode.setPosition(0, 30, 0);
@@ -271,7 +271,7 @@ export class cannonProps extends gamePropsBase {
     /**清理眩晕spine节点 */
     private clearDizzinessNode() {
         if (this.dizzinessNode && this.dizzinessNode.isValid) {
-            poolMgr.putGameNode(this.dizzinessNode);
+            poolMgr.putGameSpineNode(this.dizzinessNode);
         }
 
         this.dizzinessNode = null;

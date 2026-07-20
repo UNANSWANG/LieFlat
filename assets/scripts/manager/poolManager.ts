@@ -10,6 +10,10 @@ export class poolManager extends Component {
     bulletPool: NodePool = new NodePool();
     /**游戏节点对象池 */
     gameNodePool: NodePool = new NodePool();
+    /**游戏图片节点对象池 */
+    gameSpriteNodePool: NodePool = new NodePool();
+    /**游戏Spine节点对象池 */
+    gameSpineNodePool: NodePool = new NodePool();
     /**瓦片对象池 */
     tileItemPool: NodePool = new NodePool();
     /**道具节点对象池 */
@@ -31,22 +35,53 @@ export class poolManager extends Component {
         this.gameNodePool.put(node);
     }
 
-    /**获取或添加通用节点Sprite组件 */
+    /**获取游戏图片节点 */
+    getGameSpriteNode(prefab: Prefab) {
+        return this.getNode(this.gameSpriteNodePool, prefab);
+    }
+
+    /**回收游戏图片节点 */
+    putGameSpriteNode(node: Node) {
+        this.resetNode(node);
+        let sprite = node.getComponent(Sprite);
+        if (sprite) {
+            sprite.spriteFrame = null;
+        }
+        this.gameSpriteNodePool.put(node);
+    }
+
+    /**获取游戏Spine节点 */
+    getGameSpineNode(prefab: Prefab) {
+        return this.getNode(this.gameSpineNodePool, prefab);
+    }
+
+    /**回收游戏Spine节点 */
+    putGameSpineNode(node: Node) {
+        this.resetNode(node);
+        let skeleton = node.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.setCompleteListener(null);
+            skeleton.skeletonData = null;
+        }
+        this.gameSpineNodePool.put(node);
+    }
+
+    /**获取游戏图片节点Sprite组件 */
     getGameNodeSprite(node: Node) {
         if (!node || !node.isValid) {
             return null;
         }
 
-        return node.getComponent(Sprite) || node.addComponent(Sprite);
+        return node.getComponent(Sprite);
     }
 
-    /**获取或添加通用节点Skeleton组件 */
+    /**获取游戏Spine节点Skeleton组件 */
     getGameNodeSkeleton(node: Node) {
         if (!node || !node.isValid) {
             return null;
         }
 
-        return node.getComponent(sp.Skeleton) || node.addComponent(sp.Skeleton);
+        return node.getComponent(sp.Skeleton);
     }
 
     /**获取瓦片节点 */
@@ -141,4 +176,3 @@ export class poolManager extends Component {
 }
 
 export let poolMgr = new poolManager();
-

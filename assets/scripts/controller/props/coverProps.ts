@@ -36,11 +36,11 @@ export class coverProps extends gamePropsBase {
     /** 创建光罩spine节点 */
     private createLightNode() {
         this.clearLightNode();
-        if (!uiMgr.gameItemPrefab || !this.img2?.node) {
+        if (!uiMgr.gameSpineItemPrefab || !this.img2?.node) {
             return;
         }
 
-        this.lightNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.lightNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.lightNode.name = "coverLight";
         this.lightNode.setScale(new Vec3(0.55, 0.55, 1));
         this.lightNode.setPosition(0, -7, 0);
@@ -65,7 +65,7 @@ export class coverProps extends gamePropsBase {
     /** 清理光罩spine节点 */
     private clearLightNode() {
         if (this.lightNode && this.lightNode.isValid) {
-            poolMgr.putGameNode(this.lightNode);
+            poolMgr.putGameSpineNode(this.lightNode);
         }
 
         this.lightNode = null;

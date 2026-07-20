@@ -12,6 +12,8 @@ export class UIManager {
     produceTipsPrefab: Prefab = null;
     bulletPrefab: Prefab = null;
     gameItemPrefab: Prefab = null;
+    gameSpriteItemPrefab: Prefab = null;
+    gameSpineItemPrefab: Prefab = null;
 
     private gamePage: Node = null;
     private uiPage: Node = null;
@@ -38,7 +40,10 @@ export class UIManager {
             this.tipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.tips, false);
             this.produceTipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.produceTips, false);
             this.bulletPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.bullet, false);
-            this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem, false);
+            this.gameSpriteItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpriteItem, false);
+            this.gameSpineItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpineItem, false);
+            //暂时用不到，先注释
+            // this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem, false);
             for (let i = 0; i < mapNameArr.length; i++) {
                 await ccResTools.loadTiledMap(this.resBundle, ItemPath.tileMap + mapNameArr[i], false);
             }

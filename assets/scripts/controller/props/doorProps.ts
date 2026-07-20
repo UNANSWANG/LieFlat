@@ -168,7 +168,7 @@ export class doorProps extends gamePropsBase {
 
     /**刷新维修台修复效果节点 */
     refreshMachineRepairEffect() {
-        if (!this.effectNode || !uiMgr.gameItemPrefab || !this.hasMachineRepairEffectSource()) {
+        if (!this.effectNode || !uiMgr.gameSpriteItemPrefab || !this.hasMachineRepairEffectSource()) {
             this.clearMachineRepairEffect();
             return;
         }
@@ -178,7 +178,7 @@ export class doorProps extends gamePropsBase {
         }
 
         this.clearMachineRepairEffect();
-        this.machineRepairEffectNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.machineRepairEffectNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.machineRepairEffectNode.name = "machineRepairEffect";
         this.machineRepairEffectNode.active = false;
         this.machineRepairEffectNode.setScale(new Vec3(0.7, 0.7, 1));
@@ -247,7 +247,7 @@ export class doorProps extends gamePropsBase {
     private clearMachineRepairEffect() {
         this.stopMachineRepairEffectAnim();
         if (this.machineRepairEffectNode && this.machineRepairEffectNode.isValid) {
-            poolMgr.putGameNode(this.machineRepairEffectNode);
+            poolMgr.putGameSpriteNode(this.machineRepairEffectNode);
         }
 
         this.machineRepairEffectNode = null;

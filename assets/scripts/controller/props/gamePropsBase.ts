@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
+import { _decorator, Component, Node, sp, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
 import { tileItemController, tilePropsType } from '../tileItemController';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
@@ -348,7 +348,12 @@ export class gamePropsBase extends Component {
         }
 
         for (let i = this.effectNode.children.length - 1; i >= 0; i--) {
-            poolMgr.putGameNode(this.effectNode.children[i]);
+            let child = this.effectNode.children[i];
+            if (child.getComponent(sp.Skeleton)) {
+                poolMgr.putGameSpineNode(child);
+            } else {
+                poolMgr.putGameSpriteNode(child);
+            }
         }
     }
 }

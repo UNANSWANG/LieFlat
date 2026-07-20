@@ -43,11 +43,11 @@ export class boxProps extends gamePropsBase {
     /**创建魔盒spine节点 */
     private createBoxNode() {
         this.clearBoxNode();
-        if (!uiMgr.gameItemPrefab || !this.img1?.node) {
+        if (!uiMgr.gameSpineItemPrefab || !this.img1?.node) {
             return;
         }
 
-        this.boxNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.boxNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.boxNode.name = "boxSpine";
         this.img1.node.addChild(this.boxNode);
         this.boxNode.setPosition(0, -10, 0);
@@ -63,7 +63,6 @@ export class boxProps extends gamePropsBase {
         this.isPlayingBoxAnim = true;
         let skeleton = this.boxSkeleton;
         let node = this.boxNode;
-        skeleton.premultipliedAlpha = false;
         skeleton.timeScale = 2;
         let isLoaded = await ccTools.loadSpine(skeleton, spinePath.box);
         if (!isLoaded || !skeleton || !skeleton.isValid || this.boxSkeleton != skeleton || this.boxNode != node) {
@@ -73,7 +72,6 @@ export class boxProps extends gamePropsBase {
             return;
         }
 
-        skeleton.premultipliedAlpha = false;
         skeleton.timeScale = 2;
         skeleton.setCompleteListener((trackEntry: any) => {
             let animName = trackEntry?.animation?.name;
@@ -94,7 +92,7 @@ export class boxProps extends gamePropsBase {
         }
 
         if (this.boxNode && this.boxNode.isValid) {
-            poolMgr.putGameNode(this.boxNode);
+            poolMgr.putGameSpineNode(this.boxNode);
         }
 
         this.boxNode = null;

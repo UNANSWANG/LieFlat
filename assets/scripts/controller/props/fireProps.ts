@@ -28,11 +28,11 @@ export class fireProps extends gamePropsBase {
     /**创建火焰spine节点 */
     private createFireNode() {
         this.clearFireNode();
-        if (!uiMgr.gameItemPrefab || !this.img1?.node) {
+        if (!uiMgr.gameSpineItemPrefab || !this.img1?.node) {
             return;
         }
 
-        this.fireNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.fireNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.fireNode.name = "fireSpine";
         this.img1.node.addChild(this.fireNode);
         this.fireNode.setPosition(0, -10);
@@ -56,7 +56,7 @@ export class fireProps extends gamePropsBase {
     /**清理火焰spine节点 */
     private clearFireNode() {
         if (this.fireNode && this.fireNode.isValid) {
-            poolMgr.putGameNode(this.fireNode);
+            poolMgr.putGameSpineNode(this.fireNode);
         }
 
         this.fireNode = null;

@@ -113,6 +113,6 @@ export class sawController extends Component {
         Tween.stopAllByTarget(this.node);
         this.target = null;
         this.enabled = false;
-        poolMgr.putGameNode(this.node);
+        poolMgr.putGameSpriteNode(this.node);
     }
 }

@@ -97,6 +97,6 @@ export class cageController extends Component {
         this.target = null;
         this.duration = 0;
         this.enabled = false;
-        poolMgr.putGameNode(this.node);
+        poolMgr.putGameSpriteNode(this.node);
     }
 }

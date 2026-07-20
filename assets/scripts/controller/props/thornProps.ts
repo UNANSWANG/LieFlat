@@ -35,7 +35,7 @@ export class thornProps extends gamePropsBase {
 
     /**刷新房门上的藤条效果 */
     refreshDoorEffect() {
-        if (!this.isPropsActive || !uiMgr.gameItemPrefab) {
+        if (!this.isPropsActive || !uiMgr.gameSpriteItemPrefab) {
             this.clearDoorEffect();
             return;
         }
@@ -51,7 +51,7 @@ export class thornProps extends gamePropsBase {
         }
 
         this.clearDoorEffect();
-        this.doorEffectNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.doorEffectNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.doorEffectNode.name = "thornDoorEffect";
         doorComp.effectNode.addChild(this.doorEffectNode);
 
@@ -64,7 +64,7 @@ export class thornProps extends gamePropsBase {
     /**清理房门上的藤条效果 */
     private clearDoorEffect() {
         if (this.doorEffectNode && this.doorEffectNode.isValid) {
-            poolMgr.putGameNode(this.doorEffectNode);
+            poolMgr.putGameSpriteNode(this.doorEffectNode);
         }
 
         this.doorEffectNode = null;

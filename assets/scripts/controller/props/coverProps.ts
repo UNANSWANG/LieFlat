@@ -42,8 +42,8 @@ export class coverProps extends gamePropsBase {
 
         this.lightNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
         this.lightNode.name = "coverLight";
-        this.lightNode.setScale(new Vec3(0.1, 0.1, 1));
-        this.lightNode.setPosition(1, -4, 0);
+        this.lightNode.setScale(new Vec3(0.55, 0.55, 1));
+        this.lightNode.setPosition(0, -7, 0);
         this.img2.node.addChild(this.lightNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.lightNode);

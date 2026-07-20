@@ -1,8 +1,12 @@
-import { _decorator } from 'cc';
+import { _decorator, Node, sp } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
 import type { enemyBaseController } from '../enemy/enemyBaseController';
+import { uiMgr } from '../../manager/UIManager';
+import { poolMgr } from '../../manager/poolManager';
+import { ccTools } from '../../extention/generalTools';
+import { spinePath } from '../../manager/pathConfig';
 const { ccclass } = _decorator;
 
 @ccclass('alarmProps')
@@ -11,11 +15,54 @@ export class alarmProps extends gamePropsBase {
     alarmThresholdHealth: number = 0.5;
     /**是否已经触发 */
     private hasTriggered: boolean = false;
+    /**警示铃spine节点 */
+    private alarmNode: Node = null;
+
+    /**初始化道具的图片 */
+    initPropsImg() {
+        this.createAlarmNode();
+    }
 
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
         this.alarmThresholdHealth = commonConfig.getValueNumber("alarmThresholdHealth") / 100;
+    }
+
+    /**创建警示铃spine节点 */
+    private createAlarmNode() {
+        this.clearAlarmNode();
+        if (!uiMgr.gameItemPrefab || !this.img1?.node) {
+            return;
+        }
+
+        this.alarmNode = poolMgr.getGameNode(uiMgr.gameItemPrefab);
+        this.alarmNode.name = "alarmSpine";
+        this.img1.node.addChild(this.alarmNode);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.alarmNode);
+        if (skeleton) {
+            this.playAlarmAnim(skeleton);
+        }
+    }
+
+    /**播放警示铃animation循环动画 */
+    private async playAlarmAnim(skeleton: sp.Skeleton) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.alarm);
+        if (!isLoaded || !skeleton || !skeleton.isValid) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理警示铃spine节点 */
+    private clearAlarmNode() {
+        if (this.alarmNode && this.alarmNode.isValid) {
+            poolMgr.putGameNode(this.alarmNode);
+        }
+
+        this.alarmNode = null;
     }
     
     /**道具开始生效 */
@@ -25,6 +72,7 @@ export class alarmProps extends gamePropsBase {
 
     /**道具结束生效 */
     endProps() {
+        this.clearAlarmNode();
         super.endProps();
         this.hasTriggered = false;
     }
@@ -62,5 +110,4 @@ export class alarmProps extends gamePropsBase {
     }
 
 }
-
 

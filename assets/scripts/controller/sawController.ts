@@ -13,9 +13,9 @@ export class sawController extends Component {
     /**下落目标相对敌人的偏移 */
     private landedOffsetY: number = 25;
     /**空中悬停时长 */
-    private hoverDuration: number = 1;
+    private hoverDuration: number = 1.5;
     /**下落时长 */
-    private dropDuration: number = 0.25;
+    private dropDuration: number = 0.75;
     /**临时世界坐标 */
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */

@@ -34,6 +34,8 @@ export const configData = {
     doorHpShowTime: 5,
     /**道具图片切换速度（秒） */
     propsImgSwitchSpeed: 0.5,
+    /**人物消失时间（秒） */
+    roleDisappearTime: 2,
 }
 
 /**敌人通用配置 */

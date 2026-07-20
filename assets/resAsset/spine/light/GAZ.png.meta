@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c1ebb3ba-e3e5-4bd4-8e6e-10f7e6e83b3a",
+  "uuid": "5aaf256b-656b-4787-8ebb-0d470a19e978",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c1ebb3ba-e3e5-4bd4-8e6e-10f7e6e83b3a@6c48a",
+      "uuid": "5aaf256b-656b-4787-8ebb-0d470a19e978@6c48a",
       "displayName": "GAZ",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c1ebb3ba-e3e5-4bd4-8e6e-10f7e6e83b3a",
+        "imageUuidOrDatabaseUri": "5aaf256b-656b-4787-8ebb-0d470a19e978",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,7 +34,7 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c1ebb3ba-e3e5-4bd4-8e6e-10f7e6e83b3a@f9941",
+      "uuid": "5aaf256b-656b-4787-8ebb-0d470a19e978@f9941",
       "displayName": "GAZ",
       "id": "f9941",
       "name": "spriteFrame",
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c1ebb3ba-e3e5-4bd4-8e6e-10f7e6e83b3a@6c48a",
+        "imageUuidOrDatabaseUri": "5aaf256b-656b-4787-8ebb-0d470a19e978@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "c1ebb3ba-e3e5-4bd4-8e6e-10f7e6e83b3a@6c48a"
+    "redirect": "5aaf256b-656b-4787-8ebb-0d470a19e978@6c48a"
   }
 }

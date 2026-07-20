@@ -107,7 +107,7 @@ export enum spinePath {
     /**警示铃 */
     alarm = "spine/alarm/Bell",
     /**金矿 */
-    goldVein = "spine/goldVein/Rk",
+    goldVein = "spine/goldVein/RK",
     /**银矿 */
     silverVein = "spine/silverVein/YK",
     /**火焰锻造台 */

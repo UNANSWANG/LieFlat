@@ -148,6 +148,11 @@ export class iceProps extends gamePropsBase {
         iceComp?.refreshDoorIceEffect();
     }
 
+    /**指定房间是否有正在生效的千年寒冰 */
+    static hasRoomIce(gameComp: any, roomIdx: number) {
+        return !!iceProps.getRoomIceComp(gameComp, roomIdx);
+    }
+
     /**获取指定房间内正在生效的千年寒冰 */
     private static getRoomIceComp(gameComp: any, roomIdx: number) {
         let roomData = gameComp?.roomMap?.[roomIdx];

@@ -131,6 +131,8 @@ export class enemyBaseController extends Component {
     private isNetControlled: boolean = false;
     /**是否被铡刀控制 */
     private isSawControlled: boolean = false;
+    /**攻击寒冰房门时挂在身上的寒冰动画节点 */
+    private attackIceNode: Node = null;
 
     ///
     ///节点
@@ -459,6 +461,54 @@ export class enemyBaseController extends Component {
         return iceProps.getEnemyAttackTimeScale(this.gameComp, roomIdx);
     }
 
+    /**刷新攻击寒冰房门时挂在身上的寒冰动画 */
+    private refreshAttackIceEffect() {
+        if (!this.isAttackingDoor()) {
+            this.clearAttackIceEffect();
+            return;
+        }
+
+        let roomIdx = this.getCurAttackRoomIdx();
+        if (!iceProps.hasRoomIce(this.gameComp, roomIdx) || !uiMgr.gameSpineItemPrefab) {
+            this.clearAttackIceEffect();
+            return;
+        }
+
+        if (this.attackIceNode && this.attackIceNode.isValid && this.attackIceNode.parent == this.node) {
+            return;
+        }
+
+        this.clearAttackIceEffect();
+        this.attackIceNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.attackIceNode.name = "attackIceSpine";
+        this.node.addChild(this.attackIceNode);
+        this.attackIceNode.setPosition(0, 50, 0);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.attackIceNode);
+        if (skeleton) {
+            this.playAttackIceAnim(skeleton, this.attackIceNode);
+        }
+    }
+
+    /**播放攻击寒冰房门时的寒冰循环动画 */
+    private async playAttackIceAnim(skeleton: sp.Skeleton, node: Node) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.snow);
+        if (!isLoaded || !skeleton || !skeleton.isValid || this.attackIceNode != node) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理攻击寒冰房门时挂在身上的寒冰动画 */
+    private clearAttackIceEffect() {
+        if (this.attackIceNode && this.attackIceNode.isValid) {
+            poolMgr.putGameSpineNode(this.attackIceNode);
+        }
+
+        this.attackIceNode = null;
+    }
+
     /**获取当前攻击目标所在房间 */
     private getCurAttackRoomIdx() {
         if (this.isAttackingProps && this.attackingTilePos) {
@@ -551,6 +601,7 @@ export class enemyBaseController extends Component {
 
     /**死亡 */
     die() {
+        this.clearAttackIceEffect();
         enemyMgr.removeEnemy(this.roleId);
         this.node.destroy();
         if (enemyMgr.enemyArr.length == 0) {
@@ -1198,6 +1249,7 @@ export class enemyBaseController extends Component {
             this.startAttackProps();
         }
 
+        this.refreshAttackIceEffect();
         return true;
     }
 
@@ -1226,6 +1278,7 @@ export class enemyBaseController extends Component {
         this.isForceAttackingDoor = false;
         this.resetDoorAttackTimeCheck();
         this.thornDamageTimer = 0;
+        this.clearAttackIceEffect();
     }
 
     /**开始攻击目标角色 */

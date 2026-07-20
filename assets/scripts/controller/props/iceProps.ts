@@ -6,6 +6,7 @@ import { uiMgr } from '../../manager/UIManager';
 import { poolMgr } from '../../manager/poolManager';
 import { ccTools } from '../../extention/generalTools';
 import { spinePath } from '../../manager/pathConfig';
+import { doorProps } from './doorProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('iceProps')
@@ -14,6 +15,8 @@ export class iceProps extends gamePropsBase {
     static iceAttackTimeScale: number = 0.8;
     /**雪花spine节点 */
     private snowNode: Node = null;
+    /**房门上的寒冰spine节点 */
+    private doorIceNode: Node = null;
 
     /**初始化道具图片 */
     initPropsImg() {
@@ -39,17 +42,19 @@ export class iceProps extends gamePropsBase {
 
     /**道具开始生效 */
     startProps() {
-
+        this.refreshDoorIceEffect();
     }
 
     /**道具结束生效 */
     endProps() {
+        this.clearDoorIceEffect();
         this.clearSnowNode();
         super.endProps();
     }
 
     protected onDisable(): void {
         super.onDisable();
+        this.clearDoorIceEffect();
         this.clearSnowNode();
     }
 
@@ -87,6 +92,79 @@ export class iceProps extends gamePropsBase {
         }
 
         this.snowNode = null;
+    }
+
+    /**刷新房门上的寒冰效果 */
+    refreshDoorIceEffect() {
+        if (!this.isPropsActive || !uiMgr.gameSpineItemPrefab) {
+            this.clearDoorIceEffect();
+            return;
+        }
+
+        let doorComp = this.getRoomDoorComp();
+        if (!doorComp?.effectNode) {
+            this.clearDoorIceEffect();
+            return;
+        }
+
+        if (this.doorIceNode && this.doorIceNode.isValid && this.doorIceNode.parent == doorComp.effectNode) {
+            return;
+        }
+
+        this.clearDoorIceEffect();
+        this.doorIceNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.doorIceNode.name = "iceDoorEffect";
+        doorComp.effectNode.addChild(this.doorIceNode);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.doorIceNode);
+        if (skeleton) {
+            this.playSnowAnim(skeleton);
+        }
+    }
+
+    /**清理房门上的寒冰效果 */
+    private clearDoorIceEffect() {
+        if (this.doorIceNode && this.doorIceNode.isValid) {
+            poolMgr.putGameSpineNode(this.doorIceNode);
+        }
+
+        this.doorIceNode = null;
+    }
+
+    /**获取当前房间房门 */
+    private getRoomDoorComp() {
+        let roomData = this.gameComp?.roomMap?.[this.roomIdx];
+        let doorPos = roomData?.doorPos;
+        if (!doorPos) {
+            return null;
+        }
+
+        return this.gameComp?.tileMap?.[doorPos.x]?.[doorPos.y]?.item?.propsComp as doorProps;
+    }
+
+    /**刷新指定房间的寒冰房门效果 */
+    static refreshRoomDoorIceEffect(gameComp: any, roomIdx: number) {
+        let iceComp = iceProps.getRoomIceComp(gameComp, roomIdx);
+        iceComp?.refreshDoorIceEffect();
+    }
+
+    /**获取指定房间内正在生效的千年寒冰 */
+    private static getRoomIceComp(gameComp: any, roomIdx: number) {
+        let roomData = gameComp?.roomMap?.[roomIdx];
+        if (!roomData || roomIdx <= 0) {
+            return null;
+        }
+
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = gameComp.tileMap?.[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == tilePropsType.ice && propComp.isPropsActive) {
+                return propComp as iceProps;
+            }
+        }
+
+        return null;
     }
 
 }

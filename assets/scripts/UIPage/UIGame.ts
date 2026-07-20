@@ -13,6 +13,7 @@ import { tileItemController, tilePropsType } from '../controller/tileItemControl
 import { doorProps } from '../controller/props/doorProps';
 import { bedProps } from '../controller/props/bedProps';
 import { thornProps } from '../controller/props/thornProps';
+import { iceProps } from '../controller/props/iceProps';
 import { CameraController } from '../controller/CameraController';
 import { roleAnimName, roleController, roleState } from '../controller/roleController';
 import { enemyMgr } from '../manager/enemyManager';
@@ -2198,6 +2199,7 @@ export class UIGame extends UIBase {
         }
 
         thornProps.refreshRoomDoorEffect(this, roomId);
+        iceProps.refreshRoomDoorIceEffect(this, roomId);
     }
 
     /**获取瓦片所在房间 */
@@ -2333,6 +2335,7 @@ export class UIGame extends UIBase {
 
         playerMgr.playerComp.hideRole();
         thornProps.refreshRoomDoorEffect(this, playerMgr.playerComp.roomIdx);
+        iceProps.refreshRoomDoorIceEffect(this, playerMgr.playerComp.roomIdx);
         this.refreshDoorMachineEffect(playerMgr.playerComp.roomIdx);
     }
 

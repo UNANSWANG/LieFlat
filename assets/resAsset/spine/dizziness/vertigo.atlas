@@ -1,27 +1,27 @@
 
 vertigo.png
-size: 740,740
+size: 76,76
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 2
-  rotate: true
-  xy: 2, 99
-  size: 241, 242
-  orig: 241, 242
+  rotate: false
+  xy: 54, 54
+  size: 20, 20
+  orig: 20, 20
   offset: 0, 0
   index: -1
 gq1
   rotate: false
-  xy: 2, 342
-  size: 736, 214
-  orig: 757, 221
-  offset: 11, 2
+  xy: 2, 59
+  size: 50, 15
+  orig: 50, 15
+  offset: 0, 0
   index: -1
 gq2
   rotate: false
-  xy: 2, 558
-  size: 727, 180
-  orig: 746, 183
-  offset: 10, 3
+  xy: 2, 45
+  size: 50, 12
+  orig: 50, 12
+  offset: 0, 0
   index: -1

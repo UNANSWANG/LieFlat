@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "dd1c1dd7-ce00-4ba7-b38c-da4af5c7aa14",
+  "uuid": "61719606-979d-415a-8cb9-504fbe04fb16",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "dd1c1dd7-ce00-4ba7-b38c-da4af5c7aa14@6c48a",
+      "uuid": "61719606-979d-415a-8cb9-504fbe04fb16@6c48a",
       "displayName": "snow",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "dd1c1dd7-ce00-4ba7-b38c-da4af5c7aa14",
+        "imageUuidOrDatabaseUri": "61719606-979d-415a-8cb9-504fbe04fb16",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,7 +34,7 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "dd1c1dd7-ce00-4ba7-b38c-da4af5c7aa14@f9941",
+      "uuid": "61719606-979d-415a-8cb9-504fbe04fb16@f9941",
       "displayName": "snow",
       "id": "f9941",
       "name": "spriteFrame",
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "dd1c1dd7-ce00-4ba7-b38c-da4af5c7aa14@6c48a",
+        "imageUuidOrDatabaseUri": "61719606-979d-415a-8cb9-504fbe04fb16@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "dd1c1dd7-ce00-4ba7-b38c-da4af5c7aa14@6c48a"
+    "redirect": "61719606-979d-415a-8cb9-504fbe04fb16@6c48a"
   }
 }

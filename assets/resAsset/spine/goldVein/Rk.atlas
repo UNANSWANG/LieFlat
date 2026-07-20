@@ -1,26 +1,26 @@
 
-Rk.png
-size: 136,136
+RK.png
+size: 74,74
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 1
-  rotate: false
-  xy: 2, 46
-  size: 54, 88
-  orig: 62, 104
-  offset: 4, 8
+  rotate: true
+  xy: 2, 57
+  size: 15, 26
+  orig: 18, 30
+  offset: 2, 2
   index: -1
 2
-  rotate: false
-  xy: 2, 2
-  size: 42, 42
-  orig: 45, 48
-  offset: 2, 2
+  rotate: true
+  xy: 48, 49
+  size: 23, 24
+  orig: 25, 27
+  offset: 1, 1
   index: -1
 3
   rotate: false
-  xy: 46, 28
+  xy: 30, 56
   size: 16, 16
   orig: 20, 20
   offset: 2, 2

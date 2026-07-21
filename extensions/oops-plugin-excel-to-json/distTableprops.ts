@@ -23,10 +23,6 @@ export class Tableprops {
     get level(): number {
         return this.data.level;
     }
-    /** 建筑类型 */
-    get buildType(): number {
-        return this.data.buildType;
-    }
     /** 描述 */
     get desc(): string {
         return this.data.desc;
@@ -55,6 +51,10 @@ export class Tableprops {
     get hp(): number {
         return this.data.hp;
     }
+    /** 建筑类型 */
+    get buildType(): number {
+        return this.data.buildType;
+    }
     /** 产出电能 */
     get producePower(): number {
         return this.data.producePower;
@@ -74,6 +74,10 @@ export class Tableprops {
     /** 建造上限 */
     get builNumMax(): number {
         return this.data.builNumMax;
+    }
+    /** 神秘商店类型 */
+    get storeType(): number {
+        return this.data.storeType;
     }
 }
     

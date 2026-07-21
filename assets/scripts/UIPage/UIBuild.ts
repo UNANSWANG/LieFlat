@@ -70,7 +70,9 @@ export class UIBuild extends UIBase {
             this.tilePos.set(data.tilePos);
             this.roomData = data.roomData;
         }
-        this.initPropsData();
+        if(!this.propsTypeArr || this.propsTypeArr.length == 0){
+            this.initPropsData();
+        }
         this.refreshPage();
     }
 

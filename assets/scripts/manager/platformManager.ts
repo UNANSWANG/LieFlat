@@ -65,6 +65,10 @@ export class platformManager extends Component {
             return;
         }
 
+        //TODO 暂时不需要登录
+        gm.isLogin = true;
+        return;
+
         httpMgr.post(urlConfig.login, { type: tempType, code: userMgr.code }, (data) => {
             gm.isLogin = true;
 

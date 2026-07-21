@@ -6,7 +6,7 @@ export class userManager {
     /**微信插屏广告id */
     Ad_interstitialAd_wx: string = "";
     /**微信激励视频广告id */
-    Ad_video_wx: string = "adunit-d71f0e3a4ab49ed3";
+    Ad_video_wx: string = "";
 
     /**抖音插屏广告id */
     Ad_interstitialAd_tt: string = "";

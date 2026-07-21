@@ -1,6 +1,6 @@
-import { _decorator, AssetManager, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, AnimationClip, AssetManager, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { UIBase } from '../UIPage/UIBase';
-import { gamePath, ItemPath, mapNameArr, UIPath } from './pathConfig';
+import { animPath, gamePath, ItemPath, mapNameArr, UIPath } from './pathConfig';
 import { ccResTools } from '../extention/resTools';
 import { tipsNotice } from '../UIPage/tips/tipsNotice';
 const { ccclass, property } = _decorator;
@@ -15,6 +15,7 @@ export class UIManager {
     gameSpriteItemPrefab: Prefab = null;
     gameSpineItemPrefab: Prefab = null;
     gameAnimItemPrefab: Prefab = null;
+    fogAnimClip: AnimationClip = null;
 
     private gamePage: Node = null;
     private uiPage: Node = null;
@@ -44,11 +45,24 @@ export class UIManager {
             this.gameSpriteItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpriteItem, false);
             this.gameSpineItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpineItem, false);
             this.gameAnimItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameAnimItem, false);
+            //TODO 临时写这行，后续再优化
+            await this.loadAnim();
             //暂时用不到，先注释
             // this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem, false);
             for (let i = 0; i < mapNameArr.length; i++) {
                 await ccResTools.loadTiledMap(this.resBundle, ItemPath.tileMap + mapNameArr[i], false);
             }
+            resolve();
+        });
+    }
+
+    /**加载动画 */
+    async loadAnim() {
+        return new Promise<void>(async (resolve, reject) => {
+            if (!this.resBundle) {
+                reject();
+            }
+            this.fogAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.fog, false);
             resolve();
         });
     }

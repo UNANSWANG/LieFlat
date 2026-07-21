@@ -1,4 +1,5 @@
 import { _decorator, Component, instantiate, Node, NodePool, Prefab, sp, Sprite, Tween, UIOpacity, UITransform, Vec3 } from 'cc';
+import { gameAnimController } from '../controller/gameAnimController';
 const { ccclass, property } = _decorator;
 
 //对象池管理类
@@ -18,6 +19,7 @@ export class poolManager extends Component {
     tileItemPool: NodePool = new NodePool();
     /**道具节点对象池 */
     propsNodePool: NodePool = new NodePool();
+    gameAnimNodePool: NodePool = new NodePool();
 
     /**初始化点的对象池 */
     initPointNodePool() {
@@ -64,6 +66,16 @@ export class poolManager extends Component {
             skeleton.skeletonData = null;
         }
         this.gameSpineNodePool.put(node);
+    }
+
+    getGameAnimNode(prefab: Prefab) {
+        return this.getNode(this.gameAnimNodePool, prefab);
+    }
+
+    putGameAnimNode(node: Node) {
+        node.getComponent(gameAnimController)?.clearData();
+        this.resetNode(node);
+        this.gameAnimNodePool.put(node);
     }
 
     /**获取游戏图片节点Sprite组件 */

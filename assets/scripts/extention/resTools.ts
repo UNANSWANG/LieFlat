@@ -1,4 +1,4 @@
-import { _decorator, AssetManager, assetManager, Component, ImageAsset, JsonAsset, Node, Prefab, sp, SpriteFrame, Texture2D, TiledMapAsset } from 'cc';
+import { _decorator, AnimationClip, AssetManager, assetManager, Component, ImageAsset, JsonAsset, Node, Prefab, sp, SpriteFrame, Texture2D, TiledMapAsset } from 'cc';
 import { gm, PlatType } from '../manager/gm';
 import { GameEvent } from '../manager/configData';
 const { ccclass, property } = _decorator;
@@ -91,6 +91,28 @@ export class resTools {
                 })
         });
     }
+
+    /**加载animation动画 */
+    loadAnimationClip($bundle: AssetManager.Bundle, $path: string, showLoading: boolean = true): Promise<AnimationClip> {
+        return new Promise(($resolve) => {
+            $bundle.load($path, AnimationClip,
+                (finish: number, total: number) => {
+                    if (showLoading) {
+                        gm.Event.emit(GameEvent.loading, [finish, total, $path]);
+                    }
+                },
+                (err, clip: AnimationClip) => {
+                    if (err) {
+                        console.error("加载animation动画失败", $path, err);
+                        $resolve(null);
+                        return;
+                    }
+
+                    $resolve(clip);
+                })
+        });
+    }
+
     /**
      * 加载一张图片,
      * @param $bundle 

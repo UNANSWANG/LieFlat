@@ -1,33 +1,53 @@
-import { _decorator, Component, Node, Animation } from 'cc';
+import { _decorator, Animation, AnimationClip, Component } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('gameAnimController')
 export class gameAnimController extends Component {
-    callBack: () => void = null;
     anim : Animation = null;
+    private finishHandler: () => void = null;
 
-    start() {
+    onLoad() {
         this.anim = this.getComponent(Animation);
-        this.anim.play();
-
-        this.anim.on(Animation.EventType.FINISHED, () => {
-            if(this.callBack){
-                this.callBack();
-            }
-            this.node.removeFromParent();
-            this.node.destroy();
-        }, this);
     }
 
     clearData(){
-        this.callBack = null;
-        this.anim.defaultClip = null;
-        this.anim.clips = [];
+        this.finishHandler = null;
+        this.anim?.off(Animation.EventType.FINISHED, this.onAnimFinished, this);
+        this.anim?.stop();
+        this.clearClips();
     }
 
-    startAnim(callBack?: () => void){   
-        this.callBack = callBack;
-        this.anim.play();
+    startAnim(clip: AnimationClip, finishHandler?: () => void){
+        if (!this.anim || !clip) {
+            return;
+        }
+
+        this.finishHandler = finishHandler || null;
+        this.clearClips();
+        this.anim.addClip(clip, clip.name);
+        this.anim.defaultClip = clip;
+        this.anim.off(Animation.EventType.FINISHED, this.onAnimFinished, this);
+        this.anim.on(Animation.EventType.FINISHED, this.onAnimFinished, this);
+        this.anim?.stop();
+        this.anim.play(clip.name);
+    }
+
+    private clearClips() {
+        if (!this.anim) {
+            return;
+        }
+
+        let clips = this.anim.clips;
+        for (let i = 0; i < clips.length; i++) {
+            this.anim.removeClip(clips[i], true);
+        }
+        this.anim.defaultClip = null;
+    }
+
+    private onAnimFinished() {
+        this.anim?.off(Animation.EventType.FINISHED, this.onAnimFinished, this);
+        this.finishHandler?.();
+        this.finishHandler = null;
     }
 }
 

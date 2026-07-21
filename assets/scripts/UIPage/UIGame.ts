@@ -25,6 +25,7 @@ import { bulletController } from '../controller/bulletController';
 import { cageController } from '../controller/cageController';
 import { netController } from '../controller/netController';
 import { sawController } from '../controller/sawController';
+import { gameAnimController } from '../controller/gameAnimController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIGame')
@@ -393,7 +394,12 @@ export class UIGame extends UIBase {
         }
 
         for (let i = this.gameBottomUINode.children.length - 1; i >= 0; i--) {
-            poolMgr.putGameSpineNode(this.gameBottomUINode.children[i]);
+            let child = this.gameBottomUINode.children[i];
+            if (child.getComponent(gameAnimController)) {
+                poolMgr.putGameAnimNode(child);
+            } else {
+                poolMgr.putGameSpineNode(child);
+            }
         }
     }
 
@@ -415,6 +421,8 @@ export class UIGame extends UIBase {
                 poolMgr.bulletPool.put(child);
             } else if (child.getComponent(cageController) || child.getComponent(netController) || child.getComponent(sawController)) {
                 poolMgr.putGameSpriteNode(child);
+            } else if (child.getComponent(gameAnimController)) {
+                poolMgr.putGameAnimNode(child);
             } else {
                 child.removeFromParent();
                 child.destroy();
@@ -832,9 +840,26 @@ export class UIGame extends UIBase {
             //不存在瓦片就添加瓦片
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
+        this.playBuildFog(tileComp.node.worldPosition);
         tileComp.addProps(propsType, level);
         let buildRole = this.getBuildRoleByRoomIdx(tileData.roomIdx);
         buildRole?.addGamePropsBuildCount(propsType);
+    }
+
+    /**道具建造时播放一次雾气动画 */
+    private playBuildFog(worldPos: Vec3) {
+        if (!uiMgr.gameAnimItemPrefab || !uiMgr.fogAnimClip || !this.gameBottomUINode) {
+            return;
+        }
+
+        let animNode = poolMgr.getGameAnimNode(uiMgr.gameAnimItemPrefab);
+        if (!this.addGameBottomUINodeChild(animNode, worldPos)) {
+            poolMgr.putGameAnimNode(animNode);
+            return;
+        }
+
+        let animComp = animNode.getComponent(gameAnimController);
+        animComp?.startAnim(uiMgr.fogAnimClip, () => poolMgr.putGameAnimNode(animNode));
     }
 
     /**通过房间号获取建造归属角色 */

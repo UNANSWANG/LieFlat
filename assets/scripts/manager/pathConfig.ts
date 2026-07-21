@@ -129,3 +129,13 @@ export enum spinePath {
     /**发电机4 */
     generator4 = "spine/generator4/D4",
 }
+
+/**动画路径 */
+export enum animPath {
+    /**红色爆气动画 */
+    airRed = "animation/game/airRed",
+    /**黄色爆气动画 */
+    airYellow = "animation/game/airYellow",
+    /**雾气动画 */
+    fog = "animation/game/fog",
+}

@@ -32,6 +32,8 @@ export enum UIPath {
     UIConsole = "prefabs/UIPage/UIConsole",
     /**皮肤商店 */
     UISkinStore = "prefabs/UIPage/UISkinStore",
+    /**神秘商店 */
+    UIStore = "prefabs/UIPage/UIStore",
 }
 
 /**物品路径 */

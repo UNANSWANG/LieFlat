@@ -376,6 +376,8 @@ export class enemyBaseController extends Component {
 
         this.isRaging = true;
         this.rageTimer = 0;
+        let roleAnimNode = this.roleAnim?.node;
+        this.gameComp?.playEnemyAirAnim(uiMgr.airRedAnimClip, roleAnimNode?.worldPosition || this.node.worldPosition, roleAnimNode);
         this.refreshRoleAnimTimeScale();
     }
 
@@ -2063,6 +2065,8 @@ export class enemyBaseController extends Component {
         }
 
         this.hasFearCurAttackDoor = true;
+        let roleAnimNode = this.roleAnim?.node;
+        this.gameComp?.playEnemyAirAnim(uiMgr.airYellowAnimClip, roleAnimNode?.worldPosition || this.node.worldPosition, roleAnimNode);
         this.fearCannonsAround(tilePos);
     }
 

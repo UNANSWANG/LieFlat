@@ -15,6 +15,8 @@ export class UIManager {
     gameSpriteItemPrefab: Prefab = null;
     gameSpineItemPrefab: Prefab = null;
     gameAnimItemPrefab: Prefab = null;
+    airRedAnimClip: AnimationClip = null;
+    airYellowAnimClip: AnimationClip = null;
     fogAnimClip: AnimationClip = null;
 
     private gamePage: Node = null;
@@ -62,6 +64,8 @@ export class UIManager {
             if (!this.resBundle) {
                 reject();
             }
+            this.airRedAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.airRed, false);
+            this.airYellowAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.airYellow, false);
             this.fogAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.fog, false);
             resolve();
         });

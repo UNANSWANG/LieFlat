@@ -1,4 +1,4 @@
-import { _decorator, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset, UIOpacity, tween } from 'cc';
+import { _decorator, AnimationClip, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset, UIOpacity, tween } from 'cc';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { UIBase } from './UIBase';
@@ -848,18 +848,39 @@ export class UIGame extends UIBase {
 
     /**在道具所在位置播放一次雾气动画 */
     playPropsFog(worldPos: Vec3) {
-        if (!uiMgr.gameAnimItemPrefab || !uiMgr.fogAnimClip || !this.gameBottomUINode) {
+        this.playGameAnim(this.gameBottomUINode, uiMgr.fogAnimClip, worldPos);
+    }
+
+    /**在人物上层播放一次敌人爆气动画 */
+    playEnemyAirAnim(clip: AnimationClip, worldPos: Vec3, roleAnimNode: Node = null) {
+        let roleAnimHeight = roleAnimNode?.getComponent(UITransform)?.height || 0;
+        this.playGameAnim(this.gameUINode, clip, worldPos, roleAnimHeight / 2);
+    }
+
+    /**在指定游戏层按世界坐标播放一次动画，完成后回收 */
+    private playGameAnim(parent: Node, clip: AnimationClip, worldPos: Vec3, localOffsetY: number = 0) {
+        if (!uiMgr.gameAnimItemPrefab || !parent || !clip || !worldPos) {
             return;
         }
 
         let animNode = poolMgr.getGameAnimNode(uiMgr.gameAnimItemPrefab);
-        if (!this.addGameBottomUINodeChild(animNode, worldPos)) {
+        let parentTransform = parent.getComponent(UITransform);
+        if (!parentTransform) {
             poolMgr.putGameAnimNode(animNode);
             return;
         }
 
+        parent.addChild(animNode);
+        let localPos = parentTransform.convertToNodeSpaceAR(worldPos);
+        localPos.y += localOffsetY;
+        animNode.setPosition(localPos);
         let animComp = animNode.getComponent(gameAnimController);
-        animComp?.startAnim(uiMgr.fogAnimClip, () => poolMgr.putGameAnimNode(animNode));
+        if (!animComp) {
+            poolMgr.putGameAnimNode(animNode);
+            return;
+        }
+
+        animComp.startAnim(clip, () => poolMgr.putGameAnimNode(animNode));
     }
 
     /**通过房间号获取建造归属角色 */

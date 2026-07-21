@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, sp, Sprite, tween, Tween, UIOpacity, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Label, Node, sp, Sprite, tween, Tween, UITransform, UIOpacity, Vec2, Vec3 } from 'cc';
 import { ccTools } from '../../extention/generalTools';
 import { configData, enemyCommonConfig, gmConfig } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
@@ -1820,7 +1820,12 @@ export class enemyBaseController extends Component {
     private killTargetPlayer() {
         let targetPlayer = this.targetPlayer;
         if (this.isTargetPlayerValid()) {
-            this.playScratchEffect(targetPlayer.node);
+            let scratchWorldPos = targetPlayer.node.worldPosition.clone();
+            if (targetPlayer.state != roleState.bed) {
+                let roleAnimNode = targetPlayer.node.getChildByName("roleAnim");
+                scratchWorldPos.y += roleAnimNode?.getComponent(UITransform)?.height / 2 || 0;
+            }
+            this.playScratchEffectAtWorldPos(scratchWorldPos);
             let isMainPlayer = targetPlayer.roleId == playerMgr.playerComp?.roleId;
             this.clearBedPropsByRole(targetPlayer);
             targetPlayer.state = roleState.dead;
@@ -1993,15 +1998,6 @@ export class enemyBaseController extends Component {
                 this.chooseTargetAndFindPath();
             }
         }
-    }
-
-    /**在受击节点位置播放抓痕动画 */
-    private playScratchEffect(targetNode: Node) {
-        if (!targetNode || !targetNode.isValid) {
-            return;
-        }
-
-        this.playScratchEffectAtWorldPos(targetNode.worldPosition);
     }
 
     /**在指定世界坐标播放抓痕动画 */

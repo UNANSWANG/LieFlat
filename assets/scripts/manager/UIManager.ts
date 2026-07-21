@@ -14,6 +14,7 @@ export class UIManager {
     gameItemPrefab: Prefab = null;
     gameSpriteItemPrefab: Prefab = null;
     gameSpineItemPrefab: Prefab = null;
+    gameAnimItemPrefab: Prefab = null;
 
     private gamePage: Node = null;
     private uiPage: Node = null;
@@ -42,6 +43,7 @@ export class UIManager {
             this.bulletPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.bullet, false);
             this.gameSpriteItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpriteItem, false);
             this.gameSpineItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpineItem, false);
+            this.gameAnimItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameAnimItem, false);
             //暂时用不到，先注释
             // this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem, false);
             for (let i = 0; i < mapNameArr.length; i++) {

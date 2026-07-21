@@ -50,6 +50,8 @@ export enum ItemPath {
     gameSpriteItem = "prefabs/Item/gameSpriteItem",
     /**游戏spine物体 */
     gameSpineItem = "prefabs/Item/gameSpineItem",
+    /**游戏animation物体 */
+    gameAnimItem = "prefabs/Item/gameAnimItem",
     /**瓦片地图 */
     tileMap = "tileMap/map/",
 }

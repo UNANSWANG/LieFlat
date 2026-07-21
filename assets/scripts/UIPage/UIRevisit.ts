@@ -4,7 +4,7 @@ import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { gm, PlatType } from '../manager/gm';
-import { GameEvent,SaveKey } from '../manager/configData';
+import { GameEvent, SaveKey } from '../manager/configData';
 import { pData } from '../manager/playerData';
 import { ccTools } from '../extention/generalTools';
 import { rewardItem, rewardItemData } from '../controller/rewardItem';
@@ -22,7 +22,7 @@ export class UIRevisit extends UIBase {
     closeBtn: Node;
 
     @property(Node)
-    getBtn: Node;
+    goBtn: Node;
 
     @property(Node)
     gettedBtn: Node;
@@ -42,11 +42,11 @@ export class UIRevisit extends UIBase {
     }
 
     addListener() {
-        gm.Event.on(GameEvent.revisitSidebar, this.clickGetBtn, this);
+        gm.Event.on(GameEvent.revisitSidebar, this.clickGoBtn, this);
     }
 
     removeListener() {
-        gm.Event.off(GameEvent.revisitSidebar, this.clickGetBtn, this);
+        gm.Event.off(GameEvent.revisitSidebar, this.clickGoBtn, this);
     }
 
     onUI_Open() {
@@ -58,13 +58,13 @@ export class UIRevisit extends UIBase {
     initData() {
         this.isGetted = ccStorageTools.getLimitTimeData(SaveKey.isGetRevisit) == 1;
 
-        this.getBtn.active = !this.isGetted;
+        this.goBtn.active = !this.isGetted;
         this.gettedBtn.active = this.isGetted;
     }
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
-        this.getBtn.addComponent(zoomButton).onClick = this.clickGetBtn.bind(this);
+        this.goBtn.addComponent(zoomButton).onClick = this.clickGoBtn.bind(this);
     }
 
     ///
@@ -76,16 +76,17 @@ export class UIRevisit extends UIBase {
         this.onClose();
     }
 
-    /**点击获取 */
-    clickGetBtn() {
-        if(gm.platType != PlatType.tt){
+    /**点击前往侧边栏 */
+    clickGoBtn() {
+        if (gm.platType != PlatType.tt) {
             uiMgr.showTips("非抖音平台，无法复访");
             return;
         }
         let canGet = this.TTMgr.checkCanGetGift();
         if (canGet && !this.isGetted) {
             ccStorageTools.setLimitTimeData(SaveKey.isGetRevisit, 1);
-            uiMgr.openPage(UIPath.UIReward, { rewardData: [{ type: 1, num: 1 }] });
+            uiMgr.showTips("获取代币+200");
+            pData.fixMoney(200);
             this.onClose();
         } else {
             if (this.isGetted) {

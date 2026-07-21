@@ -2120,16 +2120,16 @@ export class UIGame extends UIBase {
             //按照优先级检测道具
             if (showOprateBtn) {
                 //已检测到优先级更高的操作
-            } else if (doorPos && !isClose) {
-                //检测没关的门
-                opetateLab.string = "关门";
-                showOprateBtn = true;
-                this.opratePos = doorPos;
             } else if (bedPos) {
                 //检测床
                 opetateLab.string = "上床";
                 showOprateBtn = true;
                 this.opratePos = bedPos;
+            } else if (doorPos && !isClose) {
+                //检测没关的门
+                opetateLab.string = "关门";
+                showOprateBtn = true;
+                this.opratePos = doorPos;
             } else if (doorPos && isClose) {
                 //检测关的门
                 opetateLab.string = "开门";

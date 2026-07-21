@@ -840,14 +840,14 @@ export class UIGame extends UIBase {
             //不存在瓦片就添加瓦片
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
-        this.playBuildFog(tileComp.node.worldPosition);
+        this.playPropsFog(tileComp.node.worldPosition);
         tileComp.addProps(propsType, level);
         let buildRole = this.getBuildRoleByRoomIdx(tileData.roomIdx);
         buildRole?.addGamePropsBuildCount(propsType);
     }
 
-    /**道具建造时播放一次雾气动画 */
-    private playBuildFog(worldPos: Vec3) {
+    /**在道具所在位置播放一次雾气动画 */
+    playPropsFog(worldPos: Vec3) {
         if (!uiMgr.gameAnimItemPrefab || !uiMgr.fogAnimClip || !this.gameBottomUINode) {
             return;
         }
@@ -1078,6 +1078,7 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(buildPos, roomIdx);
         }
 
+        this.playPropsFog(tileComp.node.worldPosition);
         tileComp.addProps(propsData.propsType, propsData.level, propsData.isSpecialSellProps, true);
         tileComp.isRandomPickProps = false;
         tileComp.randomPickPropsRobotId = 0;
@@ -1173,6 +1174,7 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(buildPos, roomIdx);
         }
 
+        this.playPropsFog(tileComp.node.worldPosition);
         tileComp.addProps(carriedData.propsType, carriedData.level, carriedData.isSpecialSellProps, true);
         tileComp.isRandomPickProps = false;
         return true;

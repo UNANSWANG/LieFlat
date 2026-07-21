@@ -217,6 +217,7 @@ export class gamePropsBase extends Component {
         }
         this.level++;
         this.isSpecialSellProps = false;
+        this.gameComp?.playPropsFog(this.tileItemComp?.node.worldPosition);
         this.initPropsImg();
     }
 
@@ -267,6 +268,7 @@ export class gamePropsBase extends Component {
     /**移除道具 */
     removeProps() {
         let tileItemComp = this.tileItemComp;
+        this.gameComp?.playPropsFog(tileItemComp?.node.worldPosition);
         tileItemComp?.removeProps();
         tileItemComp?.checkUpgrade();
     }

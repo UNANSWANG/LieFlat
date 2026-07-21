@@ -79,5 +79,9 @@ export class Tableprops {
     get storeType(): number {
         return this.data.storeType;
     }
+    /** 商店价格 */
+    get storePrice(): number {
+        return this.data.storePrice;
+    }
 }
     

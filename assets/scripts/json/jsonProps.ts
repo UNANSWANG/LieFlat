@@ -13,6 +13,8 @@ export class jsonProps extends jsonBase {
     private propsData: JsonPropsData[][] = [];
     /**可随机生成的道具数据 */
     private randomPropsData: JsonPropsData[] = [];
+    /**神秘商店道具数据 */
+    private storePropsData: JsonPropsData[][] = [];
 
     /**表格处理 */
     protected processTableData() {
@@ -20,7 +22,7 @@ export class jsonProps extends jsonBase {
         this.propsData = [];
         this.randomPropsData = [];
         for (let i = 0; i < this.data.length; i++) {
-            let data = this.data[i];
+            let data : JsonPropsData = this.data[i];
             if (this.propsData.hasOwnProperty(data.propsType)) {
                 this.propsData[data.propsType].push(data);
             } else {
@@ -30,9 +32,22 @@ export class jsonProps extends jsonBase {
             if (data.isRandom == 1) {
                 this.randomPropsData.push(data);
             }
+
+            if(data.hasOwnProperty("storeType")){
+                let storeType = data.storeType - 1;
+                if(storeType < 0){
+                    continue;
+                }
+                if(!this.storePropsData[storeType]){
+                    this.storePropsData[storeType] = [data];
+                }else{
+                    this.storePropsData[storeType].push(data);
+                }
+            }
         }
         console.warn("-------->初始化道具分类型数据:\n",this.propsData);
         console.warn("-------->初始化可随机生成道具数据:\n",this.randomPropsData);
+        console.warn("-------->初始化神秘商店道具数据:\n",this.storePropsData);
     }
 
     /**获取指定类型道具数据 */
@@ -92,6 +107,8 @@ export interface JsonPropsData {
     level: number;
     /**神秘商店类型 */
     storeType: number;
+    /**商店价格 */
+    storePrice: number;
 }
 
 

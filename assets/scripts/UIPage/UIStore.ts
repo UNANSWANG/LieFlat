@@ -47,7 +47,6 @@ export class UIStore extends UIBase {
     }
 
     initData() {
-        this.currentTypeIdx = 0;
         this.refreshPage();
         this.refreshList();
     }

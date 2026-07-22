@@ -139,6 +139,8 @@ export class UIBuild extends UIBase {
             let propsImg = propsItem.getChildByName("propsImg").getComponent(Sprite);
             let desLab = propsItem.getChildByName("desLab").getComponent(Label);
             let nameLab = propsItem.getChildByName("nameLab").getComponent(Label);
+            let numNode = propsItem.getChildByName("numNode");
+            let numLab = numNode.getChildByName("numLab").getComponent(Label);
             let buyBtn = propsItem.getChildByName("buyBtn");
             let buyLayout = buyBtn.getChildByName("layout");
             let coinLayout = buyLayout.getChildByName("coinNumLayout");
@@ -149,6 +151,13 @@ export class UIBuild extends UIBase {
 
             let powerNum = propsData.power;
             let coinNum = propsData.coin;
+            let isStoreProps = propsData.hasOwnProperty("storeType") && propsData.storeType > 0;
+            let propsNum = isStoreProps ? pData.getLevelPropsNum(propsData.propsType, propsData.level) : 0;
+            let propsNumText = propsNum < 100 ? propsNum + "" : "99+";
+
+            numNode.active = isStoreProps && propsNum > 0;
+            numLab.string = propsNumText;
+
             if (propsData.builNumMax && propsData.builNumMax > 0) {
                 let buildCount = this.getPropsBuildLimitCount(propsData);
                 limitLab.string = `可建造 ${buildCount}/${propsData.builNumMax}`;

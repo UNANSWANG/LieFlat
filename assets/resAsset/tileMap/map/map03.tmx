@@ -219,7 +219,7 @@
   <object id="231" x="576" y="1472" width="64" height="64"/>
   <object id="232" x="320" y="1536" width="64" height="64"/>
   <object id="233" x="384" y="1536" width="64" height="64"/>
-  <object id="234" x="448" y="1536" width="64" height="64"/>
+  <object id="234" name="bed" x="448" y="1536" width="64" height="64"/>
   <object id="236" x="512" y="1536" width="64" height="64"/>
   <object id="237" x="576" y="1536" width="64" height="64"/>
   <object id="238" x="320" y="1600" width="64" height="64"/>

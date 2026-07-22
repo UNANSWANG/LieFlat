@@ -204,7 +204,6 @@
   <object id="226" x="1920" y="1856" width="64" height="64"/>
   <object id="227" x="1984" y="1856" width="64" height="64"/>
   <object id="228" x="2048" y="1856" width="64" height="64"/>
-  <object id="229" x="2112" y="1856" height="64"/>
   <object id="231" x="2112" y="1856" width="64" height="64"/>
   <object id="232" x="1920" y="1792" width="64" height="64"/>
   <object id="233" x="1984" y="1792" width="64" height="64"/>
@@ -343,7 +342,7 @@
  <objectgroup id="6" name="room4">
   <object id="134" x="2176" y="384" width="64" height="64"/>
   <object id="135" x="2176" y="448" width="64" height="64"/>
-  <object id="136" x="2176" y="512" width="64" height="64"/>
+  <object id="136" name="bed" x="2176" y="512" width="64" height="64"/>
   <object id="137" x="2176" y="576" width="64" height="64"/>
   <object id="138" x="2176" y="640" width="64" height="64"/>
   <object id="139" x="2176" y="704" width="64" height="64"/>

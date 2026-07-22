@@ -48,23 +48,23 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,23,24,25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="2" name="obj" visible="0">
-  <object id="1" name="怪物出生点" x="1024" y="0" width="64" height="64">
+ <objectgroup id="2" name="obj">
+  <object id="1" name="怪物出生点" x="1024" y="64" width="64" height="64">
    <properties>
     <property name="monsterBorn" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="2" name="怪物出生点" x="2176" y="1344" width="64" height="64">
+  <object id="2" name="怪物出生点" x="2112" y="1344" width="64" height="64">
    <properties>
     <property name="monsterBorn" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="3" name="怪物出生点" x="0" y="1344" width="64" height="64">
+  <object id="3" name="怪物出生点" x="64" y="1344" width="64" height="64">
    <properties>
     <property name="monsterBorn" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="4" name="怪物出生点" x="1024" y="2624" width="64" height="64">
+  <object id="4" name="怪物出生点" x="1024" y="2560" width="64" height="64">
    <properties>
     <property name="monsterBorn" type="bool" value="true"/>
    </properties>
@@ -193,7 +193,7 @@
   <object id="34" x="448" y="320" width="64" height="64"/>
   <object id="35" x="512" y="320" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="4" name="room2" visible="0">
+ <objectgroup id="4" name="room2">
   <object id="36" name="door" x="1088" y="512" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="2"/>
@@ -224,7 +224,7 @@
   <object id="58" name="bed" x="1088" y="384" width="64" height="64"/>
   <object id="59" x="1088" y="320" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="5" name="room3" visible="0">
+ <objectgroup id="5" name="room3">
   <object id="60" name="door" x="1792" y="640" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="0"/>
@@ -247,7 +247,7 @@
   <object id="74" name="bed" x="1792" y="384" width="64" height="64"/>
   <object id="75" x="1792" y="320" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="6" name="room4" visible="0">
+ <objectgroup id="6" name="room4">
   <object id="76" name="door" x="512" y="1088" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="1"/>
@@ -281,7 +281,7 @@
   <object id="102" x="320" y="960" width="64" height="64"/>
   <object id="103" name="bed" x="320" y="1024" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="7" name="room5" visible="0">
+ <objectgroup id="7" name="room5">
   <object id="105" name="door" x="1152" y="896" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="1"/>
@@ -309,7 +309,7 @@
   <object id="124" x="1152" y="1216" width="64" height="64"/>
   <object id="125" name="bed" x="1152" y="1152" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="8" name="room6" visible="0">
+ <objectgroup id="8" name="room6">
   <object id="126" name="door" x="1664" y="1280" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="0"/>
@@ -336,7 +336,7 @@
   <object id="144" x="1664" y="960" width="64" height="64"/>
   <object id="145" name="bed" x="1664" y="1024" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="9" name="room7" visible="0">
+ <objectgroup id="9" name="room7">
   <object id="146" name="door" x="512" y="1472" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="1"/>
@@ -367,7 +367,7 @@
   <object id="168" x="512" y="1792" width="64" height="64"/>
   <object id="169" x="576" y="1792" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="10" name="room8" visible="0">
+ <objectgroup id="10" name="room8">
   <object id="170" name="door" x="832" y="1600" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="3"/>
@@ -400,7 +400,7 @@
   <object id="194" name="bed" x="1088" y="1600" width="64" height="64"/>
   <object id="195" x="1088" y="1536" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="11" name="room9" visible="0">
+ <objectgroup id="11" name="room9">
   <object id="196" name="door" x="1600" y="1472" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="1"/>
@@ -429,7 +429,7 @@
   <object id="217" x="1792" y="1536" width="64" height="64"/>
   <object id="218" x="1856" y="1536" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="12" name="room10" visible="0">
+ <objectgroup id="12" name="room10">
   <object id="219" name="door" x="384" y="2432" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="0"/>
@@ -461,7 +461,7 @@
   <object id="242" x="448" y="2048" width="64" height="64"/>
   <object id="243" x="512" y="2048" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="13" name="room11" visible="0">
+ <objectgroup id="13" name="room11">
   <object id="244" name="door" x="960" y="2432" width="64" height="64">
    <properties>
     <property name="direction" type="int" value="0"/>

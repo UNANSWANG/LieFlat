@@ -8,6 +8,7 @@ import { imgPath, UIPath } from "../manager/pathConfig";
 import { pData } from "../manager/playerData";
 import { playerMgr } from "../manager/playerManager";
 import { uiMgr } from "../manager/UIManager";
+import { videoMgr } from "../manager/videoManager";
 import { UIBase } from "./UIBase";
 const { ccclass, property } = _decorator;
 import { _decorator, instantiate, Label, Node, Prefab, Sprite, UITransform, Vec2, Vec3 } from 'cc';
@@ -142,6 +143,7 @@ export class UIBuild extends UIBase {
             let numNode = propsItem.getChildByName("numNode");
             let numLab = numNode.getChildByName("numLab").getComponent(Label);
             let buyBtn = propsItem.getChildByName("buyBtn");
+            let adBtn = propsItem.getChildByName("adBtn");
             let buyLayout = buyBtn.getChildByName("layout");
             let coinLayout = buyLayout.getChildByName("coinNumLayout");
             let powerLayout = buyLayout.getChildByName("powerNumLayout");
@@ -151,12 +153,14 @@ export class UIBuild extends UIBase {
 
             let powerNum = propsData.power;
             let coinNum = propsData.coin;
-            let isStoreProps = propsData.hasOwnProperty("storeType") && propsData.storeType > 0;
-            let propsNum = isStoreProps ? pData.getLevelPropsNum(propsData.propsType, propsData.level) : 0;
+            let isStoreProps = this.isStoreProps(propsData);
+            let propsNum = this.getStorePropsNum(propsData);
             let propsNumText = propsNum < 100 ? propsNum + "" : "99+";
 
             numNode.active = isStoreProps && propsNum > 0;
             numLab.string = propsNumText;
+            buyBtn.active = !isStoreProps || propsNum > 0;
+            adBtn.active = isStoreProps && propsNum <= 0;
 
             if (propsData.builNumMax && propsData.builNumMax > 0) {
                 let buildCount = this.getPropsBuildLimitCount(propsData);
@@ -193,11 +197,10 @@ export class UIBuild extends UIBase {
             nameLab.string = propsData.name;
             ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + (propsData.level - 1));
 
-            let btnComp = buyBtn.getComponent(zoomButton);
-            if (!btnComp) {
-                btnComp = buyBtn.addComponent(zoomButton);
-                btnComp.onClick = this.clickBuyBtn.bind(this, i);
-            }
+            let btnComp = buyBtn.getComponent(zoomButton) || buyBtn.addComponent(zoomButton);
+            let adBtnComp = adBtn.getComponent(zoomButton) || adBtn.addComponent(zoomButton);
+            btnComp.onClick = this.clickBuyBtn.bind(this, i);
+            adBtnComp.onClick = this.clickAdBtn.bind(this, i);
         }
 
         let addOffset = 139;
@@ -233,9 +236,28 @@ export class UIBuild extends UIBase {
         let buyBg = buyBtn.getChildByName("bg");
         let grayBg = buyBg.getChildByName("gray");
         let normalBg = buyBg.getChildByName("normal");
-        let canBuy = ccTools.checkCanBuy(propsData) && !this.isBuildNumLimit(propsData);
+        let canBuy = ccTools.checkCanBuy(propsData) && !this.isBuildNumLimit(propsData) && this.hasStorePropsNum(propsData);
         grayBg.active = !canBuy;
         normalBg.active = canBuy;
+    }
+
+    /**是否为商城数量限制道具 */
+    private isStoreProps(propsData: any) {
+        return propsData?.hasOwnProperty("storeType") && propsData.storeType > 0;
+    }
+
+    /**获取商城数量限制道具的数量 */
+    private getStorePropsNum(propsData: any) {
+        if (!this.isStoreProps(propsData)) {
+            return 0;
+        }
+
+        return pData.getLevelPropsNum(propsData.propsType, propsData.level);
+    }
+
+    /**是否拥有商城数量限制道具 */
+    private hasStorePropsNum(propsData: any) {
+        return !this.isStoreProps(propsData) || this.getStorePropsNum(propsData) > 0;
     }
 
     /**获取当前房间内指定类型道具数量 */
@@ -292,6 +314,8 @@ export class UIBuild extends UIBase {
         let curData = this.currentPropsDataArr[idx];
         if (this.isBuildNumLimit(curData)) {
             uiMgr.showTips("建造数量已达上限");
+        } else if (!this.hasStorePropsNum(curData)) {
+            uiMgr.showTips("道具数量不足");
         } else if (curData.coin > 0 && curData.coin > pData.gameCoin) {
             uiMgr.showTips("金币不足");
         } else if (curData.power > 0 && curData.power > pData.gamePower) {
@@ -306,8 +330,25 @@ export class UIBuild extends UIBase {
             if (curData.power > 0) {
                 pData.fixGamePower(-curData.power);
             }
-            gm.Event.emit(GameEvent.createProps, this.tilePos, curData.propsType as tilePropsType, curData.level);
+            if (this.isStoreProps(curData)) {
+                pData.fixLevelPropsNum(curData.propsType, curData.level, -1);
+            }
+            gm.Event.emit(GameEvent.createProps, this.tilePos, curData.propsType as tilePropsType, (curData.level - 1));
         }
+    }
+
+    /**点击广告按钮 */
+    clickAdBtn(idx: number) {
+        let curData = this.currentPropsDataArr[idx];
+        if (!this.isStoreProps(curData) || this.getStorePropsNum(curData) > 0) {
+            return;
+        }
+
+        videoMgr.watchVideo(68, () => {
+            pData.fixLevelPropsNum(curData.propsType, curData.level);
+            uiMgr.showTips(`获取${curData.name}*1`);
+            this.refreshPage();
+        });
     }
 
     onClose() {

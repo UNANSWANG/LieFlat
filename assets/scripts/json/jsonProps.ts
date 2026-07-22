@@ -109,7 +109,7 @@ export interface JsonPropsData {
     builNumMax: number;
     /**是否随机生成 */
     isRandom: number;
-    /**等级 */
+    /**等级*/
     level: number;
     /**神秘商店类型 */
     storeType: number;

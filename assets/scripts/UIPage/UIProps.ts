@@ -173,7 +173,9 @@ export class UIProps extends UIBase {
             let powerLayout = buyLayout.getChildByName("powerNumLayout");
             let coinNumLab = coinLayout.getChildByName("numLab").getComponent(Label);
             let powerNumLab = powerLayout.getChildByName("numLab").getComponent(Label);
+            let numNode = propsItem.getChildByName("numNode");
 
+            numNode.active = false;
             let powerNum = 0;
             let coinNum = 0;
             limitLab.string = "";
@@ -213,10 +215,10 @@ export class UIProps extends UIBase {
                 normalBg.active = false;
                 adBg.active = false;
                 //第二个默认是拆除
-                desLab.string = "摧毁当前建筑，并返回一定的资源。";
+                desLab.string = "回收当前建筑，并返回一定的资源。";
                 coinNumLab.string = "+" + coinNum;
                 powerNumLab.string = "+" + powerNum;
-                nameLab.string = "拆除";
+                nameLab.string = "回收";
                 ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + "remove");
             } else if (i == 2) {
                 //广告升级门

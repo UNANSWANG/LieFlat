@@ -148,6 +148,8 @@ export class UIStore extends UIBase {
             return;
         }
 
+        uiMgr.showTips(`获取${propsData.name}*1`);
+
         pData.fixMoney(-propsData.storePrice);
         pData.fixLevelPropsNum(propsData.propsType, propsData.level);
     }
@@ -159,6 +161,7 @@ export class UIStore extends UIBase {
         }
 
         videoMgr.watchVideo(68, () => {
+            uiMgr.showTips(`获取${propsData.name}*1`);
             pData.fixLevelPropsNum(propsData.propsType, propsData.level);
         });
     }

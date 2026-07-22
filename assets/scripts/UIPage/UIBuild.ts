@@ -151,8 +151,9 @@ export class UIBuild extends UIBase {
             let coinNumLab = coinLayout.getChildByName("numLab").getComponent(Label);
             let powerNumLab = powerLayout.getChildByName("numLab").getComponent(Label);
 
-            let powerNum = propsData.power;
-            let coinNum = propsData.coin;
+            let buildPrice = this.getBuildPrice(propsData);
+            let powerNum = buildPrice.power;
+            let coinNum = buildPrice.coin;
             let isStoreProps = this.isStoreProps(propsData);
             let propsNum = this.getStorePropsNum(propsData);
             let propsNumText = propsNum < 100 ? propsNum + "" : "99+";
@@ -192,8 +193,8 @@ export class UIBuild extends UIBase {
             }
 
             desLab.string = propsData.desc;
-            coinNumLab.string = propsData.coin + "";
-            powerNumLab.string = propsData.power + "";
+            coinNumLab.string = coinNum + "";
+            powerNumLab.string = powerNum + "";
             nameLab.string = propsData.name;
             ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + propsData.level);
 
@@ -236,9 +237,53 @@ export class UIBuild extends UIBase {
         let buyBg = buyBtn.getChildByName("bg");
         let grayBg = buyBg.getChildByName("gray");
         let normalBg = buyBg.getChildByName("normal");
-        let canBuy = ccTools.checkCanBuy(propsData) && !this.isBuildNumLimit(propsData) && this.hasStorePropsNum(propsData);
+        let canBuy = ccTools.checkCanBuy(this.getBuildPrice(propsData)) && !this.isBuildNumLimit(propsData) && this.hasStorePropsNum(propsData);
         grayBg.active = !canBuy;
         normalBg.active = canBuy;
+    }
+
+    /**获取建造价格 */
+    private getBuildPrice(propsData: any) {
+        let buildPrice = {
+            coin: Number(propsData?.coin) || 0,
+            power: Number(propsData?.power) || 0,
+        };
+        if (propsData?.propsType != tilePropsType.box || !propsData.priceArray) {
+            return buildPrice;
+        }
+
+        let priceArray = [];
+        try {
+            priceArray = JSON.parse(propsData.priceArray);
+        } catch (error) {
+            console.error("魔盒建造价格配置解析失败", propsData.priceArray, error);
+            return buildPrice;
+        }
+
+        if (!Array.isArray(priceArray) || priceArray.length == 0) {
+            return buildPrice;
+        }
+
+        let buildCount = this.getPropsBuildLimitCount(propsData);
+        let currentPrice = priceArray[Math.min(buildCount, priceArray.length - 1)];
+        if (!Array.isArray(currentPrice)) {
+            return buildPrice;
+        }
+
+        buildPrice.coin = 0;
+        buildPrice.power = 0;
+        currentPrice.forEach((priceItem) => {
+            if (!Array.isArray(priceItem) || priceItem.length < 2) {
+                return;
+            }
+
+            if (priceItem[0] == "coin") {
+                buildPrice.coin = Number(priceItem[1]) || 0;
+            } else if (priceItem[0] == "power") {
+                buildPrice.power = Number(priceItem[1]) || 0;
+            }
+        });
+        return buildPrice;
     }
 
     /**是否为商城数量限制道具 */
@@ -312,23 +357,24 @@ export class UIBuild extends UIBase {
     /**点击购买按钮 */
     clickBuyBtn(idx: number) {
         let curData = this.currentPropsDataArr[idx];
+        let buildPrice = this.getBuildPrice(curData);
         if (this.isBuildNumLimit(curData)) {
             uiMgr.showTips("建造数量已达上限");
         } else if (!this.hasStorePropsNum(curData)) {
             uiMgr.showTips("道具数量不足");
-        } else if (curData.coin > 0 && curData.coin > pData.gameCoin) {
+        } else if (buildPrice.coin > 0 && buildPrice.coin > pData.gameCoin) {
             uiMgr.showTips("金币不足");
-        } else if (curData.power > 0 && curData.power > pData.gamePower) {
+        } else if (buildPrice.power > 0 && buildPrice.power > pData.gamePower) {
             uiMgr.showTips("电能不足");
         } else {
             this.onClose();
             //扣除金币
-            if (curData.coin > 0) {
-                pData.fixGameCoin(-curData.coin);
+            if (buildPrice.coin > 0) {
+                pData.fixGameCoin(-buildPrice.coin);
             }
             //扣除电能
-            if (curData.power > 0) {
-                pData.fixGamePower(-curData.power);
+            if (buildPrice.power > 0) {
+                pData.fixGamePower(-buildPrice.power);
             }
             if (this.isStoreProps(curData)) {
                 pData.fixLevelPropsNum(curData.propsType, curData.level, -1);

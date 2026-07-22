@@ -232,7 +232,7 @@
   <object id="209" x="320" y="896" width="64" height="64"/>
   <object id="210" x="384" y="896" width="64" height="64"/>
   <object id="211" x="448" y="896" width="64" height="64"/>
-  <object id="212" x="512" y="896" width="64" height="64"/>
+  <object id="212" name="bed" x="512" y="896" width="64" height="64"/>
   <object id="213" x="576" y="896" width="64" height="64"/>
   <object id="214" x="320" y="960" width="64" height="64"/>
   <object id="215" x="320" y="1024" width="64" height="64"/>

@@ -190,6 +190,43 @@ export class playerData {
         }
     }
 
+    /**获取带等级道具的存储键 */
+    private getLevelPropsNumKey(propsType: string, level: number) {
+        return propsType + "_" + level;
+    }
+
+    /**设置带等级道具数量 */
+    setLevelPropsNum(propsType: string, level: number, num: number) {
+        if (num < 0) {
+            num = 0;
+        }
+        let propsKey = this.getLevelPropsNumKey(propsType, level);
+        this.propsNums[propsKey] = num;
+        ccStorageTools.setData(SaveKey.props, this.propsNums);
+        gm.Event.emit(GameEvent.refreshProps);
+    }
+
+    /**获取带等级道具数量 */
+    getLevelPropsNum(propsType: string, level: number) {
+        let propsKey = this.getLevelPropsNumKey(propsType, level);
+        return this.propsNums[propsKey] || 0;
+    }
+
+    /**修改带等级道具数量 */
+    fixLevelPropsNum(propsType: string, level: number, num = 1, isRefresh = true) {
+        let propsKey = this.getLevelPropsNumKey(propsType, level);
+        let tempNum = this.propsNums[propsKey] || 0;
+        tempNum += num;
+        if (tempNum < 0) {
+            tempNum = 0;
+        }
+        this.propsNums[propsKey] = tempNum;
+        ccStorageTools.setData(SaveKey.props, this.propsNums);
+        if (isRefresh) {
+            gm.Event.emit(GameEvent.refreshProps);
+        }
+    }
+
     /**修改游戏外货币（场外） */
     fixMoney(money: number) {
         this.money += money;

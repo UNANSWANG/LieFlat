@@ -5,6 +5,10 @@ import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { propsConfig } from '../json/jsonProps';
 import { ccTools } from '../extention/generalTools';
+import { pData } from '../manager/playerData';
+import { GameEvent } from '../manager/configData';
+import { gm } from '../manager/gm';
+import { videoMgr } from '../manager/videoManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIStore')
@@ -26,6 +30,14 @@ export class UIStore extends UIBase {
 
     protected onLoad(): void {
         this.bindBtn();
+    }
+
+    protected onEnable(): void {
+        gm.Event.on(GameEvent.refreshProps, this.refreshList, this);
+    }
+
+    protected onDisable(): void {
+        gm.Event.off(GameEvent.refreshProps, this.refreshList, this);
     }
 
     onUI_Open() {
@@ -81,13 +93,27 @@ export class UIStore extends UIBase {
             let buyBtn = item.getChildByName("buyBtn");
             let adBtn = item.getChildByName("adBtn");
             let moneyLab = buyBtn.getChildByName("moneyLab").getComponent(Label);
+            let hasLab = item.getChildByName("hasLab").getComponent(Label);
+            let numNode = item.getChildByName("numNode");
+            let numLab = numNode.getChildByName("numLab").getComponent(Label);
+            let propsNum = pData.getLevelPropsNum(propsData.propsType, propsData.level);
+            let buyBtnComp = buyBtn.getComponent(zoomButton) || buyBtn.addComponent(zoomButton);
+            let adBtnComp = adBtn.getComponent(zoomButton) || adBtn.addComponent(zoomButton);
+
+            numNode.active = propsNum > 0;
+            let propsNumText = propsNum < 100 ? propsNum + "" : "99+";
 
             buyBtn.active = propsData.storePrice >= 0;
             adBtn.active = propsData.storePrice < 0;
 
             descLab.string = propsData.desc;
             moneyLab.string = propsData.storePrice + "";
+            hasLab.string = "已拥有：" + propsNumText;
+            numLab.string = propsNumText;
             ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + propsData.propsType + "_" + (propsData.level - 1));
+
+            buyBtnComp.onClick = this.clickBuyBtn.bind(this, propsData);
+            adBtnComp.onClick = this.clickAdBtn.bind(this, propsData);
         }
 
         this.scrol.scrollToTop();
@@ -110,6 +136,32 @@ export class UIStore extends UIBase {
         this.currentTypeIdx = idx;
         this.refreshPage();
         this.refreshList();
+    }
+
+    /**点击购买道具 */
+    clickBuyBtn(propsData) {
+        if (!propsData || propsData.storePrice < 0) {
+            return;
+        }
+
+        if (pData.money < propsData.storePrice) {
+            uiMgr.showTips("货币不够");
+            return;
+        }
+
+        pData.fixMoney(-propsData.storePrice);
+        pData.fixLevelPropsNum(propsData.propsType, propsData.level);
+    }
+
+    /**点击广告领取道具 */
+    clickAdBtn(propsData) {
+        if (!propsData || propsData.storePrice >= 0) {
+            return;
+        }
+
+        videoMgr.watchVideo(68, () => {
+            pData.fixLevelPropsNum(propsData.propsType, propsData.level);
+        });
     }
 
     onClose() {

@@ -733,7 +733,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 160.55288696289062,
+      "width": 160.01953125,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -772,8 +772,8 @@
     "_string": "已拥有：XX",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30.1,
-    "_fontSize": 30.1,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,

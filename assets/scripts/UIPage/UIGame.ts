@@ -1082,6 +1082,10 @@ export class UIGame extends UIBase {
             return true;
         }
 
+        if (this.isCarriedPropsBuildNumLimit(roomIdx, propsData.propsType, propsData.level)) {
+            return true;
+        }
+
         let roomData: roomData = this.roomMap[roomIdx];
         let buildPos = this.getRandomEmptyPosInRoom(roomData);
         if (!buildPos) {
@@ -1167,6 +1171,12 @@ export class UIGame extends UIBase {
             return true;
         }
 
+        let carriedData = this.carriedRandomProps;
+        if (this.isCarriedPropsBuildNumLimit(roomIdx, carriedData.propsType, carriedData.level)) {
+            this.clearCarriedRandomProps();
+            return true;
+        }
+
         let roomData: roomData = this.roomMap[roomIdx];
         let buildPos = this.getRandomEmptyPosInRoom(roomData);
         if (!buildPos) {
@@ -1174,7 +1184,6 @@ export class UIGame extends UIBase {
             return false;
         }
 
-        let carriedData = this.carriedRandomProps;
         carriedData.propsComp?.clearData();
         if (carriedData.propsComp) {
             carriedData.propsComp.enabled = false;
@@ -1284,6 +1293,12 @@ export class UIGame extends UIBase {
         }
 
         return this.getRoomPropsCountByType(roomIdx, propsData.propsType) >= propsData.builNumMax;
+    }
+
+    /**携带的随机道具是否达到目标房间建造上限 */
+    private isCarriedPropsBuildNumLimit(roomIdx: number, propsType: tilePropsType, level: number) {
+        let propsData = propsConfig.getPropsData(propsType)?.[level];
+        return this.isRoomBuildNumLimit(roomIdx, propsData);
     }
 
     /**敌人破坏床铺后，将房间瓦片补齐并置灰 */

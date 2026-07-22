@@ -232,7 +232,7 @@ export class gamePropsBase extends Component {
 
         tween(node)
             .set({ scale: new Vec3(1, 1, 1) })
-            .to(0.05, { scale: new Vec3(0.9, 0.9, 1) })
+            .to(0.05, { scale: new Vec3(0.8, 0.8, 1) })
             .to(0.15, { scale: new Vec3(1, 1, 1) }, { easing: "backOut" })
             .start();
     }

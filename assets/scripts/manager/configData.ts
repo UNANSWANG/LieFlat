@@ -36,6 +36,8 @@ export const configData = {
     propsImgSwitchSpeed: 0.5,
     /**人物消失时间（秒） */
     roleDisappearTime: 0.5,
+    /**人机匹配显示时间区间（秒） */
+    roleMatchTime: [0.5, 1.2],
 }
 
 /**敌人通用配置 */

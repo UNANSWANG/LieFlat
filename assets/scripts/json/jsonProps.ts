@@ -116,6 +116,8 @@ export interface JsonPropsData {
     storeType: number;
     /**商店价格 */
     storePrice: number;
+    /**价格数组 */
+    priceArray: string;
 }
 
 

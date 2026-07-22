@@ -83,5 +83,9 @@ export class Tableprops {
     get storePrice(): number {
         return this.data.storePrice;
     }
+    /** 价格数组 */
+    get priceArray(): string {
+        return this.data.priceArray;
+    }
 }
     

@@ -937,7 +937,7 @@ export class UIGame extends UIBase {
                 continue;
             }
 
-            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData), true, false);
+            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, propsData.level, true, false);
             createCount++;
         }
     }
@@ -962,7 +962,7 @@ export class UIGame extends UIBase {
                 continue;
             }
 
-            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData), false, true);
+            this.createInitialProps(buildPos, propsData.propsType as tilePropsType, propsData.level, false, true);
         }
     }
 
@@ -995,11 +995,6 @@ export class UIGame extends UIBase {
         }
 
         return min + Math.floor(Math.random() * (max - min + 1));
-    }
-
-    /**随机道具表等级从1开始，道具组件等级从0开始 */
-    private getCreateLevelByPropsData(propsData: JsonPropsData) {
-        return Math.max(0, (Number(propsData?.level) || 1) - 1);
     }
 
     /**在指定位置生成开局道具，不记录角色建造次数 */

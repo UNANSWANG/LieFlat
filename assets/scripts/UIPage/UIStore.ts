@@ -109,7 +109,7 @@ export class UIStore extends UIBase {
             moneyLab.string = propsData.storePrice + "";
             hasLab.string = "已拥有：" + propsNumText;
             numLab.string = propsNumText;
-            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + propsData.propsType + "_" + (propsData.level - 1));
+            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + propsData.propsType + "_" + propsData.level);
 
             buyBtnComp.onClick = this.clickBuyBtn.bind(this, propsData);
             adBtnComp.onClick = this.clickAdBtn.bind(this, propsData);

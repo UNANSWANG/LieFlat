@@ -195,7 +195,7 @@ export class UIBuild extends UIBase {
             coinNumLab.string = propsData.coin + "";
             powerNumLab.string = propsData.power + "";
             nameLab.string = propsData.name;
-            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + (propsData.level - 1));
+            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + propsData.level);
 
             let btnComp = buyBtn.getComponent(zoomButton) || buyBtn.addComponent(zoomButton);
             let adBtnComp = adBtn.getComponent(zoomButton) || adBtn.addComponent(zoomButton);
@@ -333,7 +333,7 @@ export class UIBuild extends UIBase {
             if (this.isStoreProps(curData)) {
                 pData.fixLevelPropsNum(curData.propsType, curData.level, -1);
             }
-            gm.Event.emit(GameEvent.createProps, this.tilePos, curData.propsType as tilePropsType, (curData.level - 1));
+            gm.Event.emit(GameEvent.createProps, this.tilePos, curData.propsType as tilePropsType, curData.level);
         }
     }
 

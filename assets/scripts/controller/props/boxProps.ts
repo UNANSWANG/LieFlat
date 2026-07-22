@@ -108,13 +108,8 @@ export class boxProps extends gamePropsBase {
         }
 
         setTimeout(() => {
-            tileItemComp.addProps(propsData.propsType as tilePropsType, this.getCreateLevelByPropsData(propsData));
+            tileItemComp.addProps(propsData.propsType as tilePropsType, propsData.level);
         }, 0);
-    }
-
-    /**随机道具表等级从1开始，道具组件等级从0开始 */
-    private getCreateLevelByPropsData(propsData: JsonPropsData) {
-        return Math.max(0, (Number(propsData?.level) || 1) - 1);
     }
 
     /**获取未达到房间生成上限的随机道具 */

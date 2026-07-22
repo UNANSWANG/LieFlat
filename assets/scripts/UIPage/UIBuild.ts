@@ -134,9 +134,6 @@ export class UIBuild extends UIBase {
 
             propsData = propsTypeData[level];
 
-            //增加level属性
-            propsData.level = level;
-
             this.currentPropsDataArr.push(propsData);
 
             let propsImg = propsItem.getChildByName("propsImg").getComponent(Sprite);
@@ -185,7 +182,7 @@ export class UIBuild extends UIBase {
             coinNumLab.string = propsData.coin + "";
             powerNumLab.string = propsData.power + "";
             nameLab.string = propsData.name;
-            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + propsData.level);
+            ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + currentPropsTypeArr[i].type + "_" + (propsData.level - 1));
 
             let btnComp = buyBtn.getComponent(zoomButton);
             if (!btnComp) {

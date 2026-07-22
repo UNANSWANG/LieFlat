@@ -13,7 +13,7 @@ const { ccclass, property } = _decorator;
 export class netProps extends gamePropsBase {
     /**网住敌人的时间 */
     netDuration: number = 2;
-    /**渔网发射目标 */
+    /**蛛网发射目标 */
     private targetEnemy: enemyBaseController = null;
     /**是否已经触发 */
     private hasTriggered: boolean = false;
@@ -38,12 +38,12 @@ export class netProps extends gamePropsBase {
         this.hasTriggered = false;
     }
 
-    /**消失时向敌人发射渔网 */
+    /**消失时向敌人发射蛛网 */
     onDisappear() {
         this.shootNet();
     }
 
-    /**触发指定房间内渔网 */
+    /**触发指定房间内蛛网 */
     static tryTriggerRoomNet(gameComp: any, roomIdx: number, target: enemyBaseController) {
         let netComp = netProps.getRoomNetComp(gameComp, roomIdx);
         if (!netComp || netComp.hasTriggered || !target || !target.node || !target.node.isValid) {
@@ -56,7 +56,7 @@ export class netProps extends gamePropsBase {
         return true;
     }
 
-    /**获取指定房间内正在生效的渔网 */
+    /**获取指定房间内正在生效的蛛网 */
     private static getRoomNetComp(gameComp: any, roomIdx: number) {
         let roomData = gameComp?.roomMap?.[roomIdx];
         if (!roomData || roomIdx <= 0) {
@@ -75,7 +75,7 @@ export class netProps extends gamePropsBase {
         return null;
     }
 
-    /**发射渔网 */
+    /**发射蛛网 */
     private shootNet() {
         if (!this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid || !uiMgr.gameSpriteItemPrefab) {
             return;

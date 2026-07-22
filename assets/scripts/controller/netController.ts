@@ -20,7 +20,7 @@ export class netController extends Component {
     /**是否已经命中 */
     private hasHit: boolean = false;
 
-    /**初始化渔网 */
+    /**初始化蛛网 */
     init(target: enemyBaseController, duration: number, imgPath: string) {
         this.target = target;
         this.duration = duration;
@@ -65,7 +65,7 @@ export class netController extends Component {
         );
     }
 
-    /**刷新渔网朝向，返回与目标的距离 */
+    /**刷新蛛网朝向，返回与目标的距离 */
     private refreshDirection() {
         if (!this.isTargetValid()) {
             return 0;
@@ -111,7 +111,7 @@ export class netController extends Component {
         this.scheduleOnce(this.finishControl, this.duration);
     }
 
-    /**刷新命中后渔网停留位置 */
+    /**刷新命中后蛛网停留位置 */
     private refreshHitPosition() {
         if (!this.isTargetValid()) {
             this.recycle();
@@ -136,7 +136,7 @@ export class netController extends Component {
         this.recycle();
     }
 
-    /**移除渔网 */
+    /**移除蛛网 */
     private recycle() {
         this.unschedule(this.finishControl);
         this.target = null;

@@ -129,7 +129,7 @@ export class enemyBaseController extends Component {
     private isRaging: boolean = false;
     /**是否被铁笼控制 */
     private isCageControlled: boolean = false;
-    /**是否被渔网控制 */
+    /**是否被蛛网控制 */
     private isNetControlled: boolean = false;
     /**是否被铡刀控制 */
     private isSawControlled: boolean = false;
@@ -438,7 +438,7 @@ export class enemyBaseController extends Component {
         this.refreshRoleAnimTimeScale();
     }
 
-    /**渔网控制 */
+    /**蛛网控制 */
     netControl(time: number) {
         if (time <= 0) {
             return;
@@ -1928,7 +1928,7 @@ export class enemyBaseController extends Component {
         this.refreshRoleAnimTimeScale();
     }
 
-    /**结束渔网控制 */
+    /**结束蛛网控制 */
     private stopNetControl() {
         if (!this.isNetControlled) {
             return;
@@ -1948,7 +1948,7 @@ export class enemyBaseController extends Component {
         this.isSawControlled = false;
     }
 
-    /**触发当前攻击房间内的渔网 */
+    /**触发当前攻击房间内的蛛网 */
     private tryTriggerRoomNet(roomIdx: number) {
         return netProps.tryTriggerRoomNet(this.gameComp, roomIdx, this);
     }

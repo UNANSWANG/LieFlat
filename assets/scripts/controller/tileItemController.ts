@@ -53,7 +53,7 @@ export enum tilePropsType {
     printer = "printer",
     /**千年寒冰 */
     ice = "ice",
-    /**渔网 */
+    /**蛛网 */
     net = "net",
     /**荆棘 */
     thorn = "thorn",

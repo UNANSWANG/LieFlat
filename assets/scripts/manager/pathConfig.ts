@@ -34,6 +34,8 @@ export enum UIPath {
     UISkinStore = "prefabs/UIPage/UISkinStore",
     /**神秘商店 */
     UIStore = "prefabs/UIPage/UIStore",
+    /**匹配页面 */
+    UIMatch = "prefabs/UIPage/UIMatch",
 }
 
 /**物品路径 */
@@ -100,6 +102,8 @@ export enum imgPath {
     roleBody = "texture/role/body/body_",
     /**角色全身 */
     roleBodyFull = "texture/role/all/all_",
+    /**未知角色全身 */
+    unknownRoleBodyFull = "texture/role/all/unKnow",
 }
 
 /**spine路径 */

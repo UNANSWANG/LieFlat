@@ -41,6 +41,10 @@ export class UIMatch extends UIBase {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
     }
 
+    openGame() {
+        uiMgr.startGame();
+    }
+
     ///
     ///点击事件
     ///

@@ -102,7 +102,7 @@ export class UIMain extends UIBase {
 
     /**开始游戏 */
     cliskStartBtn() {
-        uiMgr.startGame();
+        uiMgr.openPage(UIPath.UIMatch);
     }
 
     /**点击设置 */

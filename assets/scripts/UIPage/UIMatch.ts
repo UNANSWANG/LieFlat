@@ -14,6 +14,9 @@ export class UIMatch extends UIBase {
     @property(Node)
     readyBtn: Node;
 
+    @property(Node)
+    readyedBtn: Node;
+
     @property(Label)
     timeLab: Label;
 

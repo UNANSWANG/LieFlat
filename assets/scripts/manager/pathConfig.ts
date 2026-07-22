@@ -104,6 +104,8 @@ export enum imgPath {
     roleBodyFull = "texture/role/all/all_",
     /**未知角色全身 */
     unknownRoleBodyFull = "texture/role/all/unKnow",
+    /**敌人全身 */
+    enemyBodyFull = "texture/boss/all/all_",
 }
 
 /**spine路径 */

@@ -21,6 +21,7 @@ export class jsonProps extends jsonBase {
         super.processTableData();
         this.propsData = [];
         this.randomPropsData = [];
+        this.storePropsData = [];
         for (let i = 0; i < this.data.length; i++) {
             let data : JsonPropsData = this.data[i];
             if (this.propsData.hasOwnProperty(data.propsType)) {
@@ -70,6 +71,11 @@ export class jsonProps extends jsonBase {
     /**获取可随机生成道具数据 */
     getRandomPropsData(): JsonPropsData[] {
         return this.randomPropsData || [];
+    }
+
+    /**获取神秘商店分类型道具数据 */
+    getStorePropsData(): JsonPropsData[][] {
+        return this.storePropsData || [];
     }
 }
 export let propsConfig = new jsonProps();

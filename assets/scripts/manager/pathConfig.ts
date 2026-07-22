@@ -64,6 +64,10 @@ export const mapNameArr = [
     "map01",
     /**地图2 */
     "map02",
+    /**地图3 */
+    "map03",
+    /**地图5 */
+    "map05",
 ]
 
 /**物品路径 */

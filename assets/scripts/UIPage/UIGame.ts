@@ -1818,7 +1818,7 @@ export class UIGame extends UIBase {
         this.stopGameCountDown();
         this.refreshRepairBtnVisible();
 
-        uiMgr.showTips("猎梦者开始行动");
+        uiMgr.showTips("感染者开始行动");
         enemyMgr.enemyArr[0]?.chooseTargetAndFindPath();
     }
 

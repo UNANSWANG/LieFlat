@@ -192,7 +192,7 @@ export class enemyBaseController extends Component {
         this.skinId = skinId;
         this.refreshRoleSpine();
 
-        this.roleNameLab.string = nickname || `猎梦者${this.roleId + 1}`
+        this.roleNameLab.string = nickname || `感染者${this.roleId + 1}`
     }
 
     /**根据皮肤id刷新敌人spine */
@@ -310,7 +310,7 @@ export class enemyBaseController extends Component {
         this.resetAttackDamage();
         this.resetUpgradeTimer();
 
-        uiMgr.showTips(`猎梦者升级，当前等级${this.level + 1}`);
+        uiMgr.showTips(`感染者升级，当前等级${this.level + 1}`);
     }
 
     /**重置升级计时 */
@@ -368,7 +368,7 @@ export class enemyBaseController extends Component {
 
         this.isRageReady = false;
         this.rageUseTimer = 0;
-        uiMgr.showTips("猎梦者释放狂怒技能");
+        uiMgr.showTips("感染者释放狂怒技能");
         if (this.tryStartCageControl()) {
             return true;
         }
@@ -2053,7 +2053,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        uiMgr.showTips("猎梦者释放震慑技能");
+        uiMgr.showTips("感染者释放震慑技能");
         if (this.tryStartCageControl()) {
             this.hasFearCurAttackDoor = true;
             return;

@@ -22,7 +22,7 @@ export class playerData {
     gameCoin = 0;
     /**玩家电能（场内） */
     gamePower = 0;
-    /**玩家金币（场外） */
+    /**感染币（场外） */
     money = 0;
     /**本局可使用广告升级门的次数 */
     adUpgradeDoorCount = 1;
@@ -227,7 +227,7 @@ export class playerData {
         }
     }
 
-    /**修改游戏外货币（场外） */
+    /**修改感染币（场外） */
     fixMoney(money: number) {
         this.money += money;
         if (this.money < 0) {

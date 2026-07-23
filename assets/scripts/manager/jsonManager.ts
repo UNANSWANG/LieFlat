@@ -22,7 +22,6 @@ export class jsonManager  {
             //没有表格直接加载完成
             gm.Event.emit(GameEvent.tableLoadComplete);
         }
-        // levelConfig.initTable();
         propsConfig.initTable();
         commonConfig.initTable();
         nicknameConfig.initTable();

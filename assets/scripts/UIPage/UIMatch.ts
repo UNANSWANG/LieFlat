@@ -7,6 +7,7 @@ import { configData } from '../manager/configData';
 import { pData } from '../manager/playerData';
 import { ccTools } from '../extention/generalTools';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
+import { nicknameConfig } from '../json/jsonNickname';
 const { ccclass, property } = _decorator;
 
 type MatchTarget = {
@@ -57,11 +58,16 @@ export class UIMatch extends UIBase {
     private roleSkinIds: number[] = [];
     /**敌人皮肤 */
     private enemySkinId = 0;
+    /**本次匹配可随机使用的昵称池 */
+    private nicknamePool: string[] = [];
+    /**预制体默认名称，用于重新匹配时重置角色位 */
+    private defaultRoleName = "路人甲";
     /**预制体默认的未知角色图片 */
     private unknownRoleSpriteFrame: SpriteFrame = null;
 
     protected onLoad(): void {
         this.unknownRoleSpriteFrame = this.roleLayout.children[0]?.getChildByName("roleImg")?.getComponent(Sprite)?.spriteFrame || null;
+        this.defaultRoleName = this.roleLayout.children[0]?.getChildByName("nameLab")?.getComponent(Label)?.string || this.defaultRoleName;
         this.bindBtn();
     }
 
@@ -82,6 +88,7 @@ export class UIMatch extends UIBase {
         this.isGamePreloadComplete = false;
         this.matchTargets = [];
         this.roleSkinIds = [];
+        this.nicknamePool = [];
 
         this.readyBtn.active = true;
         this.readyedBtn.active = false;
@@ -98,12 +105,20 @@ export class UIMatch extends UIBase {
             if (selectNode) {
                 selectNode.active = false;
             }
+            let nameLab = roleNodes[i].getChildByName("nameLab")?.getComponent(Label);
+            if (nameLab) {
+                nameLab.string = this.defaultRoleName;
+            }
         }
 
         let enemyImg = this.enemyItem.getChildByName("roleImg")?.getComponent(Sprite);
         if (enemyImg && this.unknownRoleSpriteFrame) {
             enemyImg.spriteFrame = this.unknownRoleSpriteFrame;
             enemyImg.node.setScale(1, 1, 1);
+        }
+        let enemyNameLab = this.enemyItem.getChildByName("nameLab")?.getComponent(Label);
+        if (enemyNameLab) {
+            enemyNameLab.string = this.defaultRoleName;
         }
 
         if (roleNodes.length <= 0) {
@@ -137,11 +152,39 @@ export class UIMatch extends UIBase {
         }
         this.matchTargets.push({ node: this.enemyItem, type: "enemy" });
         ccTools.shuffleArray(this.matchTargets);
+        this.initNicknamePool();
 
         this.isMatching = this.matchTargets.length > 0;
         if (this.isMatching) {
             this.currentMatchDelay = this.getRandomMatchDelay();
         }
+    }
+
+    /**为本次匹配创建去重后的临时昵称池 */
+    private initNicknamePool() {
+        let nicknameSet = new Set<string>();
+        let nicknameData = nicknameConfig.roleNicknameAllData || [];
+        for (let i = 0; i < nicknameData.length; i++) {
+            let nickname = nicknameData[i]?.nickname?.trim();
+            if (nickname) {
+                nicknameSet.add(nickname);
+            }
+        }
+
+        this.nicknamePool = Array.from(nicknameSet);
+
+        if (this.nicknamePool.length < this.matchTargets.length) {
+            console.error("昵称表中的不重复昵称不足，无法为全部人机分配昵称");
+        }
+    }
+
+    /**随机获取昵称并从本局昵称池移除，保证本局不重复 */
+    private getRandomNickname() {
+        if (this.nicknamePool.length <= 0) {
+            return "";
+        }
+        let randomIndex = ccTools.getRandomNum(0, this.nicknamePool.length);
+        return this.nicknamePool.splice(randomIndex, 1)[0];
     }
 
     /**在匹配期间预加载游戏资源 */
@@ -197,6 +240,12 @@ export class UIMatch extends UIBase {
         let roleImg = target?.node.getChildByName("roleImg")?.getComponent(Sprite);
         if (!target || !roleImg) {
             return;
+        }
+
+        let nameLab = target.node.getChildByName("nameLab")?.getComponent(Label);
+        let nickname = this.getRandomNickname();
+        if (nameLab && nickname) {
+            nameLab.string = nickname;
         }
 
         if (target.type == "enemy") {

@@ -235,6 +235,17 @@ export class UIManager {
         let strs = str.split('/');
         return strs[strs.length - 1];
     }
+
+    /**货币动画目标位置(世界坐标) */
+    moneyTargetPos: Vec3 = new Vec3();
+
+    /**播放货币动画
+     * @param rootNode 货币动画初始节点
+     * @param num 货币数量
+     */
+    playMoneyAnim(rootNode: Node, num: number) {
+
+    }
 }
 export let uiMgr = new UIManager();
 

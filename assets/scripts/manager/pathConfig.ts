@@ -58,6 +58,8 @@ export enum ItemPath {
     gameAnimItem = "prefabs/Item/gameAnimItem",
     /**瓦片地图 */
     tileMap = "tileMap/map/",
+    /**特效物体 */
+    effectItem = "prefabs/Item/effectItem",
 }
 
 /**地图名称 */

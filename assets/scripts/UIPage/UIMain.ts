@@ -103,6 +103,7 @@ export class UIMain extends UIBase {
     /**开始游戏 */
     cliskStartBtn() {
         uiMgr.openPage(UIPath.UIMatch);
+        // uiMgr.playMoneyAnim(this.startBtn, 100);
     }
 
     /**点击设置 */

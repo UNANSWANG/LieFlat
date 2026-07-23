@@ -1,8 +1,10 @@
-import { _decorator, AnimationClip, AssetManager, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, AnimationClip, AssetManager, Component, instantiate, Node, Prefab, Sprite, tween, UITransform, Vec3 } from 'cc';
 import { UIBase } from '../UIPage/UIBase';
-import { animPath, gamePath, ItemPath, mapNameArr, UIPath } from './pathConfig';
+import { animPath, gamePath, imgPath, ItemPath, mapNameArr, UIPath } from './pathConfig';
 import { ccResTools } from '../extention/resTools';
 import { tipsNotice } from '../UIPage/tips/tipsNotice';
+import { pData } from './playerData';
+import { ccTools } from '../extention/generalTools';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIManager')
@@ -11,7 +13,7 @@ export class UIManager {
     tipsPrefab: Prefab = null;
     produceTipsPrefab: Prefab = null;
     bulletPrefab: Prefab = null;
-    gameItemPrefab: Prefab = null;
+    effectItemPrefab: Prefab = null;
     gameSpriteItemPrefab: Prefab = null;
     gameSpineItemPrefab: Prefab = null;
     gameAnimItemPrefab: Prefab = null;
@@ -22,6 +24,7 @@ export class UIManager {
     private gamePage: Node = null;
     private uiPage: Node = null;
     private noticePage: Node = null;
+    private effectNode: Node = null;
 
     private uiMap: Map<string, Node> = new Map();
     /**游戏资源预加载任务，防止匹配页重复打开时并发加载 */
@@ -37,6 +40,7 @@ export class UIManager {
         this.gamePage = parent.getChildByName('Game');
         this.uiPage = parent.getChildByName('UI');
         this.noticePage = parent.getChildByName('Notice');
+        this.effectNode = parent.getChildByName('Effect');
     }
 
     /**加载启动后各页面都可能使用的预制体 */
@@ -52,6 +56,7 @@ export class UIManager {
         if (!this.tipsPrefab) {
             throw new Error(`加载预制体失败: ${ItemPath.tips}`);
         }
+        this.effectItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.effectItem, false);
     }
 
     /**预加载游戏页及游戏内使用的页面、预制体、动画和地图 */
@@ -244,8 +249,60 @@ export class UIManager {
      * @param num 货币数量
      */
     playMoneyAnim(rootNode: Node, num: number) {
+        if (num <= 0) {
+            return;
+        }
+        if (!rootNode || !rootNode.isValid || !this.effectNode || !this.effectNode.isValid
+            || !this.effectItemPrefab || !this.resBundle) {
+            pData.fixMoney(num);
+            return;
+        }
 
+        let effectTransform = this.effectNode.getComponent(UITransform);
+        if (!effectTransform) {
+            pData.fixMoney(num);
+            return;
+        }
+
+        let startCenter = effectTransform.convertToNodeSpaceAR(rootNode.worldPosition);
+        let targetPos = effectTransform.convertToNodeSpaceAR(this.moneyTargetPos);
+        if (!this.effectNode.isValid) {
+            pData.fixMoney(num);
+            return;
+        }
+
+        let itemCount = Math.min(Math.ceil(num / 10), 10);
+        let completedCount = 0;
+
+        for (let i = 0; i < itemCount; i++) {
+            let effectItem = instantiate(this.effectItemPrefab);
+            this.effectNode.addChild(effectItem);
+
+            let randomAngle = Math.random() * Math.PI * 2;
+            let randomRadius = Math.sqrt(Math.random()) * 100;
+            effectItem.setPosition(
+                startCenter.x + Math.cos(randomAngle) * randomRadius,
+                startCenter.y + Math.sin(randomAngle) * randomRadius,
+                startCenter.z,
+            );
+
+            let sprite = effectItem.getComponent(Sprite);
+            if (sprite) {
+                ccTools.loadImg(sprite, imgPath.money);
+            }
+
+            tween(effectItem)
+                .delay(i * 0.05)
+                .to(0.5, { position: targetPos }, { easing: 'quadIn' })
+                .call(() => {
+                    effectItem.destroy();
+                    completedCount++;
+                    if (completedCount === itemCount) {
+                        pData.fixMoney(num);
+                    }
+                })
+                .start();
+        }
     }
 }
 export let uiMgr = new UIManager();
-

@@ -278,13 +278,7 @@ export class UIManager {
             let effectItem = instantiate(this.effectItemPrefab);
             this.effectNode.addChild(effectItem);
 
-            let randomAngle = Math.random() * Math.PI * 2;
-            let randomRadius = Math.sqrt(Math.random()) * 100;
-            effectItem.setPosition(
-                startCenter.x + Math.cos(randomAngle) * randomRadius,
-                startCenter.y + Math.sin(randomAngle) * randomRadius,
-                startCenter.z,
-            );
+            effectItem.setPosition(startCenter);
             effectItem.setScale(2, 2, 1);
 
             let sprite = effectItem.getComponent(Sprite);
@@ -292,8 +286,19 @@ export class UIManager {
                 ccTools.loadImg(sprite, imgPath.money);
             }
 
-            tween(effectItem)
-                .delay(i * 0.05)
+            let moneyTween = tween(effectItem).delay(i * 0.02);
+            if (itemCount > 1) {
+                let randomAngle = Math.random() * Math.PI * 2;
+                let randomRadius = Math.sqrt(Math.random()) * 200;
+                let randomPos = new Vec3(
+                    startCenter.x + Math.cos(randomAngle) * randomRadius,
+                    startCenter.y + Math.sin(randomAngle) * randomRadius,
+                    startCenter.z,
+                );
+                moneyTween.to(0.1, { position: randomPos }, { easing: 'quadOut' });
+            }
+
+            moneyTween
                 .to(0.5, { position: targetPos, scale: new Vec3(1, 1, 1) }, { easing: 'quadIn' })
                 .call(() => {
                     effectItem.destroy();

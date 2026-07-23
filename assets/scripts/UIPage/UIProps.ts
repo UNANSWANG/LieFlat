@@ -229,7 +229,7 @@ export class UIProps extends UIBase {
                 desLab.string = nextPropsData.desc + "\n提示:只有一次使用机会哦!!!";
 
                 nameLab.string = "房门升级卡";
-                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType);
+                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType + "_" + nextPropsData.level);
             }
 
             if (powerNum > 0 && coinNum > 0) {

@@ -86,6 +86,7 @@ export class UIMatch extends UIBase {
             let roleImg = roleNodes[i].getChildByName("roleImg")?.getComponent(Sprite);
             if (roleImg && this.unknownRoleSpriteFrame) {
                 roleImg.spriteFrame = this.unknownRoleSpriteFrame;
+                roleImg.node.setScale(1, 1, 1);
             }
             let selectNode = roleNodes[i].getChildByName("select");
             if (selectNode) {
@@ -96,6 +97,7 @@ export class UIMatch extends UIBase {
         let enemyImg = this.enemyItem.getChildByName("roleImg")?.getComponent(Sprite);
         if (enemyImg && this.unknownRoleSpriteFrame) {
             enemyImg.spriteFrame = this.unknownRoleSpriteFrame;
+            enemyImg.node.setScale(1, 1, 1);
         }
 
         if (roleNodes.length <= 0) {
@@ -108,6 +110,7 @@ export class UIMatch extends UIBase {
         let playerNode = roleNodes[playerIndex];
         let playerImg = playerNode.getChildByName("roleImg")?.getComponent(Sprite);
         if (playerImg) {
+            playerImg.node.setScale(0.7, 0.7, 1);
             ccTools.loadImg(playerImg, imgPath.roleBodyFull + pData.skinId);
         }
         let playerSelect = playerNode.getChildByName("select");
@@ -176,6 +179,7 @@ export class UIMatch extends UIBase {
 
         if (target.type == "enemy") {
             this.enemySkinId = ccTools.getRandomNum(0, configData.enemySkinCount);
+            roleImg.node.setScale(0.7, 0.7, 1);
             ccTools.loadImg(roleImg, imgPath.enemyBodyFull + this.enemySkinId);
             return;
         }
@@ -185,6 +189,7 @@ export class UIMatch extends UIBase {
             ? skinData[ccTools.getRandomNum(0, skinData.length)].skinId
             : ccTools.getRandomNum(0, configData.roleSkinCount);
         this.roleSkinIds[target.roleIndex] = skinId;
+        roleImg.node.setScale(0.7, 0.7, 1);
         ccTools.loadImg(roleImg, imgPath.roleBodyFull + skinId);
     }
 

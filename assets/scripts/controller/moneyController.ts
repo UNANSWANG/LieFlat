@@ -18,7 +18,10 @@ export class moneyController extends Component {
 
     protected onEnable(): void {
         gm.Event.on(GameEvent.refreshPlayerMonetary, this.refreshMoney, this);
-        this.refreshMoneyTargetPos();
+        //延后一帧等待widget刷新后再刷坐标
+        this.scheduleOnce(() => {
+            this.refreshMoneyTargetPos();
+        }, 0);
     }
 
     protected onDisable(): void {

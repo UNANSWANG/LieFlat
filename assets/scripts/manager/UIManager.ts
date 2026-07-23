@@ -285,6 +285,7 @@ export class UIManager {
                 startCenter.y + Math.sin(randomAngle) * randomRadius,
                 startCenter.z,
             );
+            effectItem.setScale(2, 2, 1);
 
             let sprite = effectItem.getComponent(Sprite);
             if (sprite) {
@@ -293,7 +294,7 @@ export class UIManager {
 
             tween(effectItem)
                 .delay(i * 0.05)
-                .to(0.5, { position: targetPos }, { easing: 'quadIn' })
+                .to(0.5, { position: targetPos, scale: new Vec3(1, 1, 1) }, { easing: 'quadIn' })
                 .call(() => {
                     effectItem.destroy();
                     completedCount++;

@@ -1,4 +1,4 @@
-import { _decorator, Node, Animation, Label, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Node, Animation, Color, Label, Sprite, SpriteFrame } from 'cc';
 import { UIBase } from './UIBase';
 import { imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -60,14 +60,15 @@ export class UIMatch extends UIBase {
     private enemySkinId = 0;
     /**本次匹配可随机使用的昵称池 */
     private nicknamePool: string[] = [];
-    /**预制体默认名称，用于重新匹配时重置角色位 */
-    private defaultRoleName = "路人甲";
     /**预制体默认的未知角色图片 */
     private unknownRoleSpriteFrame: SpriteFrame = null;
+    /**玩家名称颜色 #F1DA2F */
+    private playerNameColor = new Color(241, 218, 47, 255);
+    /**人机名称颜色 #C9D1DC */
+    private robotNameColor = new Color(201, 209, 220, 255);
 
     protected onLoad(): void {
         this.unknownRoleSpriteFrame = this.roleLayout.children[0]?.getChildByName("roleImg")?.getComponent(Sprite)?.spriteFrame || null;
-        this.defaultRoleName = this.roleLayout.children[0]?.getChildByName("nameLab")?.getComponent(Label)?.string || this.defaultRoleName;
         this.bindBtn();
     }
 
@@ -107,7 +108,8 @@ export class UIMatch extends UIBase {
             }
             let nameLab = roleNodes[i].getChildByName("nameLab")?.getComponent(Label);
             if (nameLab) {
-                nameLab.string = this.defaultRoleName;
+                nameLab.string = "???";
+                nameLab.color = this.robotNameColor;
             }
         }
 
@@ -118,7 +120,7 @@ export class UIMatch extends UIBase {
         }
         let enemyNameLab = this.enemyItem.getChildByName("nameLab")?.getComponent(Label);
         if (enemyNameLab) {
-            enemyNameLab.string = this.defaultRoleName;
+            enemyNameLab.string = "???";
         }
 
         if (roleNodes.length <= 0) {
@@ -137,6 +139,11 @@ export class UIMatch extends UIBase {
         let playerSelect = playerNode.getChildByName("select");
         if (playerSelect) {
             playerSelect.active = true;
+        }
+        let playerNameLab = playerNode.getChildByName("nameLab")?.getComponent(Label);
+        if (playerNameLab) {
+            playerNameLab.string = "你";
+            playerNameLab.color = this.playerNameColor;
         }
 
         let roleIndex = 0;

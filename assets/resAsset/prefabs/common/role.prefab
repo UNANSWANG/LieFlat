@@ -263,8 +263,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 106.5234375,
-      "height": 56.7
+      "width": 98,
+      "height": 64.7
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -299,7 +299,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "玩家1",
+    "_string": "玩家",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 45,
@@ -319,7 +319,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -327,7 +327,7 @@
       "b": 0,
       "a": 255
     },
-    "_outlineWidth": 2,
+    "_outlineWidth": 4,
     "_enableShadow": false,
     "_shadowColor": {
       "__type__": "cc.Color",

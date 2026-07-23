@@ -168,7 +168,7 @@ export class enemyBaseController extends Component {
     }
 
     /**初始化 */
-    init(comp: UIGame, id: number, skinId: number) {
+    init(comp: UIGame, id: number, skinId: number, nickname = "") {
         this.level = 0;
         this.damageRecords = [];
         this.isForceAttackingDoor = false;
@@ -192,8 +192,7 @@ export class enemyBaseController extends Component {
         this.skinId = skinId;
         this.refreshRoleSpine();
 
-        //TODO 名称后续加入配置，先临时写死
-        this.roleNameLab.string = `猎梦者${this.roleId + 1}`
+        this.roleNameLab.string = nickname || `猎梦者${this.roleId + 1}`
     }
 
     /**根据皮肤id刷新敌人spine */

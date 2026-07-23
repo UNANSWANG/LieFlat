@@ -171,7 +171,7 @@ export class roleController extends Component {
         this.roleNameLab = this.node.getChildByName("roleNameLab").getComponent(Label);
     }
 
-    init(comp: UIGame, id: number, skinId: number) {
+    init(comp: UIGame, id: number, skinId: number, nickname = "") {
         this.gameComp = comp;
         this.roleId = id;
         this.skinId = skinId;
@@ -186,11 +186,10 @@ export class roleController extends Component {
         this.movePathIdx = 0;
         this.refreshRoleSpine();
 
-        //TODO 名称后续加入配置，先临时写死
         if (this.roleId == 0) {
-            this.roleNameLab.string = `玩家${this.roleId + 1}`
+            this.roleNameLab.string = `你`
         } else {
-            this.roleNameLab.string = `人机${this.roleId}`
+            this.roleNameLab.string = nickname || `人机${this.roleId}`
         }
     }
 

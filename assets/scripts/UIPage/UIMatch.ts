@@ -56,8 +56,12 @@ export class UIMatch extends UIBase {
     private matchTargets: MatchTarget[] = [];
     /**五个机器人的皮肤，索引与游戏内机器人顺序一致 */
     private roleSkinIds: number[] = [];
+    /**五个机器人的昵称，索引与皮肤和游戏内机器人顺序一致 */
+    private roleNicknames: string[] = [];
     /**敌人皮肤 */
     private enemySkinId = 0;
+    /**敌人昵称 */
+    private enemyNickname = "";
     /**本次匹配可随机使用的昵称池 */
     private nicknamePool: string[] = [];
     /**预制体默认的未知角色图片 */
@@ -89,6 +93,8 @@ export class UIMatch extends UIBase {
         this.isGamePreloadComplete = false;
         this.matchTargets = [];
         this.roleSkinIds = [];
+        this.roleNicknames = [];
+        this.enemyNickname = "";
         this.nicknamePool = [];
 
         this.readyBtn.active = true;
@@ -257,6 +263,7 @@ export class UIMatch extends UIBase {
 
         if (target.type == "enemy") {
             this.enemySkinId = ccTools.getRandomNum(0, configData.enemySkinCount);
+            this.enemyNickname = nickname;
             roleImg.node.setScale(0.7, 0.7, 1);
             ccTools.loadImg(roleImg, imgPath.enemyBodyFull + this.enemySkinId);
             return;
@@ -267,6 +274,7 @@ export class UIMatch extends UIBase {
             ? skinData[ccTools.getRandomNum(0, skinData.length)].skinId
             : ccTools.getRandomNum(0, configData.roleSkinCount);
         this.roleSkinIds[target.roleIndex] = skinId;
+        this.roleNicknames[target.roleIndex] = nickname;
         roleImg.node.setScale(0.7, 0.7, 1);
         ccTools.loadImg(roleImg, imgPath.roleBodyFull + skinId);
     }
@@ -286,7 +294,9 @@ export class UIMatch extends UIBase {
     openGame() {
         uiMgr.startGame({
             roleSkinIds: this.roleSkinIds.concat(),
+            roleNicknames: this.roleNicknames.concat(),
             enemySkinId: this.enemySkinId,
+            enemyNickname: this.enemyNickname,
         });
         this.onClose();
     }

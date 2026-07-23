@@ -184,8 +184,12 @@ export class UIGame extends UIBase {
     private openVersion = 0;
     /**匹配界面产生的机器人皮肤 */
     private matchRoleSkinIds: number[] = [];
+    /**匹配界面产生的机器人昵称 */
+    private matchRoleNicknames: string[] = [];
     /**匹配界面产生的敌人皮肤 */
     private matchEnemySkinId: number = null;
+    /**匹配界面产生的敌人昵称 */
+    private matchEnemyNickname = "";
     /**主角死亡消失动画是否正在播放 */
     isRoleDisappearPlaying: boolean = false;
     /**角色头像按钮状态 */
@@ -205,9 +209,13 @@ export class UIGame extends UIBase {
         this.matchRoleSkinIds = Array.isArray(data?.roleSkinIds)
             ? data.roleSkinIds.filter((skinId) => Number.isInteger(skinId) && skinId >= 0).slice(0, 5)
             : [];
+        this.matchRoleNicknames = Array.isArray(data?.roleNicknames)
+            ? data.roleNicknames.slice(0, 5).map((nickname) => typeof nickname == "string" ? nickname.trim() : "")
+            : [];
         this.matchEnemySkinId = Number.isInteger(data?.enemySkinId) && data.enemySkinId >= 0
             ? data.enemySkinId
             : null;
+        this.matchEnemyNickname = typeof data?.enemyNickname == "string" ? data.enemyNickname.trim() : "";
         this.addListener();
         this.restartGame();
     }
@@ -607,7 +615,7 @@ export class UIGame extends UIBase {
             this.robotArr.push(robotComp);
             this.initRolePos(robot);
             let skinId = this.matchRoleSkinIds[i];
-            robotComp.init(this, i + 1, skinId);
+            robotComp.init(this, i + 1, skinId, this.matchRoleNicknames[i]);
         }
     }
 
@@ -821,7 +829,7 @@ export class UIGame extends UIBase {
         let enemyComp: enemyBaseController = enemyNode.getComponent(enemyBaseController);
         enemyMgr.enemyArr.push(enemyComp);
         let skinId = this.matchEnemySkinId;
-        enemyComp.init(this, enemyMgr.enemyId, skinId);
+        enemyComp.init(this, enemyMgr.enemyId, skinId, this.matchEnemyNickname);
         enemyMgr.enemyId++;
 
         let randomIdx = Math.floor(Math.random() * enemyMgr.enemyBornPosArr.length);

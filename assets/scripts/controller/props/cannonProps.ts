@@ -1,4 +1,4 @@
-import { _decorator, instantiate, Node, sp, UITransform, Vec3 } from 'cc';
+import { _decorator, instantiate, Node, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath, spinePath } from '../../manager/pathConfig';
@@ -199,9 +199,29 @@ export class cannonProps extends gamePropsBase {
             bulletComp = bulletNode.addComponent(bulletController);
         }
         bulletComp.init(target, this.attack, this.level, fireProps.getRoomDamagePercent(this.gameComp, this.roomIdx));
+        this.playBulletSpawnAnim(bulletNode);
         bulletNode.active = true;
 
         this.produceCoinByHand();
+    }
+
+    /**播放第10、11级子弹的特殊出生动画 */
+    private playBulletSpawnAnim(bulletNode: Node) {
+        Tween.stopAllByTarget(bulletNode);
+        let bulletScale = bulletNode.scale.clone();
+        //代码中的等级从0开始，转换为玩家看到的实际等级
+        let bulletLevel = this.level + 1;
+        if (bulletLevel !== 10 && bulletLevel !== 11) {
+            bulletNode.setScale(bulletScale.x, 1, bulletScale.z);
+            return;
+        }
+
+        //初始压缩Y轴，短暂延迟后恢复正常比例
+        bulletNode.setScale(bulletScale.x, 0, bulletScale.z);
+        tween(bulletNode)
+            .delay(0.03)
+            .to(0, { scale: new Vec3(bulletScale.x, 1, bulletScale.z) })
+            .start();
     }
 
     /** 印钞机使炮台攻击时产出金币 */

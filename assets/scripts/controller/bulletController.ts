@@ -117,10 +117,11 @@ export class bulletController extends Component {
     /**命中目标 */
     private hitTarget() {
         if (this.isTargetValid()) {
-            let isDead = this.target.takeDamage(this.damage);
-            if (!isDead && this.fireDamagePercent > 0) {
-                this.target.refreshFireBurn(this.fireDamagePercent);
-            }
+            //TODO 敌人临时无敌
+            // let isDead = this.target.takeDamage(this.damage);
+            // if (!isDead && this.fireDamagePercent > 0) {
+            //     this.target.refreshFireBurn(this.fireDamagePercent);
+            // }
         }
         this.recycle();
     }

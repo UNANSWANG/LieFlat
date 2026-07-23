@@ -24,6 +24,10 @@ export class UIManager {
     private noticePage: Node = null;
 
     private uiMap: Map<string, Node> = new Map();
+    /**游戏资源预加载任务，防止匹配页重复打开时并发加载 */
+    private gamePreloadPromise: Promise<void> = null;
+    /**游戏资源是否已全部预加载 */
+    private gamePreloadComplete = false;
 
     initData(node) {
         this.initPage(node);
@@ -35,40 +39,103 @@ export class UIManager {
         this.noticePage = parent.getChildByName('Notice');
     }
 
-    /**加载所需预制体 */
-    async preLoadPrefab() {
-        return new Promise<void>(async (resolve, reject) => {
-            if (!this.resBundle) {
-                reject();
-            }
-            this.tipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.tips, false);
-            this.produceTipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.produceTips, false);
-            this.bulletPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.bullet, false);
-            this.gameSpriteItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpriteItem, false);
-            this.gameSpineItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpineItem, false);
-            this.gameAnimItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameAnimItem, false);
-            //TODO 临时写这行，后续再优化
-            await this.loadAnim();
-            //暂时用不到，先注释
-            // this.gameItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.gameItem, false);
-            for (let i = 0; i < mapNameArr.length; i++) {
-                await ccResTools.loadTiledMap(this.resBundle, ItemPath.tileMap + mapNameArr[i], false);
-            }
-            resolve();
-        });
+    /**加载启动后各页面都可能使用的预制体 */
+    async preLoadCommonPrefab() {
+        if (this.tipsPrefab) {
+            return;
+        }
+        if (!this.resBundle) {
+            throw new Error("资源包尚未加载");
+        }
+
+        this.tipsPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.tips, false);
+        if (!this.tipsPrefab) {
+            throw new Error(`加载预制体失败: ${ItemPath.tips}`);
+        }
     }
 
-    /**加载动画 */
-    async loadAnim() {
-        return new Promise<void>(async (resolve, reject) => {
-            if (!this.resBundle) {
-                reject();
-            }
-            this.airRedAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.airRed, false);
-            this.airYellowAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.airYellow, false);
-            this.fogAnimClip = await ccResTools.loadAnimationClip(this.resBundle, animPath.fog, false);
-            resolve();
-        });
+    /**预加载游戏页及游戏内使用的页面、预制体、动画和地图 */
+    async preLoadGame() {
+        if (this.gamePreloadComplete) {
+            return;
+        }
+        if (this.gamePreloadPromise) {
+            return this.gamePreloadPromise;
+        }
+
+        this.gamePreloadPromise = this.loadGameResources();
+        try {
+            await this.gamePreloadPromise;
+            this.gamePreloadComplete = true;
+        } catch (error) {
+            this.gamePreloadPromise = null;
+            throw error;
+        }
+    }
+
+    /**执行游戏资源预加载 */
+    private async loadGameResources() {
+        if (!this.resBundle) {
+            throw new Error("资源包尚未加载");
+        }
+
+        await Promise.all([
+            this.preLoadPage(gamePath.UIGame),
+            this.preLoadPage(UIPath.UIBuild),
+            this.preLoadPage(UIPath.UIProps),
+            this.loadGamePrefab(),
+            this.loadGameAnim(),
+            this.loadGameMap(),
+        ]);
+    }
+
+    /**加载游戏内动态创建的预制体 */
+    private async loadGamePrefab() {
+        let prefabs = await Promise.all([
+            ccResTools.loadPrefab(this.resBundle, ItemPath.produceTips, false),
+            ccResTools.loadPrefab(this.resBundle, ItemPath.bullet, false),
+            ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpriteItem, false),
+            ccResTools.loadPrefab(this.resBundle, ItemPath.gameSpineItem, false),
+            ccResTools.loadPrefab(this.resBundle, ItemPath.gameAnimItem, false),
+        ]);
+
+        if (prefabs.some((prefab) => !prefab)) {
+            throw new Error("游戏预制体加载失败");
+        }
+
+        this.produceTipsPrefab = prefabs[0];
+        this.bulletPrefab = prefabs[1];
+        this.gameSpriteItemPrefab = prefabs[2];
+        this.gameSpineItemPrefab = prefabs[3];
+        this.gameAnimItemPrefab = prefabs[4];
+    }
+
+    /**加载游戏动画 */
+    private async loadGameAnim() {
+        let clips = await Promise.all([
+            ccResTools.loadAnimationClip(this.resBundle, animPath.airRed, false),
+            ccResTools.loadAnimationClip(this.resBundle, animPath.airYellow, false),
+            ccResTools.loadAnimationClip(this.resBundle, animPath.fog, false),
+        ]);
+
+        if (clips.some((clip) => !clip)) {
+            throw new Error("游戏动画加载失败");
+        }
+
+        this.airRedAnimClip = clips[0];
+        this.airYellowAnimClip = clips[1];
+        this.fogAnimClip = clips[2];
+    }
+
+    /**加载全部候选游戏地图 */
+    private async loadGameMap() {
+        let maps = await Promise.all(mapNameArr.map((mapName) => {
+            return ccResTools.loadTiledMap(this.resBundle, ItemPath.tileMap + mapName, false);
+        }));
+
+        if (maps.some((mapAsset) => !mapAsset)) {
+            throw new Error("游戏地图加载失败");
+        }
     }
 
     /**显示提示 */
@@ -81,22 +148,17 @@ export class UIManager {
     }
 
     /**开始游戏 */
-    async startGame(data?: any) {
+    startGame(data?: any) {
         if (!this.resBundle) {
             return;
         }
-        // uiMgr.openPage(UIPath.loadTips);
         let keyName = this.getUIName(gamePath.UIGame);
-        let gameNode = null;
-        if (this.uiMap.has(keyName)) {
-            gameNode = this.uiMap.get(keyName);
-            gameNode.active = true;
-        } else {
-            let gamePre = await ccResTools.loadPrefab(this.resBundle, gamePath.UIGame);
-            gameNode = instantiate(gamePre);
-            this.uiMap.set(keyName, gameNode);
-            gameNode.active = true;
+        if (!this.uiMap.has(keyName)) {
+            console.error("游戏页尚未预加载，无法开始游戏");
+            return;
         }
+        let gameNode = this.uiMap.get(keyName);
+        gameNode.active = true;
         this.gamePage.addChild(gameNode);
         let uiComp = gameNode.getComponent(UIBase);
         uiMgr.closePage(UIPath.UIMain);
@@ -115,18 +177,21 @@ export class UIManager {
     }
 
     /**预加载界面 */
-    preLoadPage(pagePath: string) {
-        return new Promise<void>(async (resolve, reject) => {
-            if (!this.resBundle) {
-                reject();
-            }
-            let keyName = this.getUIName(pagePath);
-            let pagePre = await ccResTools.loadPrefab(this.resBundle, pagePath);
-            let pageNode = instantiate(pagePre);
-            this.uiMap.set(keyName, pageNode);
-            pageNode.active = false;
-            resolve();
-        });
+    async preLoadPage(pagePath: string) {
+        if (!this.resBundle) {
+            throw new Error("资源包尚未加载");
+        }
+        let keyName = this.getUIName(pagePath);
+        if (this.uiMap.has(keyName)) {
+            return;
+        }
+        let pagePre = await ccResTools.loadPrefab(this.resBundle, pagePath);
+        if (!pagePre) {
+            throw new Error(`加载页面失败: ${pagePath}`);
+        }
+        let pageNode = instantiate(pagePre);
+        this.uiMap.set(keyName, pageNode);
+        pageNode.active = false;
     }
 
     /**打开界面 */

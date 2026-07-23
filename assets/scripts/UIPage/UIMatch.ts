@@ -47,6 +47,10 @@ export class UIMatch extends UIBase {
     private isReady = false;
     /**是否正在进入游戏 */
     private isOpeningGame = false;
+    /**游戏资源是否预加载完成 */
+    private isGamePreloadComplete = false;
+    /**预加载回调序号，用于忽略页面关闭后的旧回调 */
+    private gamePreloadVersion = 0;
     /**待匹配项，包含一个敌人和五个机器人 */
     private matchTargets: MatchTarget[] = [];
     /**五个机器人的皮肤，索引与游戏内机器人顺序一致 */
@@ -65,6 +69,7 @@ export class UIMatch extends UIBase {
         let anim = this.getComponent(Animation);
         anim.play();
         this.initData();
+        this.preLoadGame();
     }
 
     initData() {
@@ -74,6 +79,7 @@ export class UIMatch extends UIBase {
         this.isMatching = false;
         this.isReady = false;
         this.isOpeningGame = false;
+        this.isGamePreloadComplete = false;
         this.matchTargets = [];
         this.roleSkinIds = [];
 
@@ -136,6 +142,22 @@ export class UIMatch extends UIBase {
         if (this.isMatching) {
             this.currentMatchDelay = this.getRandomMatchDelay();
         }
+    }
+
+    /**在匹配期间预加载游戏资源 */
+    private preLoadGame() {
+        let version = ++this.gamePreloadVersion;
+        uiMgr.preLoadGame().then(() => {
+            if (version != this.gamePreloadVersion || !this.node.activeInHierarchy) {
+                return;
+            }
+            this.isGamePreloadComplete = true;
+            this.tryOpenGame();
+        }).catch((error) => {
+            if (version == this.gamePreloadVersion) {
+                console.error("游戏资源预加载失败", error);
+            }
+        });
     }
 
     protected update(dt: number): void {
@@ -213,9 +235,9 @@ export class UIMatch extends UIBase {
         this.onClose();
     }
 
-    /**准备和全部人机匹配完成后进入游戏 */
+    /**准备、匹配和游戏资源预加载全部完成后进入游戏 */
     private tryOpenGame() {
-        if (!this.isReady || this.isMatching || this.isOpeningGame) {
+        if (!this.isReady || this.isMatching || !this.isGamePreloadComplete || this.isOpeningGame) {
             return;
         }
         this.isOpeningGame = true;
@@ -243,7 +265,9 @@ export class UIMatch extends UIBase {
     }
 
     onUI_Close() {
+        this.gamePreloadVersion++;
         this.isMatching = false;
+        this.isGamePreloadComplete = false;
     }
 
     onClose() {

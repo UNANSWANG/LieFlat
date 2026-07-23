@@ -1,6 +1,6 @@
 import { _decorator, Component, director, Label, Node, Sprite } from 'cc';
 import { ccResTools } from '../extention/resTools';
-import { gamePath, UIPath } from '../manager/pathConfig';
+import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { jsonMgr } from '../manager/jsonManager';
 import { gm, PlatType } from '../manager/gm';
@@ -69,7 +69,7 @@ export class UILoading extends Component {
             resolve();
         });
     }
-    loadItems = [UIPath.UIMain, gamePath.UIGame, UIPath.UISetting, UIPath.UISkinStore, UIPath.UIBuild, UIPath.UIProps];
+    loadItems = [UIPath.UIMain, UIPath.UISetting, UIPath.UISkinStore];
 
     /**预加载界面 */
     async preLoadPage() {
@@ -80,7 +80,7 @@ export class UILoading extends Component {
 
             this.refreshProgress();
 
-            let prefabLoad = uiMgr.preLoadPrefab();
+            let prefabLoad = uiMgr.preLoadCommonPrefab();
 
             let pageLoad = Promise.all(this.loadItems.map(async ($path) => {
                 try {

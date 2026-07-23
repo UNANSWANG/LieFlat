@@ -1260,11 +1260,9 @@ export class enemyBaseController extends Component {
             this.stopAttackProps();
         } else if (this.isTargetIgnoredDoorTile(nextTilePos)) {
             this.stopAttackProps();
-        } else if (this.isTargetEmptyBedTile(nextTilePos)) {
-            this.stopAttackProps();
         } else if (this.isTargetPlayerTile(nextTilePos)) {
             this.stopAttackProps();
-        } else if (this.tryAttackNextTileProps(nextTilePos)) {
+        } else if (this.tryAttackTileProps(nextTilePos)) {
             return;
         }
 
@@ -1330,23 +1328,23 @@ export class enemyBaseController extends Component {
         this.refreshRoleAnimDirection(targetNode.position.x - this.node.position.x);
     }
 
-    /**如果下一格有门、床、道具等，则停下攻击 */
-    private tryAttackNextTileProps(nextTilePos: Vec2) {
-        let propComp = this.getTilePropComp(nextTilePos);
+    /**如果指定格有门、床、道具等，则停下攻击 */
+    private tryAttackTileProps(tilePos: Vec2) {
+        let propComp = this.getTilePropComp(tilePos);
         if (!propComp) {
             this.stopAttackProps();
             return false;
         }
 
-        if (!this.attackingTilePos || this.attackingTilePos.x != nextTilePos.x || this.attackingTilePos.y != nextTilePos.y) {
-            this.attackingTilePos = new Vec2(nextTilePos.x, nextTilePos.y);
+        if (!this.attackingTilePos || this.attackingTilePos.x != tilePos.x || this.attackingTilePos.y != tilePos.y) {
+            this.attackingTilePos = new Vec2(tilePos.x, tilePos.y);
             this.hasFearCurAttackDoor = false;
             this.hasHandleTeamCannonCurAttackDoor = false;
             this.isForceAttackingDoor = false;
             this.resetDoorAttackTimeCheck();
             this.thornDamageTimer = 0;
             if (propComp.propsType == tilePropsType.door) {
-                this.gameComp?.onDoorAttackStartedByEnemy(nextTilePos);
+                this.gameComp?.onDoorAttackStartedByEnemy(tilePos);
             }
             this.startAttackProps();
         }
@@ -1713,11 +1711,7 @@ export class enemyBaseController extends Component {
             }
 
             if (this.isTileSame(this.currentPos, this.targetEmptyBedPos)) {
-                this.destroyTargetEmptyBed();
-                this.emptyRoomIgnoreDoorRoomIdx = this.targetEmptyBedRoomIdx;
-                this.clearTarget();
-                this.clearMovePath();
-                this.chooseTargetAndFindPath();
+                this.tryAttackTileProps(this.targetEmptyBedPos);
                 return;
             }
 
@@ -1726,26 +1720,6 @@ export class enemyBaseController extends Component {
         }
 
         this.tryAttackTargetPlayer();
-    }
-
-    /**破坏当前目标空床 */
-    private destroyTargetEmptyBed() {
-        if (!this.targetEmptyBedPos) {
-            return;
-        }
-
-        let tileData = this.gameComp.tileMap[this.targetEmptyBedPos.x]?.[this.targetEmptyBedPos.y];
-        let tileItem = tileData?.item;
-        let bedComp = tileItem?.propsComp as bedProps;
-        if (!tileData || !tileItem || tileItem.tileType != tilePropsType.bed || !bedComp) {
-            return;
-        }
-
-        let roomIdx = tileData.roomIdx || tileItem.roomIdx;
-        bedComp.removeProps();
-        tileItem.tileType = tilePropsType.none;
-        tileData.block = 0;
-        this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
     }
 
     /**尝试攻击当前目标角色 */
@@ -1956,6 +1930,7 @@ export class enemyBaseController extends Component {
     private attackProps(propComp: gamePropsBase, tilePos: Vec2) {
         let propType = propComp.propsType;
         let isAttackDoor = propType == tilePropsType.door;
+        let isAttackTargetEmptyBed = propType == tilePropsType.bed && this.isTargetEmptyBedTile(tilePos);
         let hpBeforeDamage = propComp.hp;
         let maxHpBeforeDamage = propComp.maxHp;
         let scratchWorldPos = propComp.node.worldPosition.clone();
@@ -1981,6 +1956,9 @@ export class enemyBaseController extends Component {
         }
         if (isDestroyed) {
             if (propType == tilePropsType.bed) {
+                if (isAttackTargetEmptyBed) {
+                    this.emptyRoomIgnoreDoorRoomIdx = this.targetEmptyBedRoomIdx;
+                }
                 let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
                 this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
             }

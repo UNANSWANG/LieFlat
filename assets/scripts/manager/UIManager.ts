@@ -83,6 +83,8 @@ export class UIManager {
             this.preLoadPage(gamePath.UIGame),
             this.preLoadPage(UIPath.UIBuild),
             this.preLoadPage(UIPath.UIProps),
+            this.preLoadPage(UIPath.UISuccess),
+            this.preLoadPage(UIPath.UIFail),
             this.loadGamePrefab(),
             this.loadGameAnim(),
             this.loadGameMap(),

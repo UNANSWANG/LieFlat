@@ -81,7 +81,7 @@ export class UIManager {
     }
 
     /**开始游戏 */
-    async startGame() {
+    async startGame(data?: any) {
         if (!this.resBundle) {
             return;
         }
@@ -100,7 +100,7 @@ export class UIManager {
         this.gamePage.addChild(gameNode);
         let uiComp = gameNode.getComponent(UIBase);
         uiMgr.closePage(UIPath.UIMain);
-        uiComp.onUI_Open();
+        uiComp.onUI_Open(data);
     }
 
     /**关闭游戏 */

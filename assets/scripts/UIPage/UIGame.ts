@@ -182,6 +182,10 @@ export class UIGame extends UIBase {
     private currentMapName = "";
     /**游戏页打开序号，用于避免异步加载回写旧局 */
     private openVersion = 0;
+    /**匹配界面产生的机器人皮肤 */
+    private matchRoleSkinIds: number[] = [];
+    /**匹配界面产生的敌人皮肤 */
+    private matchEnemySkinId: number = null;
     /**主角死亡消失动画是否正在播放 */
     isRoleDisappearPlaying: boolean = false;
     /**角色头像按钮状态 */
@@ -197,6 +201,13 @@ export class UIGame extends UIBase {
 
     async onUI_Open(data?: any) {
         ++this.openVersion;
+        //获取匹配界面随机出的皮肤id
+        this.matchRoleSkinIds = Array.isArray(data?.roleSkinIds)
+            ? data.roleSkinIds.filter((skinId) => Number.isInteger(skinId) && skinId >= 0).slice(0, 5)
+            : [];
+        this.matchEnemySkinId = Number.isInteger(data?.enemySkinId) && data.enemySkinId >= 0
+            ? data.enemySkinId
+            : null;
         this.addListener();
         this.restartGame();
     }
@@ -595,7 +606,7 @@ export class UIGame extends UIBase {
             let robotComp: roleController = robot.getComponent(roleController);
             this.robotArr.push(robotComp);
             this.initRolePos(robot);
-            let skinId = ccTools.getRandomNum(0, configData.roleSkinCount);
+            let skinId = this.matchRoleSkinIds[i];
             robotComp.init(this, i + 1, skinId);
         }
     }
@@ -809,7 +820,7 @@ export class UIGame extends UIBase {
         this.roleNode.addChild(enemyNode);
         let enemyComp: enemyBaseController = enemyNode.getComponent(enemyBaseController);
         enemyMgr.enemyArr.push(enemyComp);
-        let skinId = ccTools.getRandomNum(0, configData.enemySkinCount);
+        let skinId = this.matchEnemySkinId;
         enemyComp.init(this, enemyMgr.enemyId, skinId);
         enemyMgr.enemyId++;
 

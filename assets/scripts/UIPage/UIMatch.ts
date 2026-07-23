@@ -233,7 +233,9 @@ export class UIMatch extends UIBase {
         this.currentMatchIndex++;
         if (this.currentMatchIndex >= this.matchTargets.length) {
             this.isMatching = false;
-            this.tryOpenGame();
+            this.scheduleOnce(() => {
+                this.tryOpenGame();
+            }, 1);
             return;
         }
 

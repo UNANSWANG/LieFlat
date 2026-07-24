@@ -24,6 +24,9 @@ export class jsonProps extends jsonBase {
         this.storePropsData = [];
         for (let i = 0; i < this.data.length; i++) {
             let data: JsonPropsData = this.data[i];
+            if (typeof data.desc == "string") {
+                data.desc = data.desc.replace(/\\r\\n|\\n|\/n/g, "\n");
+            }
             data.level -= 1;
             if (this.propsData.hasOwnProperty(data.propsType)) {
                 this.propsData[data.propsType].push(data);

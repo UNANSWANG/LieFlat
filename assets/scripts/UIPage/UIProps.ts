@@ -181,8 +181,8 @@ export class UIProps extends UIBase {
             limitLab.string = "";
 
             if (i == 0 && nextPropsData.preConditions) {
-                desLab.fontSize = 22;
-                desLab.lineHeight = 25;
+                desLab.fontSize = 25;
+                desLab.lineHeight = 30;
             } else {
                 desLab.fontSize = 36;
                 desLab.lineHeight = 40;

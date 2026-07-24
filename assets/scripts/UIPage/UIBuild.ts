@@ -71,7 +71,7 @@ export class UIBuild extends UIBase {
             this.tilePos.set(data.tilePos);
             this.roomData = data.roomData;
         }
-        if(!this.propsTypeArr || this.propsTypeArr.length == 0){
+        if (!this.propsTypeArr || this.propsTypeArr.length == 0) {
             this.initPropsData();
         }
         this.refreshPage();
@@ -97,10 +97,10 @@ export class UIBuild extends UIBase {
                 if (type == "vein") {
                     let pointerData = propsConfig.getPropsData(type);
                     for (let i = 0; i < pointerData.length; i++) {
-                        this.propsTypeArr[buildType - 1].push({type: type, level: i});
+                        this.propsTypeArr[buildType - 1].push({ type: type, level: i });
                     }
                 } else {
-                    this.propsTypeArr[buildType - 1].push({type: type, level: 0});
+                    this.propsTypeArr[buildType - 1].push({ type: type, level: 0 });
                 }
             }
         });
@@ -191,6 +191,9 @@ export class UIBuild extends UIBase {
                 coinLayout.scale = new Vec3(1, 1, 1);
                 powerLayout.scale = new Vec3(1, 1, 1);
             }
+
+            desLab.fontSize = 36;
+            desLab.lineHeight = 40;
 
             desLab.string = propsData.desc;
             coinNumLab.string = coinNum + "";

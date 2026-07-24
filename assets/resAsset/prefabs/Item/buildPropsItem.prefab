@@ -711,7 +711,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 320,
-      "height": 31.5
+      "height": 50.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -749,10 +749,10 @@
     "_string": "强化墙:50HP",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_actualFontSize": 36,
+    "_fontSize": 36,
     "_fontFamily": "Arial",
-    "_lineHeight": 25,
+    "_lineHeight": 40,
     "_overflow": 3,
     "_enableWrapText": true,
     "_font": null,

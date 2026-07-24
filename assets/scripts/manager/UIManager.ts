@@ -248,7 +248,7 @@ export class UIManager {
      * @param rootNode 货币动画初始节点
      * @param num 货币数量
      */
-    playMoneyAnim(rootNode: Node, num: number) {
+    playMoneyAnim(rootNode: Node, num: number, call?) {
         if (num <= 0) {
             return;
         }
@@ -305,6 +305,72 @@ export class UIManager {
                     completedCount++;
                     if (completedCount === itemCount) {
                         pData.fixMoney(num);
+                        call && call();
+                    }
+                })
+                .start();
+        }
+    }
+
+    /**播放通用奖励获取动画
+     * @param startNode 奖励动画起点及图标节点
+     * @param targetNode 奖励动画目标节点
+     * @param num 奖励数量
+     * @param complete 动画完成回调
+     */
+    playRewardAnim(startNode: Node, targetNode: Node, num: number, complete?: () => void) {
+        if (num <= 0) {
+            complete && complete();
+            return;
+        }
+        if (!startNode || !startNode.isValid || !targetNode || !targetNode.isValid
+            || !this.effectNode || !this.effectNode.isValid || !this.effectItemPrefab) {
+            complete && complete();
+            return;
+        }
+
+        let effectTransform = this.effectNode.getComponent(UITransform);
+        if (!effectTransform) {
+            complete && complete();
+            return;
+        }
+
+        let startCenter = effectTransform.convertToNodeSpaceAR(startNode.worldPosition);
+        let targetPos = effectTransform.convertToNodeSpaceAR(targetNode.worldPosition);
+        let iconSpriteFrame = startNode.getComponent(Sprite)?.spriteFrame;
+        let itemCount = Math.min(Math.ceil(num / 10), 10);
+        let completedCount = 0;
+
+        for (let i = 0; i < itemCount; i++) {
+            let effectItem = instantiate(this.effectItemPrefab);
+            this.effectNode.addChild(effectItem);
+            effectItem.setPosition(startCenter);
+            effectItem.setScale(1, 1, 1);
+
+            let sprite = effectItem.getComponent(Sprite);
+            if (sprite && iconSpriteFrame) {
+                sprite.spriteFrame = iconSpriteFrame;
+            }
+
+            let rewardTween = tween(effectItem).delay(i * 0.02);
+            if (itemCount > 1) {
+                let randomAngle = Math.random() * Math.PI * 2;
+                let randomRadius = Math.sqrt(Math.random()) * 200;
+                let randomPos = new Vec3(
+                    startCenter.x + Math.cos(randomAngle) * randomRadius,
+                    startCenter.y + Math.sin(randomAngle) * randomRadius,
+                    startCenter.z,
+                );
+                rewardTween.to(0.1, { position: randomPos }, { easing: 'quadOut' });
+            }
+
+            rewardTween
+                .to(0.5, { position: targetPos, scale: new Vec3(0.8, 0.8, 1) }, { easing: 'quadIn' })
+                .call(() => {
+                    effectItem.destroy();
+                    completedCount++;
+                    if (completedCount === itemCount) {
+                        complete && complete();
                     }
                 })
                 .start();

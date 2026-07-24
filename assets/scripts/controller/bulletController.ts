@@ -24,16 +24,19 @@ export class bulletController extends Component {
     private level: number = -1;
     /**灼烧每秒伤害百分比 */
     private fireDamagePercent: number = 0;
+    /**攻击来源角色皮肤 */
+    private killerSkinId: number = 0;
 
     protected onLoad(): void {
         this.img = this.node.getComponent(Sprite);
     }
 
     /**初始化子弹 */
-    init(target: enemyBaseController, damage: number, level: number, fireDamagePercent: number = 0) {
+    init(target: enemyBaseController, damage: number, level: number, fireDamagePercent: number = 0, killerSkinId: number = 0) {
         this.target = target;
         this.damage = damage;
         this.fireDamagePercent = fireDamagePercent;
+        this.killerSkinId = killerSkinId;
         this.refreshBulletImg(level);
         this.refreshDirection();
     }
@@ -118,9 +121,9 @@ export class bulletController extends Component {
     private hitTarget() {
         if (this.isTargetValid()) {
             //TODO 敌人临时无敌
-            // let isDead = this.target.takeDamage(this.damage);
+            // let isDead = this.target.takeDamage(this.damage, this.killerSkinId);
             // if (!isDead && this.fireDamagePercent > 0) {
-            //     this.target.refreshFireBurn(this.fireDamagePercent);
+            //     this.target.refreshFireBurn(this.fireDamagePercent, this.killerSkinId);
             // }
         }
         this.recycle();
@@ -131,6 +134,7 @@ export class bulletController extends Component {
         this.target = null;
         this.damage = 0;
         this.fireDamagePercent = 0;
+        this.killerSkinId = 0;
         this.node.active = false;
         this.node.removeFromParent();
         poolMgr.bulletPool.put(this.node);

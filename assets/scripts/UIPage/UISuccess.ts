@@ -1,13 +1,13 @@
-import { _decorator, Component, Node, Animation, Sprite } from 'cc';
+import { _decorator, Label, Node, Sprite } from 'cc';
 import { UIBase } from './UIBase';
 import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { gm } from '../manager/gm';
-import { GameEvent } from '../manager/configData';
 import { audioMgr } from '../manager/audioManager';
 import { zoomButton } from '../extention/zoomButton';
 import { ccTools } from '../extention/generalTools';
+import { videoMgr } from '../manager/videoManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
@@ -30,10 +30,17 @@ export class UISuccess extends UIBase {
     @property(Sprite)
     roleImg: Sprite;
 
+    @property(Label)
+    timeLab: Label;
+
     /**奖励污染币数量 */
     moneyNum = 0;
     /**奖励魔盒数量 */
     boxNum = 0;
+    /**本次胜利奖励是否已领取或正在领取 */
+    private isRewardClaimed = false;
+    /**魔盒道具等级（配置内部从0开始） */
+    private readonly boxLevel = 0;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -46,14 +53,17 @@ export class UISuccess extends UIBase {
     }
 
     initData(data?) {
-        if (data) {
-            let skinId = data.skinId;
-            ccTools.loadImg(this.roleImg, imgPath.roleBodyFull + skinId);
-        }
+        let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
+        ccTools.loadImg(this.roleImg, imgPath.roleBodyFull + skinId);
 
         //TODO 临时写数量
         this.moneyNum = 30;
-        this.boxNum = 3;
+        this.boxNum = 12;
+        let survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
+        this.timeLab.string = `存活时间：${Math.floor(survivalTime)}s`;
+        this.isRewardClaimed = false;
+        this.refreshRewardNum();
+        this.refreshBoxNum();
 
         pData.SDKReportLevelComplete();
         pData.addLevel();
@@ -71,12 +81,66 @@ export class UISuccess extends UIBase {
 
     /**点击广告按钮 */
     clickAdBtn() {
-        uiMgr.showTips("广告");
+        if (this.isRewardClaimed) {
+            return;
+        }
+
+        this.isRewardClaimed = true;
+        videoMgr.watchVideo(68, () => {
+            this.getReward(3);
+        }, () => {
+            this.isRewardClaimed = false;
+        });
     }
 
     /**点击普通按钮 */
     clickCommonBtn() {
-        uiMgr.showTips("普通按钮");
+        if (this.isRewardClaimed) {
+            return;
+        }
+
+        this.isRewardClaimed = true;
+        this.getReward(1);
+    }
+
+    /**刷新基础奖励数量 */
+    private refreshRewardNum() {
+        let moneyLab = this.moneyRewardNode?.getChildByName("numLab")?.getComponent(Label);
+        let boxLab = this.boxRewardNode?.getChildByName("numLab")?.getComponent(Label);
+        if (moneyLab) {
+            moneyLab.string = `X ${this.moneyNum}`;
+        }
+        if (boxLab) {
+            boxLab.string = `X ${this.boxNum}`;
+        }
+    }
+
+    /**刷新当前魔盒数量 */
+    private refreshBoxNum() {
+        let boxLab = this.boxNode?.getChildByName("numLab")?.getComponent(Label);
+        if (boxLab) {
+            boxLab.string = pData.getLevelPropsNum("box", this.boxLevel).toString();
+        }
+    }
+
+    /**领取胜利奖励 */
+    private getReward(multiplier: number) {
+        let rewardMoney = this.moneyNum * multiplier;
+        let rewardBox = this.boxNum * multiplier;
+        let moneyImg = this.moneyRewardNode?.getChildByName("img") || this.moneyRewardNode;
+        let boxImg = this.boxRewardNode?.getChildByName("img") || this.boxRewardNode;
+        let boxTarget = this.boxNode?.getChildByName("img") || this.boxNode;
+
+        uiMgr.playMoneyAnim(moneyImg, rewardMoney, () => {
+            this.scheduleOnce(() => {
+                uiMgr.closeGame();
+                this.onClose();
+            }, 1);
+        });
+        uiMgr.playRewardAnim(boxImg, boxTarget, rewardBox, () => {
+            pData.fixLevelPropsNum("box", this.boxLevel, rewardBox);
+            this.refreshBoxNum();
+        });
     }
 
     onClose() {
@@ -84,5 +148,4 @@ export class UISuccess extends UIBase {
         uiMgr.closePage(UIPath.UISuccess);
     }
 }
-
 

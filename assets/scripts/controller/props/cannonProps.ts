@@ -198,7 +198,13 @@ export class cannonProps extends gamePropsBase {
         if (!bulletComp) {
             bulletComp = bulletNode.addComponent(bulletController);
         }
-        bulletComp.init(target, this.attack, this.level, fireProps.getRoomDamagePercent(this.gameComp, this.roomIdx));
+        bulletComp.init(
+            target,
+            this.attack,
+            this.level,
+            fireProps.getRoomDamagePercent(this.gameComp, this.roomIdx),
+            this.gameComp?.getRoleSkinIdByRoomIdx(this.roomIdx),
+        );
         this.playBulletSpawnAnim(bulletNode);
         bulletNode.active = true;
 

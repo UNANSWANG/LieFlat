@@ -139,6 +139,14 @@ export class enemyBaseController extends Component {
     private repairBloodNode: Node = null;
     /**是否正在播放死亡消失动画 */
     private isPlayingDeathDisappear: boolean = false;
+    /**最后完成击杀的角色皮肤 */
+    private killerSkinId: number = 0;
+    /**是否为本局最先生成、死亡后触发胜利的敌人 */
+    private isVictoryEnemy = false;
+    /**灼烧来源角色皮肤 */
+    private fireKillerSkinId: number = 0;
+    /**死亡时的本局经过时间 */
+    private survivalTime = 0;
 
     ///
     ///节点
@@ -190,6 +198,10 @@ export class enemyBaseController extends Component {
         this.gameComp = comp;
         this.roleId = id;
         this.skinId = skinId;
+        this.killerSkinId = pData.skinId;
+        this.isVictoryEnemy = this.roleId == 0;
+        this.fireKillerSkinId = pData.skinId;
+        this.survivalTime = 0;
         this.refreshRoleSpine();
 
         this.roleNameLab.string = nickname || `感染者${this.roleId + 1}`
@@ -463,7 +475,7 @@ export class enemyBaseController extends Component {
     }
 
     /**刷新火焰锻造台灼烧状态 */
-    refreshFireBurn(damagePercent: number) {
+    refreshFireBurn(damagePercent: number, killerSkinId?: number) {
         if (damagePercent <= 0 || this.hp <= 0) {
             return;
         }
@@ -473,6 +485,9 @@ export class enemyBaseController extends Component {
         }
         this.fireBurnTimer = this.fireBurnKeepTime;
         this.fireBurnDamagePercent = Math.max(this.fireBurnDamagePercent, damagePercent);
+        if (Number.isInteger(killerSkinId) && killerSkinId >= 0) {
+            this.fireKillerSkinId = killerSkinId;
+        }
     }
 
     /**获取千年寒冰对当前攻击目标所在房间的攻速影响 */
@@ -603,7 +618,7 @@ export class enemyBaseController extends Component {
         }
 
         this.thornDamageTimer = 0;
-        this.takeDamage(this.maxHp * thornDamage);
+        this.takeDamage(this.maxHp * thornDamage, this.gameComp?.getRoleSkinIdByRoomIdx(roomIdx));
     }
 
     /**刷新火焰锻造台灼烧伤害 */
@@ -617,7 +632,7 @@ export class enemyBaseController extends Component {
         this.fireBurnDamageTimer += dt;
         while (this.fireBurnDamageTimer >= 1 && this.hp > 0) {
             this.fireBurnDamageTimer -= 1;
-            this.takeDamage(this.maxHp * this.fireBurnDamagePercent);
+            this.takeDamage(this.maxHp * this.fireBurnDamagePercent, this.fireKillerSkinId);
         }
 
         if (this.fireBurnTimer <= 0) {
@@ -630,6 +645,7 @@ export class enemyBaseController extends Component {
         this.fireBurnTimer = 0;
         this.fireBurnDamageTimer = 0;
         this.fireBurnDamagePercent = 0;
+        this.fireKillerSkinId = pData.skinId;
     }
 
     /**刷新升级计时 */
@@ -667,6 +683,7 @@ export class enemyBaseController extends Component {
         }
 
         this.isPlayingDeathDisappear = true;
+        this.survivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
         this.clearAttackIceEffect();
         this.clearRepairBloodEffect();
         enemyMgr.removeEnemy(this.roleId);
@@ -681,8 +698,8 @@ export class enemyBaseController extends Component {
             if (this.node && this.node.isValid) {
                 this.node.destroy();
             }
-            if (enemyMgr.enemyArr.length == 0) {
-                uiMgr.openPage(UIPath.UISuccess);
+            if (this.isVictoryEnemy) {
+                this.openSuccessPage();
             }
             return;
         }
@@ -699,15 +716,23 @@ export class enemyBaseController extends Component {
                 if (this.node && this.node.isValid) {
                     this.node.destroy();
                 }
-                if (enemyMgr.enemyArr.length == 0) {
-                    uiMgr.openPage(UIPath.UISuccess);
+                if (this.isVictoryEnemy) {
+                    this.openSuccessPage();
                 }
             })
             .start();
     }
 
+    /**打开胜利界面 */
+    private openSuccessPage() {
+        uiMgr.openPage(UIPath.UISuccess, {
+            skinId: this.killerSkinId,
+            survivalTime: this.survivalTime,
+        });
+    }
+
     /**受到伤害 */
-    takeDamage(damage: number) {
+    takeDamage(damage: number, killerSkinId?: number) {
         if (this.isPlayingDeathDisappear) {
             return true;
         }
@@ -719,6 +744,9 @@ export class enemyBaseController extends Component {
         }
 
         let hpPercentBeforeDamage = this.hpPercent;
+        if (Number.isInteger(killerSkinId) && killerSkinId >= 0) {
+            this.killerSkinId = killerSkinId;
+        }
         this.recordDamage(damage);
         this.hp = this.gameComp?.isRoleDisappearPlaying ? Math.max(1, this.hp - damage) : this.hp - damage;
         this.refreshHp();
@@ -1199,13 +1227,16 @@ export class enemyBaseController extends Component {
     }
 
     /**被铡刀处决 */
-    executeBySaw() {
+    executeBySaw(killerSkinId?: number) {
         if (this.hp <= 0 || this.isPlayingDeathDisappear) {
             return true;
         }
 
         this.unschedule(this.stopSawControl);
         this.isSawControlled = false;
+        if (Number.isInteger(killerSkinId) && killerSkinId >= 0) {
+            this.killerSkinId = killerSkinId;
+        }
         this.hp = 0;
         this.refreshHp();
         this.die();

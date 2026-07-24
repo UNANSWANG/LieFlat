@@ -110,7 +110,7 @@ export class sawProps extends gamePropsBase {
         }
 
         if (!uiMgr.gameSpriteItemPrefab) {
-            this.targetEnemy.executeBySaw();
+            this.targetEnemy.executeBySaw(this.gameComp?.getRoleSkinIdByRoomIdx(this.roomIdx));
             this.targetEnemy = null;
             return;
         }
@@ -133,7 +133,7 @@ export class sawProps extends gamePropsBase {
         }
         sawComp.enabled = true;
 
-        sawComp.init(this.targetEnemy, imgPath.gamePprops + this.propsType);
+        sawComp.init(this.targetEnemy, imgPath.gamePprops + this.propsType, this.gameComp?.getRoleSkinIdByRoomIdx(this.roomIdx));
         this.targetEnemy = null;
     }
 

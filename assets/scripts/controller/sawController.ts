@@ -20,10 +20,13 @@ export class sawController extends Component {
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */
     private tempLocalPos: Vec3 = new Vec3();
+    /**斩杀来源角色皮肤 */
+    private killerSkinId: number = 0;
 
     /**初始化铡刀 */
-    init(target: enemyBaseController, imgPath: string) {
+    init(target: enemyBaseController, imgPath: string, killerSkinId: number) {
         this.target = target;
+        this.killerSkinId = killerSkinId;
 
         let img = poolMgr.getGameNodeSprite(this.node);
         if (img) {
@@ -102,7 +105,7 @@ export class sawController extends Component {
     /**斩杀目标 */
     private killTarget() {
         if (this.isTargetValid()) {
-            this.target.executeBySaw();
+            this.target.executeBySaw(this.killerSkinId);
         }
 
         this.recycle();
@@ -112,6 +115,7 @@ export class sawController extends Component {
     private recycle() {
         Tween.stopAllByTarget(this.node);
         this.target = null;
+        this.killerSkinId = 0;
         this.enabled = false;
         poolMgr.putGameSpriteNode(this.node);
     }

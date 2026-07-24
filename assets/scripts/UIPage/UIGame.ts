@@ -923,6 +923,17 @@ export class UIGame extends UIBase {
         return null;
     }
 
+    /**通过房间号获取房间归属角色的皮肤 */
+    getRoleSkinIdByRoomIdx(roomIdx: number) {
+        let roleComp = this.getBuildRoleByRoomIdx(roomIdx);
+        return roleComp ? roleComp.skinId : pData.skinId;
+    }
+
+    /**获取倒计时结束后的本局经过时间 */
+    getGameStartElapsedTime() {
+        return this.gameStartElapsedTime;
+    }
+
     /**创建瓦片节点 */
     private createTileItem(tilePos: Vec2, roomIdx: number = 0) {
         let tileItem = poolMgr.getTileItem(this.tileItemPre);
@@ -2806,7 +2817,10 @@ export class UIGame extends UIBase {
                 break;
             case KeyCode.KEY_D:
                 //弹出胜利界面
-                uiMgr.openPage(UIPath.UISuccess, { skinId: 2 });
+                uiMgr.openPage(UIPath.UISuccess, {
+                    skinId: pData.skinId,
+                    survivalTime: this.getGameStartElapsedTime(),
+                });
                 break;
             case KeyCode.KEY_L:
                 //增加游戏内货币

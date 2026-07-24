@@ -105,6 +105,7 @@ export class UIConsole extends UIBase {
     /**点击广告开关 */
     clickAdToggle() {
         gmConfig.isFreeAd = this.adToggle?.isChecked;
+        ccStorageTools.setData(SaveKey.isFreeAd, gmConfig.isFreeAd ? 1 : 0);
     }
 
     /**点击关闭 */

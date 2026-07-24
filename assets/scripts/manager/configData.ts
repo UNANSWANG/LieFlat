@@ -227,6 +227,8 @@ export enum SaveKey {
     skinId = "skinId",
     /**敌人是否只攻击自身（gm配置） */
     onlyAttackSelf = "onlyAttackSelf",
+    /**是否免广告（gm配置） */
+    isFreeAd = "isFreeAd",
 }
 
 /**道具索引 */

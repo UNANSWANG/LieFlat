@@ -271,6 +271,7 @@ export class playerData {
         pData.level = ccStorageTools.getNumberData(SaveKey.level);
         this.passCount = ccStorageTools.getNumberData(SaveKey.passCount) || 0;
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
+        gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
 
         //TODO 测试用，后续注释掉
         if (gm.platType == PlatType.h5) {

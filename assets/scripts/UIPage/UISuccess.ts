@@ -1,72 +1,82 @@
-import { _decorator, Component, Node, Animation } from 'cc';
+import { _decorator, Component, Node, Animation, Sprite } from 'cc';
 import { UIBase } from './UIBase';
-import { audioPath, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { gm } from '../manager/gm';
 import { GameEvent } from '../manager/configData';
 import { audioMgr } from '../manager/audioManager';
 import { zoomButton } from '../extention/zoomButton';
+import { ccTools } from '../extention/generalTools';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
 export class UISuccess extends UIBase {
     @property(Node)
-    homeBtn: Node;
+    adBtn: Node;
 
     @property(Node)
-    nextBtn: Node;
+    commonBtn: Node;
 
     @property(Node)
-    shareBtn: Node;
+    moneyRewardNode: Node;
 
     @property(Node)
-    goodBtn: Node;
+    boxRewardNode: Node;
+
+    @property(Node)
+    boxNode: Node;
+
+    @property(Sprite)
+    roleImg: Sprite;
+
+    /**奖励污染币数量 */
+    moneyNum = 0;
+    /**奖励魔盒数量 */
+    boxNum = 0;
 
     protected onLoad(): void {
         this.bindBtn();
     }
 
-    onUI_Open() {
-        let anim = this.getComponent(Animation);
-        anim.play();
+    onUI_Open(data?) {
         gm.gamePause();
         audioMgr.playEffect(audioPath.success);
-        this.initData();
+        this.initData(data);
     }
 
-    initData() {
+    initData(data?) {
+        if (data) {
+            let skinId = data.skinId;
+            ccTools.loadImg(this.roleImg, imgPath.roleBodyFull + skinId);
+        }
+
+        //TODO 临时写数量
+        this.moneyNum = 30;
+        this.boxNum = 3;
+
         pData.SDKReportLevelComplete();
         pData.addLevel();
     }
 
     bindBtn() {
-        this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
-        this.goodBtn.addComponent(zoomButton).onClick = this.clickGoodBtn.bind(this);
-        this.shareBtn.addComponent(zoomButton).onClick = this.clickShareBtn.bind(this);
-        this.nextBtn.addComponent(zoomButton).onClick = this.clickNextBtn.bind(this);
+        this.adBtn.addComponent(zoomButton).onClick = this.clickAdBtn.bind(this);
+        this.commonBtn.addComponent(zoomButton).onClick = this.clickCommonBtn.bind(this);
     }
 
-    /**点击点赞 */
-    clickGoodBtn() {
-        uiMgr.showTips("点赞");
+
+    ///
+    ///点击事件
+    ///
+
+    /**点击广告按钮 */
+    clickAdBtn() {
+        uiMgr.showTips("广告");
     }
 
-    /**点击分享 */
-    clickShareBtn() {
-        gm.API.shareAppMessage();
-    }
-
-    /**点击下一关游戏 */
-    clickNextBtn() {
-        this.onClose();
-        gm.Event.emit(GameEvent.refreshGameLevel);
-    }
-
-    /**点击返回首页 */
-    clickHomeBtn() {
-        this.onClose();
-        uiMgr.closeGame();
+    /**点击普通按钮 */
+    clickCommonBtn() {
+        uiMgr.showTips("普通按钮");
     }
 
     onClose() {

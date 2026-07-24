@@ -786,9 +786,9 @@ export class UIGame extends UIBase {
         let animTime = 0.4;
 
         tween(avatarNode)
-            .to(animTime/4, { position: new Vec3(stateData.baseAvatarPos.x - 4, stateData.baseAvatarPos.y, stateData.baseAvatarPos.z) })
-            .to(animTime/2, { position: new Vec3(stateData.baseAvatarPos.x + 4, stateData.baseAvatarPos.y, stateData.baseAvatarPos.z) })
-            .to(animTime/4, { position: stateData.baseAvatarPos.clone() })
+            .to(animTime / 4, { position: new Vec3(stateData.baseAvatarPos.x - 4, stateData.baseAvatarPos.y, stateData.baseAvatarPos.z) })
+            .to(animTime / 2, { position: new Vec3(stateData.baseAvatarPos.x + 4, stateData.baseAvatarPos.y, stateData.baseAvatarPos.z) })
+            .to(animTime / 4, { position: stateData.baseAvatarPos.clone() })
             .call(() => {
                 stateData.isAttackAnimPlaying = false;
                 avatarNode.setPosition(stateData.baseAvatarPos);
@@ -800,8 +800,8 @@ export class UIGame extends UIBase {
 
         if (stateData.redMaskOpacity) {
             tween(stateData.redMaskOpacity)
-                .to(animTime/2, { opacity: 255 })
-                .to(animTime/2, { opacity: 0 })
+                .to(animTime / 2, { opacity: 255 })
+                .to(animTime / 2, { opacity: 0 })
                 .start();
         }
     }
@@ -2803,6 +2803,10 @@ export class UIGame extends UIBase {
             case KeyCode.KEY_S:
                 //强制开始游戏
                 this.forceStartGame();
+                break;
+            case KeyCode.KEY_D:
+                //弹出胜利界面
+                uiMgr.openPage(UIPath.UISuccess, { skinId: 2 });
                 break;
             case KeyCode.KEY_L:
                 //增加游戏内货币

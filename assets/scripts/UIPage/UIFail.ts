@@ -1,13 +1,14 @@
-import { _decorator, Component, Node, Animation, Label } from 'cc';
-import { UIPath } from '../manager/pathConfig';
+import { _decorator, Component, Node, Animation, Label, Sprite } from 'cc';
+import { imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
 import { gm } from '../manager/gm';
-import { GameEvent} from '../manager/configData';
+import { GameEvent } from '../manager/configData';
 import { zoomButton } from '../extention/zoomButton';
 import { ccTools } from '../extention/generalTools';
 import { videoMgr } from '../manager/videoManager';
 import { pData } from '../manager/playerData';
+import { tilePropsType } from '../controller/tileItemController';
 const { ccclass, property } = _decorator;
 
 export enum FailType {
@@ -19,56 +20,131 @@ export enum FailType {
 @ccclass('UIFail')
 export class UIFail extends UIBase {
     @property(Node)
-    homeBtn: Node;
+    adBtn: Node;
 
     @property(Node)
-    closeBtn: Node;
+    commonBtn: Node;
 
     @property(Node)
-    restartBtn: Node;
+    moneyRewardNode: Node;
+
+    @property(Node)
+    boxRewardNode: Node;
+
+    @property(Node)
+    boxNode: Node;
+
+    @property(Sprite)
+    roleImg: Sprite;
+
+    @property(Label)
+    timeLab: Label;
+
+    /**奖励污染币数量 */
+    moneyNum = 0;
+    /**奖励魔盒数量 */
+    boxNum = 0;
+    /**本次胜利奖励是否已领取或正在领取 */
+    private isRewardClaimed = false;
 
     protected onLoad(): void {
         this.bindBtn();
     }
 
     onUI_Open(data?: any) {
-        let anim = this.getComponent(Animation);
-        anim.play();
         gm.gamePause();
         this.initData(data);
     }
 
-    initData(data?: any) {
-        pData.SDKReportLevelFail();
+    initData(data?) {
+        let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
+        ccTools.loadImg(this.roleImg, imgPath.roleBodyFull + skinId);
+
+        //TODO 临时写数量
+        this.moneyNum = 30;
+        this.boxNum = 12;
+        let survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
+        this.timeLab.string = `存活时间：${Math.floor(survivalTime)}s`;
+        this.isRewardClaimed = false;
+        this.refreshRewardNum();
+        this.refreshBoxNum();
+
+        pData.SDKReportLevelComplete();
+        pData.addLevel();
     }
 
     bindBtn() {
-        this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
-        this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
-        this.restartBtn.addComponent(zoomButton).onClick = this.clickRestartBtn.bind(this);
+        this.adBtn.addComponent(zoomButton).onClick = this.clickAdBtn.bind(this);
+        this.commonBtn.addComponent(zoomButton).onClick = this.clickCommonBtn.bind(this);
     }
 
 
-    /**点击重新开始 */
-    clickRestartBtn() {
-        this.onClose();
-        gm.Event.emit(GameEvent.refreshGameLevel);
-    }
-    
-    /**点击关闭(返回桌面) */
-    clickCloseBtn() {
-        this.onClose();
-        //上报失败
-        pData.reportLevel(false);
-        uiMgr.closeGame();
+    ///
+    ///点击事件
+    ///
+
+    /**点击广告按钮 */
+    clickAdBtn() {
+        if (this.isRewardClaimed) {
+            return;
+        }
+
+        this.isRewardClaimed = true;
+        videoMgr.watchVideo(68, () => {
+            this.getReward(3);
+        }, () => {
+            this.isRewardClaimed = false;
+        });
     }
 
-    /**点击返回首页 */
-    clickHomeBtn() {
-        this.onClose();
-        //上报失败
-        pData.reportLevel(false);
-        uiMgr.closeGame();
+    /**点击普通按钮 */
+    clickCommonBtn() {
+        if (this.isRewardClaimed) {
+            return;
+        }
+
+        this.isRewardClaimed = true;
+        this.getReward(1);
+    }
+
+    /**刷新基础奖励数量 */
+    private refreshRewardNum() {
+        let moneyLab = this.moneyRewardNode?.getChildByName("numLab")?.getComponent(Label);
+        let boxLab = this.boxRewardNode?.getChildByName("numLab")?.getComponent(Label);
+        if (moneyLab) {
+            moneyLab.string = `X ${this.moneyNum}`;
+        }
+        if (boxLab) {
+            boxLab.string = `X ${this.boxNum}`;
+        }
+    }
+
+    /**刷新当前魔盒数量 */
+    private refreshBoxNum() {
+        let boxLab = this.boxNode?.getChildByName("numLab")?.getComponent(Label);
+        if (boxLab) {
+            boxLab.string = pData.getLevelPropsNum(tilePropsType.box, 0).toString();
+        }
+    }
+
+    /**领取胜利奖励 */
+    private getReward(multiplier: number) {
+        let rewardMoney = this.moneyNum * multiplier;
+        let rewardBox = this.boxNum * multiplier;
+        let moneyImg = this.moneyRewardNode?.getChildByName("img") || this.moneyRewardNode;
+        let boxImg = this.boxRewardNode?.getChildByName("img") || this.boxRewardNode;
+        let boxTarget = this.boxNode?.getChildByName("img") || this.boxNode;
+
+        uiMgr.playMoneyAnim(moneyImg, rewardMoney, () => {
+            this.scheduleOnce(() => {
+                uiMgr.closeGame();
+                this.onClose();
+            }, 1);
+        });
+        uiMgr.playRewardAnim(boxImg, boxTarget, rewardBox, () => {
+            pData.fixLevelPropsNum(tilePropsType.box, 0, rewardBox);
+            this.refreshBoxNum();
+        });
     }
 
     onClose() {

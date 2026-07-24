@@ -8,6 +8,7 @@ import { audioMgr } from '../manager/audioManager';
 import { zoomButton } from '../extention/zoomButton';
 import { ccTools } from '../extention/generalTools';
 import { videoMgr } from '../manager/videoManager';
+import { tilePropsType } from '../controller/tileItemController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
@@ -39,8 +40,6 @@ export class UISuccess extends UIBase {
     boxNum = 0;
     /**本次胜利奖励是否已领取或正在领取 */
     private isRewardClaimed = false;
-    /**魔盒道具等级（配置内部从0开始） */
-    private readonly boxLevel = 0;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -119,7 +118,7 @@ export class UISuccess extends UIBase {
     private refreshBoxNum() {
         let boxLab = this.boxNode?.getChildByName("numLab")?.getComponent(Label);
         if (boxLab) {
-            boxLab.string = pData.getLevelPropsNum("box", this.boxLevel).toString();
+            boxLab.string = pData.getLevelPropsNum(tilePropsType.box, 0).toString();
         }
     }
 
@@ -138,7 +137,7 @@ export class UISuccess extends UIBase {
             }, 1);
         });
         uiMgr.playRewardAnim(boxImg, boxTarget, rewardBox, () => {
-            pData.fixLevelPropsNum("box", this.boxLevel, rewardBox);
+            pData.fixLevelPropsNum(tilePropsType.box, 0, rewardBox);
             this.refreshBoxNum();
         });
     }

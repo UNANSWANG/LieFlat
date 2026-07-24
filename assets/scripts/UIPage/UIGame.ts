@@ -2822,6 +2822,13 @@ export class UIGame extends UIBase {
                     survivalTime: this.getGameStartElapsedTime(),
                 });
                 break;
+            case KeyCode.KEY_F:
+                //弹出失败界面
+                uiMgr.openPage(UIPath.UIFail, {
+                    skinId: pData.skinId,
+                    survivalTime: this.getGameStartElapsedTime(),
+                });
+                break;
             case KeyCode.KEY_L:
                 //增加游戏内货币
                 this.addGameMonetary();

@@ -1,7 +1,7 @@
 import { _decorator, CCBoolean, Component, Enum, Node, Tween, tween, UIOpacity, v3, Vec3 } from 'cc';
 const { ccclass, property } = _decorator;
 
-enum loop_anim {
+export enum loop_anim {
     //摇动
     shake,
     //呼吸

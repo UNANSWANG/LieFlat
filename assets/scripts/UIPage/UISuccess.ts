@@ -9,6 +9,7 @@ import { zoomButton } from '../extention/zoomButton';
 import { ccTools } from '../extention/generalTools';
 import { videoMgr } from '../manager/videoManager';
 import { tilePropsType } from '../controller/tileItemController';
+import { loop_anim, loopAnimation } from '../controller/loopAnimation';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
@@ -40,8 +41,11 @@ export class UISuccess extends UIBase {
     boxNum = 0;
     /**本次胜利奖励是否已领取或正在领取 */
     private isRewardClaimed = false;
+    /**广告按钮循环动画 */
+    private adBtnAnimation: loopAnimation = null;
 
     protected onLoad(): void {
+        this.initAdBtnAnimation();
         this.bindBtn();
     }
 
@@ -49,6 +53,15 @@ export class UISuccess extends UIBase {
         gm.gamePause();
         audioMgr.playEffect(audioPath.success);
         this.initData(data);
+        this.adBtnAnimation.playAni();
+    }
+
+    /**初始化广告按钮循环放缩动画 */
+    private initAdBtnAnimation() {
+        this.adBtnAnimation = this.adBtn.getComponent(loopAnimation) || this.adBtn.addComponent(loopAnimation);
+        this.adBtnAnimation.startPlay = false;
+        this.adBtnAnimation.animType = loop_anim.scaling;
+        this.adBtnAnimation.scaleOffset = 0.08;
     }
 
     initData(data?) {
@@ -143,8 +156,9 @@ export class UISuccess extends UIBase {
     }
 
     onClose() {
+        this.adBtnAnimation.unscheduleAllCallbacks();
+        this.adBtnAnimation.stopAni();
         gm.gameResume();
         uiMgr.closePage(UIPath.UISuccess);
     }
 }
-

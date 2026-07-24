@@ -1832,6 +1832,7 @@ export class enemyBaseController extends Component {
             this.playScratchEffectAtWorldPos(scratchWorldPos);
             let isMainPlayer = targetPlayer.roleId == playerMgr.playerComp?.roleId;
             this.clearBedPropsByRole(targetPlayer);
+            targetPlayer.setKillerEnemySkinId(this.skinId);
             targetPlayer.state = roleState.dead;
             if (!isMainPlayer) {
                 for (let i = 0; i < targetPlayer.node.children.length; i++) {
@@ -1970,7 +1971,7 @@ export class enemyBaseController extends Component {
             this.gameComp?.handleTeamCannonByEnemyFirstDoorAttack(tilePos, this.currentPos);
         }
 
-        let isDestroyed = propComp.takeDamage(this.attackDamage);
+        let isDestroyed = propComp.takeDamage(this.attackDamage, this.skinId);
         let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
         let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;
         if (actualDamage > 0) {

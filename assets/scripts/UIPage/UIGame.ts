@@ -2825,7 +2825,7 @@ export class UIGame extends UIBase {
             case KeyCode.KEY_F:
                 //弹出失败界面
                 uiMgr.openPage(UIPath.UIFail, {
-                    skinId: pData.skinId,
+                    enemySkinId: enemyMgr.enemyArr[0]?.skinId || 0,
                     survivalTime: this.getGameStartElapsedTime(),
                 });
                 break;

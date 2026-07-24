@@ -57,8 +57,8 @@ export class UIFail extends UIBase {
     }
 
     initData(data?) {
-        let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
-        ccTools.loadImg(this.roleImg, imgPath.roleBodyFull + skinId);
+        let enemySkinId = Number.isInteger(data?.enemySkinId) && data.enemySkinId >= 0 ? data.enemySkinId : 0;
+        ccTools.loadImg(this.roleImg, imgPath.enemyBodyFull + enemySkinId);
 
         //TODO 临时写数量
         this.moneyNum = 30;

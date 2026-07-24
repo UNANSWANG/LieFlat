@@ -282,12 +282,12 @@ export class doorProps extends gamePropsBase {
     }
 
     /**受到伤害 */
-    takeDamage(damage: number) {
+    takeDamage(damage: number, killerEnemySkinId?: number) {
         if (coverProps.tryBlockDoorDamage(this.gameComp, this.roomIdx, this.hpPercent)) {
             return false;
         }
 
-        let isDestroyed = super.takeDamage(damage);
+        let isDestroyed = super.takeDamage(damage, killerEnemySkinId);
         if (!isDestroyed) {
             this.doorHpShowTimer = configData.doorHpShowTime;
             this.hpNode.active = true;

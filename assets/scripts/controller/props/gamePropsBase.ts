@@ -274,7 +274,7 @@ export class gamePropsBase extends Component {
     }
 
     /**受到伤害 */
-    takeDamage(damage: number) {
+    takeDamage(damage: number, killerEnemySkinId?: number) {
         this.recordDamage(damage);
         this.hp -= damage;
         this.playScaleUpAnim();
@@ -286,6 +286,7 @@ export class gamePropsBase extends Component {
             if (this.propsType == tilePropsType.bed) {
                 let roleInfo: roleController = this.getSleepingRoleInfoByRoomIdx(this.roomIdx);
                 if (roleInfo) {
+                    roleInfo.setKillerEnemySkinId(killerEnemySkinId);
                     roleInfo.state = roleState.dead;
                 }
             }

@@ -94,6 +94,10 @@ export class roleController extends Component {
     private curRoleAnimName: string = "";
     /**是否正在播放主角死亡消失动画 */
     private isPlayingDeathDisappear: boolean = false;
+    /**击杀当前角色的敌人皮肤 */
+    private killerEnemySkinId = 0;
+    /**主角死亡时的本局经过时间 */
+    private failSurvivalTime = 0;
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -102,6 +106,7 @@ export class roleController extends Component {
     }
     public set state(value: roleState) {
         if (value == roleState.dead && this.roleId == playerMgr.playerComp.roleId) {
+            this.failSurvivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
             if (this._state == roleState.bed) {
                 this.openFailPageImmediately();
             } else {
@@ -120,7 +125,7 @@ export class roleController extends Component {
         if (this.gameComp) {
             this.gameComp.isRoleDisappearPlaying = false;
         }
-        uiMgr.openPage(UIPath.UIFail);
+        this.openFailPage();
     }
 
     /**播放主角死亡消失动画，结束后再弹失败 */
@@ -137,7 +142,7 @@ export class roleController extends Component {
         this.showRole();
         let animNode = this.roleAnim?.node || this.node.getChildByName("roleAnim");
         if (!animNode) {
-            uiMgr.openPage(UIPath.UIFail);
+            this.openFailPage();
             return;
         }
 
@@ -153,9 +158,24 @@ export class roleController extends Component {
                 if (this.gameComp) {
                     this.gameComp.isRoleDisappearPlaying = false;
                 }
-                uiMgr.openPage(UIPath.UIFail);
+                this.openFailPage();
             })
             .start();
+    }
+
+    /**记录击杀当前角色的敌人皮肤 */
+    setKillerEnemySkinId(skinId: number) {
+        if (Number.isInteger(skinId) && skinId >= 0) {
+            this.killerEnemySkinId = skinId;
+        }
+    }
+
+    /**打开失败界面 */
+    private openFailPage() {
+        uiMgr.openPage(UIPath.UIFail, {
+            enemySkinId: this.killerEnemySkinId,
+            survivalTime: this.failSurvivalTime,
+        });
     }
 
     ///
@@ -175,6 +195,8 @@ export class roleController extends Component {
         this.gameComp = comp;
         this.roleId = id;
         this.skinId = skinId;
+        this.killerEnemySkinId = 0;
+        this.failSurvivalTime = 0;
         this.state = roleState.normal;
         this.stopRobotUpgrade();
         this.resetDoorAttackUpgradeData();

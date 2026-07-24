@@ -9,6 +9,14 @@ const JsonToTs_1 = require("./JsonToTs");
 const main_1 = require("./main");
 const fs = require('fs');
 const excel = require('exceljs');
+/** 获取普通单元格值，公式单元格使用 Excel 文件中保存的计算结果。 */
+function getCellValue(cell) {
+    const value = cell.value;
+    if (value != null && typeof value === "object" && ("formula" in value || "sharedFormula" in value)) {
+        return value.result;
+    }
+    return value;
+}
 /**
  * Excel转Json数据
  * @param {*} src           读取的excel文件目录
@@ -34,7 +42,7 @@ async function convert(src, dst, name, isClient) {
         let data = {};
         let name = "";
         row.eachCell((cell, colNumber) => {
-            const value = cell.value;
+            const value = getCellValue(cell);
             if (rowNumber === 1) { // 字段中文名
                 names.push(value);
                 if (value.indexOf("【KEY】") > -1)

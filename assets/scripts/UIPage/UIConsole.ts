@@ -7,6 +7,7 @@ import { gm } from '../manager/gm';
 import { GameEvent, gmConfig, SaveKey } from '../manager/configData';
 import { pData } from '../manager/playerData';
 import { ccStorageTools } from '../extention/storageTools';
+import { videoMgr } from '../manager/videoManager';
 const { ccclass, property } = _decorator;
 
 
@@ -33,6 +34,9 @@ export class UIConsole extends UIBase {
     @property(Toggle)
     onlyAttackSelfToggle: Toggle;
 
+    @property(Toggle)
+    adToggle: Toggle;
+
     protected onLoad(): void {
         this.bindBtn();
     }
@@ -44,7 +48,7 @@ export class UIConsole extends UIBase {
     }
 
     initData() {
-        this.refreshOnlyAttackSelfToggle();
+        this.refreshToggle();
     }
 
     bindBtn() {
@@ -55,15 +59,13 @@ export class UIConsole extends UIBase {
         this.addGameMonetaryBtn2.addComponent(zoomButton).onClick = this.clickAddGameMonetary2Btn.bind(this);
         this.forceStartBtn.addComponent(zoomButton).onClick = this.clickForceStartBtn.bind(this);
         this.onlyAttackSelfToggle.node.on(Toggle.EventType.TOGGLE, this.clickOnlyAttackSelfToggle, this);
+        this.adToggle.node.on(Toggle.EventType.TOGGLE, this.clickAdToggle, this);
     }
 
     /**刷新只攻击玩家自身开关 */
-    refreshOnlyAttackSelfToggle() {
-        if (!this.onlyAttackSelfToggle) {
-            return;
-        }
-
+    refreshToggle() {
         this.onlyAttackSelfToggle.isChecked = gmConfig.onlyAttackSelf;
+        this.adToggle.isChecked = gmConfig.isFreeAd;
     }
 
     ///
@@ -96,8 +98,13 @@ export class UIConsole extends UIBase {
 
     /**点击只攻击玩家自身开关 */
     clickOnlyAttackSelfToggle() {
-        gmConfig.onlyAttackSelf = !!this.onlyAttackSelfToggle?.isChecked;
+        gmConfig.onlyAttackSelf = this.onlyAttackSelfToggle?.isChecked;
         ccStorageTools.setData(SaveKey.onlyAttackSelf, gmConfig.onlyAttackSelf ? 1 : 0);
+    }
+
+    /**点击广告开关 */
+    clickAdToggle() {
+        gmConfig.isFreeAd = this.adToggle?.isChecked;
     }
 
     /**点击关闭 */

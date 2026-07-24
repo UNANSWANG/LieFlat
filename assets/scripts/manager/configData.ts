@@ -143,6 +143,8 @@ export const robotCommonConfig = {
 export const gmConfig = {
     /**是否只攻击自身 */
     onlyAttackSelf: false,
+    /**是否免广告 */
+    isFreeAd: false,
 }
 
 /**游戏事件 */

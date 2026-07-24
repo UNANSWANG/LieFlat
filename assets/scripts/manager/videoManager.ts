@@ -1,12 +1,11 @@
 import { _decorator, Component, Node } from 'cc';
 import { gm, PlatType } from './gm';
 import { pData } from './playerData';
+import { gmConfig } from './configData';
 const { ccclass, property } = _decorator;
 
 @ccclass('videoManager')
 export class videoManager {
-    /**是否有广告 */
-    isAd: boolean = true;
     /**当前的广告场景 */
     currentAdScene: number = 68;
 
@@ -20,7 +19,7 @@ export class videoManager {
             complete && complete();
         }
 
-        if (gm.platType != PlatType.h5 && this.isAd) {
+        if (gm.platType != PlatType.h5 && !gmConfig.isFreeAd) {
             this.currentAdScene = adType;
             this.SDKAdClick();
             gm.API.watchVideo(adCall, noComplete);

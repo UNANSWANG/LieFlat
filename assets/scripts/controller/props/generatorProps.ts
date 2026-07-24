@@ -75,9 +75,6 @@ export class generatorProps extends gamePropsBase {
     startProducePower() {
         this.stopProducePower();
         let interval = configData.producePowerFreq;
-        if(this.level == 0){
-            interval *= 2;
-        }
         this.schedule(this.producePower, interval);
     }
 

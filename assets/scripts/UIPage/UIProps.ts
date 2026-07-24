@@ -180,7 +180,7 @@ export class UIProps extends UIBase {
             let coinNum = 0;
             limitLab.string = "";
 
-            if (i == 0 && nextPropsData.preConditions) {
+            if ((i == 0 && nextPropsData.preConditions) || i == 2) {
                 desLab.fontSize = 25;
                 desLab.lineHeight = 30;
             } else {

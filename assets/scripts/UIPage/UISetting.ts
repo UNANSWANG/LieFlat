@@ -28,9 +28,6 @@ export class UISetting extends UIBase {
     @property(Node)
     toggleList: Node;
 
-    @property(Node)
-    restartBtn: Node;
-
     @property(Label)
     uidLab: Label;
 
@@ -86,7 +83,6 @@ export class UISetting extends UIBase {
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
         this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
-        this.restartBtn.addComponent(zoomButton).onClick = this.clickRestartBtn.bind(this);
         this.consoleBtn.addComponent(zoomButton).onClick = this.clickConsoleBtn.bind(this);
         this.vibratToggle.node.on(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
         this.musicSlider.node.on(SliderEventSlide, this.changeMusicVolume, this);
@@ -97,12 +93,10 @@ export class UISetting extends UIBase {
     refreshUI() {
         let bgTrans = this.bg.getComponent(UITransform);
         if (this.mode == 1) {
-            bgTrans.height = 886;
-            this.restartBtn.active = true;
+            bgTrans.height = 775;
             this.homeBtn.active = true;
         } else {
             bgTrans.height = 635;
-            this.restartBtn.active = false;
             this.homeBtn.active = false;
         }
 

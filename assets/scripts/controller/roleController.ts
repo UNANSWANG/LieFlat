@@ -10,6 +10,7 @@ import { uiMgr } from '../manager/UIManager';
 import { spinePath, UIPath } from '../manager/pathConfig';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 import { tilePropsType } from './tileItemController';
+import { poolMgr } from '../manager/poolManager';
 const { ccclass, property } = _decorator;
 
 export enum roleState {
@@ -35,7 +36,7 @@ export class roleController extends Component {
     /**角色皮肤id */
     skinId: number = 0;
     /**当前角色所在瓦片位置 */
-    currentPos: Vec2 = Vec2.ZERO;
+    currentPos: Vec2 = new Vec2();
     /**角色所在房间号-1：未进入房间，其他值：房间索引 */
     roomIdx: number = -1;
     /**游戏脚本 */
@@ -46,6 +47,8 @@ export class roleController extends Component {
     private movePathIdx: number = 0;
     /**机器人目标位置 */
     private targetPos: Vec2 = new Vec2();
+    /**移动计算复用坐标 */
+    private tempTargetNodePos: Vec3 = new Vec3();
     /**机器人当前是否已经预定床位 */
     private hasTargetBed: boolean = false;
     /**机器人当前是否已经预定随机道具 */
@@ -440,84 +443,39 @@ export class roleController extends Component {
         return result;
     }
 
-    /**寻路到床，机器人忽略门，目标床本身允许进入 */
+    /**按当前地图实际宽高寻路到床，机器人忽略门，目标床本身允许进入 */
     private findPathToBed(targetPos: Vec2): Vec2[] {
-        if (!pData.mapSize || pData.mapSize.width <= 0 || pData.mapSize.height <= 0) {
+        let width = Math.floor(pData.mapSize?.width || 0);
+        let height = Math.floor(pData.mapSize?.height || 0);
+        if (width <= 0 || height <= 0) {
             return [];
         }
 
-        let startPos = new Vec2(this.currentPos.x, this.currentPos.y);
+        let startPos = this.currentPos;
         if (startPos.x == targetPos.x && startPos.y == targetPos.y) {
             return [new Vec2(targetPos.x, targetPos.y)];
         }
 
-        let queue: Vec2[] = [startPos];
-        let visited: boolean[][] = Array.from(
-            { length: pData.mapSize.width },
-            () => Array.from({ length: pData.mapSize.height }, () => false)
+        return ccTools.findGridPath(
+            width,
+            height,
+            startPos,
+            targetPos,
+            (x, y) => this.canRobotWalk(x, y, targetPos),
         );
-        let parent: (Vec2 | null)[][] = Array.from(
-            { length: pData.mapSize.width },
-            () => Array.from({ length: pData.mapSize.height }, () => null)
-        );
-        let dirs = [
-            new Vec2(1, 0),
-            new Vec2(-1, 0),
-            new Vec2(0, 1),
-            new Vec2(0, -1),
-        ];
-        let head = 0;
-        visited[startPos.x][startPos.y] = true;
-
-        while (head < queue.length) {
-            let curPos = queue[head++];
-            if (curPos.x == targetPos.x && curPos.y == targetPos.y) {
-                return this.buildPath(parent, startPos, targetPos);
-            }
-
-            for (let i = 0; i < dirs.length; i++) {
-                let nextPos = new Vec2(curPos.x + dirs[i].x, curPos.y + dirs[i].y);
-                if (!this.canRobotWalk(nextPos, targetPos) || visited[nextPos.x][nextPos.y]) {
-                    continue;
-                }
-
-                visited[nextPos.x][nextPos.y] = true;
-                parent[nextPos.x][nextPos.y] = curPos;
-                queue.push(nextPos);
-            }
-        }
-
-        return [];
-    }
-
-    /**还原路径，返回值不包含起点，包含终点 */
-    private buildPath(parent: (Vec2 | null)[][], startPos: Vec2, targetPos: Vec2): Vec2[] {
-        let path: Vec2[] = [];
-        let curPos = new Vec2(targetPos.x, targetPos.y);
-
-        while (curPos.x != startPos.x || curPos.y != startPos.y) {
-            path.unshift(new Vec2(curPos.x, curPos.y));
-            let prePos = parent[curPos.x][curPos.y];
-            if (!prePos) {
-                return [];
-            }
-            curPos = prePos;
-        }
-
-        return path;
     }
 
     /**机器人可通行判断：门可通过，其他障碍不可通过，目标床可进入 */
-    private canRobotWalk(tilePos: Vec2, targetPos: Vec2) {
-        if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= pData.mapSize.width || tilePos.y >= pData.mapSize.height) {
+    private canRobotWalk(tileX: number, tileY: number, targetPos: Vec2) {
+        if (tileX < 0 || tileY < 0 || tileX >= pData.mapSize.width || tileY >= pData.mapSize.height) {
             return false;
         }
 
-        if (tilePos.x == targetPos.x && tilePos.y == targetPos.y) {
+        if (tileX == targetPos.x && tileY == targetPos.y) {
             return true;
         }
 
-        let tileData = this.gameComp.tileMap[tilePos.x]?.[tilePos.y];
+        let tileData = this.gameComp.tileMap[tileX]?.[tileY];
         if (!tileData) {
             return false;
         }
@@ -540,7 +498,7 @@ export class roleController extends Component {
 
         this.playRoleAnim(roleAnimName.move, true);
         let nextTilePos = this.movePath[this.movePathIdx];
-        let targetNodePos = ccTools.getPosByTileIndex(nextTilePos);
+        let targetNodePos = ccTools.getPosByTileIndex(nextTilePos, this.tempTargetNodePos);
         let curNodePos = this.node.position;
         let offsetX = targetNodePos.x - curNodePos.x;
         let offsetY = targetNodePos.y - curNodePos.y;
@@ -550,7 +508,7 @@ export class roleController extends Component {
 
         if (distance <= moveDistance || distance <= 0.001) {
             this.node.setPosition(targetNodePos);
-            this.currentPos = new Vec2(nextTilePos.x, nextTilePos.y);
+            this.currentPos.set(nextTilePos.x, nextTilePos.y);
             this.movePathIdx++;
 
             if (this.movePathIdx >= this.movePath.length) {
@@ -568,7 +526,7 @@ export class roleController extends Component {
 
         let moveX = offsetX / distance * moveDistance;
         let moveY = offsetY / distance * moveDistance;
-        this.node.setPosition(new Vec3(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z));
+        this.node.setPosition(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z);
     }
 
     /**根据水平移动方向刷新角色动画朝向 */
@@ -578,7 +536,7 @@ export class roleController extends Component {
             return;
         }
 
-        roleAnimNode.setScale(new Vec3(offsetX < 0 ? -1 : 1, 1, 1));
+        roleAnimNode.setScale(offsetX < 0 ? -1 : 1, 1, 1);
     }
 
     /**到达随机道具 */
@@ -1036,10 +994,11 @@ export class roleController extends Component {
         carriedData.propsComp?.clearData();
         if (carriedData.propsComp) {
             carriedData.propsComp.enabled = false;
-            carriedData.propsComp.destroy();
         }
-        carriedData.propsNode?.removeFromParent();
-        carriedData.propsNode?.destroy();
+        if (carriedData.propsNode) {
+            // 机器人携带的道具同样按类型回池，避免反复销毁和添加脚本
+            poolMgr.putPropsNode(carriedData.propsNode, carriedData.propsType);
+        }
         this.carriedRandomPropsData = null;
     }
 }

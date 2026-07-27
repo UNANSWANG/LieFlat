@@ -39,6 +39,15 @@ export class cageController extends Component {
         this.scheduleOnce(this.finishControl, this.duration);
     }
 
+    /**放回对象池前停止控制计时和节点动画 */
+    onPoolPut() {
+        Tween.stopAllByTarget(this.node);
+        this.unschedule(this.finishControl);
+        this.target = null;
+        this.duration = 0;
+        this.enabled = false;
+    }
+
     protected update(dt: number): void {
         if (!this.isTargetValid()) {
             this.recycle();
@@ -92,11 +101,6 @@ export class cageController extends Component {
 
     /**移除铁笼 */
     private recycle() {
-        Tween.stopAllByTarget(this.node);
-        this.unschedule(this.finishControl);
-        this.target = null;
-        this.duration = 0;
-        this.enabled = false;
         poolMgr.putGameSpriteNode(this.node);
     }
 }

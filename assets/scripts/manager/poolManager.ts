@@ -17,13 +17,35 @@ export class poolManager extends Component {
     gameSpineNodePool: NodePool = new NodePool();
     /**瓦片对象池 */
     tileItemPool: NodePool = new NodePool();
-    /**道具节点对象池 */
-    propsNodePool: NodePool = new NodePool();
+    /**按道具脚本类型拆分的节点对象池 */
+    private propsNodePoolMap: Map<string, NodePool> = new Map();
     gameAnimNodePool: NodePool = new NodePool();
 
     /**初始化点的对象池 */
     initPointNodePool() {
         
+    }
+
+    /**获取生产提示节点 */
+    getProduceTipsNode(prefab: Prefab) {
+        return this.getNode(this.produceTipsPool, prefab);
+    }
+
+    /**回收生产提示节点并清理运行状态 */
+    putProduceTipsNode(node: Node) {
+        this.resetNode(node);
+        this.produceTipsPool.put(node);
+    }
+
+    /**获取子弹节点 */
+    getBulletNode(prefab: Prefab) {
+        return this.getNode(this.bulletPool, prefab);
+    }
+
+    /**回收子弹节点并清理本次攻击数据 */
+    putBulletNode(node: Node) {
+        this.resetNode(node);
+        this.bulletPool.put(node);
     }
 
     /**获取游戏通用节点 */
@@ -108,20 +130,35 @@ export class poolManager extends Component {
     }
 
     /**获取道具节点 */
-    getPropsNode(prefab: Prefab) {
-        return this.getNode(this.propsNodePool, prefab);
+    getPropsNode(prefab: Prefab, poolKey: string, componentType: any) {
+        let pool = this.getPropsNodePool(poolKey);
+        let node = this.getNode(pool, prefab);
+        // 同类型节点复用已有脚本，仅首次创建该类型节点时添加组件
+        let component = node.getComponent(componentType) || node.addComponent(componentType);
+        component.enabled = true;
+        return node;
     }
 
     /**回收道具节点 */
-    putPropsNode(node: Node) {
+    putPropsNode(node: Node, poolKey: string) {
         this.resetNode(node);
-        this.propsNodePool.put(node);
+        this.getPropsNodePool(poolKey).put(node);
+    }
+
+    /**按道具类型获取独立对象池，避免通用节点累积不同道具脚本 */
+    private getPropsNodePool(poolKey: string) {
+        let key = poolKey || "default";
+        if (!this.propsNodePoolMap.has(key)) {
+            this.propsNodePoolMap.set(key, new NodePool());
+        }
+        return this.propsNodePoolMap.get(key);
     }
 
     /**从指定对象池获取节点 */
     private getNode(pool: NodePool, prefab: Prefab) {
         let node = pool.get();
         if (!node) {
+            // 不设置容量上限：池为空时继续创建，峰值关卡结束后实例留池复用
             node = instantiate(prefab);
         }
 
@@ -153,6 +190,10 @@ export class poolManager extends Component {
         let comps = node.getComponents(Component) || [];
         for (let i = 0; i < comps.length; i++) {
             let comp: any = comps[i];
+            // 使回池前尚未完成的图片/Spine请求失效，避免异步结果污染复用节点
+            comp.__asyncAssetLoadVersion = (Number(comp.__asyncAssetLoadVersion) || 0) + 1;
+            // 各业务组件通过统一钩子清理目标引用、计时器等私有状态
+            comp.onPoolPut?.();
             comp.unscheduleAllCallbacks?.();
             Tween.stopAllByTarget(comp);
         }

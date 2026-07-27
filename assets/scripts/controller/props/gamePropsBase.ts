@@ -341,7 +341,15 @@ export class gamePropsBase extends Component {
     /**清理过期伤害记录 */
     private clearExpiredDamageRecords(time: number) {
         let minTime = Date.now() / 1000 - time;
-        this.damageRecords = this.damageRecords.filter(record => record.time >= minTime);
+        // 原地压缩有效记录，避免高频统计时由filter创建新数组
+        let writeIndex = 0;
+        for (let i = 0; i < this.damageRecords.length; i++) {
+            let record = this.damageRecords[i];
+            if (record.time >= minTime) {
+                this.damageRecords[writeIndex++] = record;
+            }
+        }
+        this.damageRecords.length = writeIndex;
     }
 
     /**回收逻辑生成的效果节点 */

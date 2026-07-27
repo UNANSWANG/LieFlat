@@ -43,6 +43,14 @@ export class sawController extends Component {
         this.playHoverAnim();
     }
 
+    /**放回对象池前停止动画并解除目标引用 */
+    onPoolPut() {
+        Tween.stopAllByTarget(this.node);
+        this.target = null;
+        this.killerSkinId = 0;
+        this.enabled = false;
+    }
+
     protected update(dt: number): void {
         if (!this.isTargetValid()) {
             this.recycle();
@@ -113,10 +121,6 @@ export class sawController extends Component {
 
     /**回收铡刀 */
     private recycle() {
-        Tween.stopAllByTarget(this.node);
-        this.target = null;
-        this.killerSkinId = 0;
-        this.enabled = false;
         poolMgr.putGameSpriteNode(this.node);
     }
 }

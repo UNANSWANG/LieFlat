@@ -41,6 +41,16 @@ export class bulletController extends Component {
         this.refreshDirection();
     }
 
+    /**放回对象池前清空本次射击状态 */
+    onPoolPut() {
+        this.target = null;
+        this.damage = 0;
+        this.fireDamagePercent = 0;
+        this.killerSkinId = 0;
+        // 强制下次复用重新走图片请求版本校验
+        this.level = -1;
+    }
+
     /**刷新子弹图片 */
     private refreshBulletImg(level: number) {
         if (!this.img) {
@@ -130,12 +140,6 @@ export class bulletController extends Component {
 
     /**回收子弹 */
     private recycle() {
-        this.target = null;
-        this.damage = 0;
-        this.fireDamagePercent = 0;
-        this.killerSkinId = 0;
-        this.node.active = false;
-        this.node.removeFromParent();
-        poolMgr.bulletPool.put(this.node);
+        poolMgr.putBulletNode(this.node);
     }
 }

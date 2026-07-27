@@ -40,7 +40,7 @@ export class enemyBaseController extends Component {
     /**游戏脚本 */
     gameComp: UIGame = null;
     /**当前角色所在瓦片位置 */
-    currentPos: Vec2 = Vec2.ZERO;
+    currentPos: Vec2 = new Vec2();
     /**等级 */
     level: number = 0;
     /**最大等级 */
@@ -63,6 +63,10 @@ export class enemyBaseController extends Component {
     private emptyRoomIgnoreDoorRoomIdx: number = 0;
     /**寻路路径 */
     private movePath: Vec2[] = [];
+    /**寻路判断复用瓦片坐标 */
+    private tempPathTilePos: Vec2 = new Vec2();
+    /**移动计算复用节点坐标 */
+    private tempTargetNodePos: Vec3 = new Vec3();
     /**当前路径索引 */
     private movePathIdx: number = 0;
     /**当前正在攻击的道具坐标 */
@@ -792,7 +796,15 @@ export class enemyBaseController extends Component {
     /**清理过期伤害记录 */
     private clearExpiredDamageRecords(time: number) {
         let minTime = Date.now() / 1000 - time;
-        this.damageRecords = this.damageRecords.filter(record => record.time >= minTime);
+        // 原地压缩有效记录，避免战斗中持续创建临时数组
+        let writeIndex = 0;
+        for (let i = 0; i < this.damageRecords.length; i++) {
+            let record = this.damageRecords[i];
+            if (record.time >= minTime) {
+                this.damageRecords[writeIndex++] = record;
+            }
+        }
+        this.damageRecords.length = writeIndex;
     }
 
     /**处理攻击门时血量跨过检测阈值 */
@@ -1112,14 +1124,17 @@ export class enemyBaseController extends Component {
         return 0;
     }
 
-    /**BFS寻路，返回值不包含起点，包含终点 */
+    /**按当前地图实际宽高执行BFS寻路，返回值不包含起点，包含终点 */
     private findPath(targetPos: Vec2, ignoreDoorRoomIdx: number = 0): Vec2[] {
-        if (!pData.mapSize || pData.mapSize.width <= 0 || pData.mapSize.height <= 0) {
+        let width = Math.floor(pData.mapSize?.width || 0);
+        let height = Math.floor(pData.mapSize?.height || 0);
+        if (width <= 0 || height <= 0) {
             return [];
         }
 
-        let startPos = new Vec2(this.currentPos.x, this.currentPos.y);
-        if (!this.canEnemyWalk(startPos, ignoreDoorRoomIdx) || !this.canEnemyWalk(targetPos, ignoreDoorRoomIdx)) {
+        let startPos = this.currentPos;
+        if (!this.canEnemyWalk(startPos.x, startPos.y, ignoreDoorRoomIdx)
+            || !this.canEnemyWalk(targetPos.x, targetPos.y, ignoreDoorRoomIdx)) {
             return [];
         }
 
@@ -1127,72 +1142,29 @@ export class enemyBaseController extends Component {
             return [];
         }
 
-        let queue: Vec2[] = [startPos];
-        let visited: boolean[][] = Array.from(
-            { length: pData.mapSize.width },
-            () => Array.from({ length: pData.mapSize.height }, () => false)
+        return ccTools.findGridPath(
+            width,
+            height,
+            startPos,
+            targetPos,
+            (x, y) => this.canEnemyWalk(x, y, ignoreDoorRoomIdx),
         );
-        let parent: (Vec2 | null)[][] = Array.from(
-            { length: pData.mapSize.width },
-            () => Array.from({ length: pData.mapSize.height }, () => null)
-        );
-        let dirs = [
-            new Vec2(1, 0),
-            new Vec2(-1, 0),
-            new Vec2(0, 1),
-            new Vec2(0, -1),
-        ];
-        let head = 0;
-        visited[startPos.x][startPos.y] = true;
-
-        while (head < queue.length) {
-            let curPos = queue[head++];
-            if (curPos.x == targetPos.x && curPos.y == targetPos.y) {
-                return this.buildPath(parent, startPos, targetPos);
-            }
-
-            for (let i = 0; i < dirs.length; i++) {
-                let nextPos = new Vec2(curPos.x + dirs[i].x, curPos.y + dirs[i].y);
-                if (!this.canEnemyWalk(nextPos, ignoreDoorRoomIdx) || visited[nextPos.x][nextPos.y]) {
-                    continue;
-                }
-
-                visited[nextPos.x][nextPos.y] = true;
-                parent[nextPos.x][nextPos.y] = curPos;
-                queue.push(nextPos);
-            }
-        }
-
-        return [];
-    }
-
-    /**还原路径 */
-    private buildPath(parent: (Vec2 | null)[][], startPos: Vec2, targetPos: Vec2): Vec2[] {
-        let path: Vec2[] = [];
-        let curPos = new Vec2(targetPos.x, targetPos.y);
-
-        while (curPos.x != startPos.x || curPos.y != startPos.y) {
-            path.unshift(new Vec2(curPos.x, curPos.y));
-            let prePos = parent[curPos.x][curPos.y];
-            if (!prePos) {
-                return [];
-            }
-            curPos = prePos;
-        }
-
-        return path;
     }
 
     /**敌人寻路可通行判断：只拦墙，门和道具暂时不拦 */
-    private canEnemyWalk(tilePos: Vec2, ignoreDoorRoomIdx: number = 0) {
-        if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= pData.mapSize.width || tilePos.y >= pData.mapSize.height) {
+    private canEnemyWalk(tileX: number, tileY: number, ignoreDoorRoomIdx: number = 0) {
+        if (tileX < 0 || tileY < 0 || tileX >= pData.mapSize.width || tileY >= pData.mapSize.height) {
             return false;
         }
 
-        let tileData = this.gameComp.tileMap[tilePos.x]?.[tilePos.y];
+        let tileData = this.gameComp.tileMap[tileX]?.[tileY];
         if (!tileData) {
             return false;
         }
+
+        let tilePos = this.tempPathTilePos;
+        // 复用单个坐标对象兼容后续门与房间判断，避免每个邻居都创建Vec2
+        tilePos.set(tileX, tileY);
 
         if (this.isIgnoredRoomDoor(tilePos, ignoreDoorRoomIdx) || this.isEmptyRoomDoor(tilePos)) {
             return true;
@@ -1215,9 +1187,8 @@ export class enemyBaseController extends Component {
     /**是否是空房间的门 */
     private isEmptyRoomDoor(tilePos: Vec2) {
         let roomMap = this.gameComp.roomMap || {};
-        let roomKeys = Object.keys(roomMap);
-        for (let i = 0; i < roomKeys.length; i++) {
-            let roomIdx = Number(roomKeys[i]);
+        for (let roomKey in roomMap) {
+            let roomIdx = Number(roomKey);
             if (this.isIgnoredRoomDoor(tilePos, roomIdx)) {
                 return this.isRoomEmpty(roomIdx);
             }
@@ -1300,7 +1271,7 @@ export class enemyBaseController extends Component {
         this.stopAttackProps();
         this.playRoleAnim(enemyAnim.move, true);
 
-        let targetNodePos = ccTools.getPosByTileIndex(nextTilePos);
+        let targetNodePos = ccTools.getPosByTileIndex(nextTilePos, this.tempTargetNodePos);
         let curNodePos = this.node.position;
         let offsetX = targetNodePos.x - curNodePos.x;
         let offsetY = targetNodePos.y - curNodePos.y;
@@ -1309,7 +1280,7 @@ export class enemyBaseController extends Component {
 
         if (distance <= moveDistance || distance <= 0.001) {
             this.node.setPosition(targetNodePos);
-            this.currentPos = new Vec2(nextTilePos.x, nextTilePos.y);
+            this.currentPos.set(nextTilePos.x, nextTilePos.y);
             this.refreshEmptyRoomIgnoreDoorState();
             this.movePathIdx++;
 
@@ -1327,7 +1298,7 @@ export class enemyBaseController extends Component {
         let moveRatio = moveDistance / distance;
         let moveX = offsetX * moveRatio;
         let moveY = offsetY * moveRatio;
-        this.node.setPosition(new Vec3(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z));
+        this.node.setPosition(curNodePos.x + moveX, curNodePos.y + moveY, curNodePos.z);
     }
 
     /**根据水平移动方向刷新角色动画朝向 */
@@ -1337,7 +1308,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        roleAnimNode.setScale(new Vec3(offsetX < 0 ? -1 : 1, 1, 1));
+        roleAnimNode.setScale(offsetX < 0 ? -1 : 1, 1, 1);
     }
 
     /**根据目标瓦片刷新角色动画朝向 */
@@ -1346,7 +1317,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        let targetNodePos = ccTools.getPosByTileIndex(tilePos);
+        let targetNodePos = ccTools.getPosByTileIndex(tilePos, this.tempTargetNodePos);
         this.refreshRoleAnimDirection(targetNodePos.x - this.node.position.x);
     }
 

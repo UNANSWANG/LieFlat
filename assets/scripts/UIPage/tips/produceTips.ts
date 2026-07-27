@@ -23,11 +23,13 @@ export class produceTips extends Component {
         this.coinImg = this.animNode.getChildByName('coin');
 
         this.animation.on(Animation.EventType.FINISHED, () => {
-            this.node.removeFromParent();
-
-            poolMgr.produceTipsPool.put(this.node);
-            this.node.active = false;
+            poolMgr.putProduceTipsNode(this.node);
         }, this);
+    }
+
+    /**放回对象池前停止动画，避免复用后收到上一轮完成事件 */
+    onPoolPut() {
+        this.animation?.stop();
     }
 
     initNum(type: produceType, num: number) {

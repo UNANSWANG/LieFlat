@@ -164,6 +164,11 @@ export class coverProps extends gamePropsBase {
         coverProps.shieldTimers[roomIdx] = Math.max(0, coverProps.shieldTimers[roomIdx] - dt);
     }
 
+    /**清理跨实例保存的房间护盾计时，防止状态带入下一局 */
+    static clearShieldTimers() {
+        coverProps.shieldTimers = {};
+    }
+
     /** 指定房间护盾是否生效 */
     private static isRoomShieldActive(roomIdx: number) {
         return roomIdx > 0 && coverProps.shieldTimers[roomIdx] > 0;

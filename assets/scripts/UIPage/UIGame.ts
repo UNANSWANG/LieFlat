@@ -26,6 +26,7 @@ import { cageController } from '../controller/cageController';
 import { netController } from '../controller/netController';
 import { sawController } from '../controller/sawController';
 import { gameAnimController } from '../controller/gameAnimController';
+import { coverProps } from '../controller/props/coverProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIGame')
@@ -100,7 +101,7 @@ export class UIGame extends UIBase {
     /**是否开始倒计时 */
     isCountDownStart = false;
     /**当前移动方向 */
-    private currentMoveDirection: Vec3 = Vec3.ZERO;
+    private currentMoveDirection: Vec3 = new Vec3();
     /**是否正在移动 */
     private isMoving = false;
     /**摇杆初始位置 */
@@ -160,6 +161,14 @@ export class UIGame extends UIBase {
     private slideStartUILocation: Vec2 = new Vec2();
     /**滑动区域上一帧UI坐标 */
     private slideLastUILocation: Vec2 = new Vec2();
+    /**玩家每帧移动偏移 */
+    private tempPlayerMoveOffset: Vec3 = new Vec3();
+    /**玩家碰撞限制后的坐标 */
+    private tempLimitedPlayerPos: Vec3 = new Vec3();
+    /**玩家碰撞检测所在瓦片 */
+    private tempCurrentMoveTilePos: Vec2 = new Vec2();
+    /**玩家碰撞矩形默认偏移 */
+    private readonly defaultMoveMatrixOffset: Vec2 = new Vec2(0, 8);
     /**是否在滑动区域移动 */
     private isSlideMoving = false;
     /**游戏开始倒计时时间 */
@@ -221,12 +230,23 @@ export class UIGame extends UIBase {
     }
 
     onUI_Close(): void {
+        // 先提升版本号，使本局尚未完成的异步地图加载结果失效
         this.openVersion++;
         this.removeListener();
+        this.clearData();
+        if (this.tiledMap) {
+            // 断开地图组件对本局地图资源的引用，避免关闭后仍被场景节点持有
+            this.tiledMap.tmxAsset = null;
+        }
+        this.currentMapName = "";
+        this.matchRoleSkinIds = [];
+        this.matchRoleNicknames = [];
+        this.matchEnemySkinId = null;
+        this.matchEnemyNickname = "";
     }
 
     /**随机并装配瓦片地图 */
-    private async randomTiledMap() {
+    private async randomTiledMap(version: number) {
         if (!this.tiledMap || !uiMgr.resBundle || mapNameArr.length <= 0) {
             return false;
         }
@@ -234,7 +254,8 @@ export class UIGame extends UIBase {
         let randomIdx = Math.floor(Math.random() * mapNameArr.length);
         let mapName = mapNameArr[randomIdx];
         let mapAsset: TiledMapAsset = await ccResTools.loadTiledMap(uiMgr.resBundle, ItemPath.tileMap + mapName);
-        if (!mapAsset) {
+        // 页面关闭或新一局开始后，旧请求不能再覆盖当前地图
+        if (!mapAsset || version != this.openVersion || !this.node.activeInHierarchy) {
             return false;
         }
 
@@ -247,7 +268,7 @@ export class UIGame extends UIBase {
     /**重新开始单局 */
     private async restartGame() {
         let version = this.openVersion;
-        let mapReady = await this.randomTiledMap();
+        let mapReady = await this.randomTiledMap(version);
         if (version != this.openVersion || !this.node.activeInHierarchy) {
             return;
         }
@@ -384,6 +405,8 @@ export class UIGame extends UIBase {
         enemyMgr.enemyBornPosArr = [];
         this.robotArr = [];
         this.roomMap = {};
+        // 护盾计时保存在静态字段中，需要在局间显式清理
+        coverProps.clearShieldTimers();
         this.roleBtnStateMap = {};
         this.bornPosArr = [];
         this.randomPropsPosArr = [];
@@ -431,13 +454,9 @@ export class UIGame extends UIBase {
         for (let i = this.gameUINode.children.length - 1; i >= 0; i--) {
             let child = this.gameUINode.children[i];
             if (child.getComponent(produceTips)) {
-                child.removeFromParent();
-                child.active = false;
-                poolMgr.produceTipsPool.put(child);
+                poolMgr.putProduceTipsNode(child);
             } else if (child.getComponent(bulletController)) {
-                child.removeFromParent();
-                child.active = false;
-                poolMgr.bulletPool.put(child);
+                poolMgr.putBulletNode(child);
             } else if (child.getComponent(cageController) || child.getComponent(netController) || child.getComponent(sawController)) {
                 poolMgr.putGameSpriteNode(child);
             } else if (child.getComponent(gameAnimController)) {
@@ -1188,10 +1207,9 @@ export class UIGame extends UIBase {
         carriedData.propsComp?.clearData();
         if (carriedData.propsComp) {
             carriedData.propsComp.enabled = false;
-            carriedData.propsComp.destroy();
         }
-        carriedData.propsNode.removeFromParent();
-        carriedData.propsNode.destroy();
+        // 随身道具按类型回池，保留节点和脚本供后续关卡复用
+        poolMgr.putPropsNode(carriedData.propsNode, carriedData.propsType);
         this.carriedRandomProps = null;
     }
 
@@ -1217,10 +1235,9 @@ export class UIGame extends UIBase {
         carriedData.propsComp?.clearData();
         if (carriedData.propsComp) {
             carriedData.propsComp.enabled = false;
-            carriedData.propsComp.destroy();
         }
-        carriedData.propsNode.removeFromParent();
-        carriedData.propsNode.destroy();
+        // 放置结束后不销毁节点，交回对应类型的道具池
+        poolMgr.putPropsNode(carriedData.propsNode, carriedData.propsType);
         this.carriedRandomProps = null;
 
         let tileData = this.tileMap[buildPos.x]?.[buildPos.y];
@@ -2031,12 +2048,14 @@ export class UIGame extends UIBase {
     }
 
     /**限制矩形区域移动，默认检测宽20高25且比玩家节点y坐标高8的矩形 */
-    limitMoveMatrixPos(offsetPos: Vec3, matrixWidth = 20, matrixHeight = 25, matrixOffsetPos: Vec2 = new Vec2(0, 8)) {
-        let limitPos = new Vec3(playerMgr.player.position.x, playerMgr.player.position.y, 0);
+    limitMoveMatrixPos(offsetPos: Vec3, matrixWidth = 20, matrixHeight = 25, matrixOffsetPos: Vec2 = this.defaultMoveMatrixOffset) {
+        // 复用成员向量，避免角色移动期间每帧创建临时坐标
+        let limitPos = this.tempLimitedPlayerPos;
+        limitPos.set(playerMgr.player.position.x, playerMgr.player.position.y, 0);
         let halfWidth = matrixWidth / 2;
         let halfHeight = matrixHeight / 2;
         let edgeOffset = 0.001;
-        let currentTilePos = ccTools.getTileIndexByNodePos(playerMgr.player.position);
+        let currentTilePos = ccTools.getTileIndexByNodePos(playerMgr.player.position, this.tempCurrentMoveTilePos);
 
         if (offsetPos.x != 0) {
             limitPos.x += offsetPos.x;
@@ -2101,7 +2120,8 @@ export class UIGame extends UIBase {
             }
         }
 
-        playerMgr.playerComp.currentPos = ccTools.getTileIndexByNodePos(limitPos);
+        ccTools.getTileIndexByNodePos(limitPos, this.tempCurrentMoveTilePos);
+        playerMgr.playerComp.currentPos.set(this.tempCurrentMoveTilePos);
         return limitPos;
     }
 
@@ -2353,14 +2373,13 @@ export class UIGame extends UIBase {
             let speed = this.isEnemyCanMove ? configData.moveSpeedGame : configData.moveSpeed;
             playerMgr.playerComp?.playRoleAnim(roleAnimName.move, true);
             //玩家移动
-            let playerPos = this.limitMoveMatrixPos(new Vec3(this.currentMoveDirection.x * speed * dt, this.currentMoveDirection.y * speed * dt, 0));
+            this.tempPlayerMoveOffset.set(this.currentMoveDirection.x * speed * dt, this.currentMoveDirection.y * speed * dt, 0);
+            let playerPos = this.limitMoveMatrixPos(this.tempPlayerMoveOffset);
 
-            let roleAnimNode = playerMgr.player.getChildByName("roleAnim");
+            let roleAnimNode = playerMgr.playerComp?.roleAnim?.node;
             //人物左右反向
-            if (this.currentMoveDirection.x < 0) {
-                roleAnimNode.setScale(new Vec3(-1, 1, 1));
-            } else {
-                roleAnimNode.setScale(new Vec3(1, 1, 1));
+            if (roleAnimNode) {
+                roleAnimNode.setScale(this.currentMoveDirection.x < 0 ? -1 : 1, 1, 1);
             }
             playerMgr.player.setPosition(playerPos);
 
@@ -2615,11 +2634,7 @@ export class UIGame extends UIBase {
 
     /**添加生产动画 */
     addProduceAnim(type: produceType, num: number, worldPos: Vec3) {
-        let tipsNode = poolMgr.produceTipsPool.get();
-        if (!tipsNode) {
-            tipsNode = instantiate(uiMgr.produceTipsPrefab);
-        }
-        tipsNode.active = true;
+        let tipsNode = poolMgr.getProduceTipsNode(uiMgr.produceTipsPrefab);
         this.gameUINode.addChild(tipsNode);
         let localPos = this.gameUINode.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
         tipsNode.position = localPos;
@@ -2638,10 +2653,11 @@ export class UIGame extends UIBase {
         let rockerNode = this.rockerTouchNode.getChildByName("rockerNode");
         let rockerPoint = rockerNode.getChildByName("rockerPoint");
 
-        this.currentMoveDirection = Vec3.ZERO;
+        this.currentMoveDirection.set(0, 0, 0);
         let worldPos = event.getUILocation();
-        let localPos = this.rockerTouchNode.getComponent(UITransform).convertToNodeSpaceAR(new Vec3(worldPos.x, worldPos.y, 0));
-        rockerNode.setPosition(localPos);
+        this.tempTouchWorldPos.set(worldPos.x, worldPos.y, 0);
+        this.rockerTouchNode.getComponent(UITransform).convertToNodeSpaceAR(this.tempTouchWorldPos, this.tempTouchMapLocalPos);
+        rockerNode.setPosition(this.tempTouchMapLocalPos);
         rockerPoint.position = Vec3.ZERO;
     }
 
@@ -2653,29 +2669,23 @@ export class UIGame extends UIBase {
         let rockerPoint = rockerNode.getChildByName("rockerPoint");
 
         let worldPos = event.getUILocation();
-        let localPos = rockerNode.getComponent(UITransform).convertToNodeSpaceAR(new Vec3(worldPos.x, worldPos.y, 0));
+        this.tempTouchWorldPos.set(worldPos.x, worldPos.y, 0);
+        rockerNode.getComponent(UITransform).convertToNodeSpaceAR(this.tempTouchWorldPos, this.tempTouchMapLocalPos);
 
-        // 计算从基础点到触摸点的向量
-        let direction: Vec3 = localPos.subtract(Vec3.ZERO);
-
-        // 应用移动倍数
-        let extendedDirection = direction.clone().multiplyScalar(moveMultiplier);
-
-
-        // 限制摇杆点在最大距离内
-        let clampedDirection = extendedDirection.clone();
-        if (extendedDirection.length() > maxDistance) {
-            clampedDirection = extendedDirection.normalize().multiplyScalar(maxDistance);
-        }
-
-        // 获取当前比例（0到1之间）
-        let currentRatio = Math.min(extendedDirection.length() / maxDistance, 1.0);
+        let directionX = this.tempTouchMapLocalPos.x;
+        let directionY = this.tempTouchMapLocalPos.y;
+        // 直接使用数值计算方向与限位，避免触摸移动时反复clone Vec3
+        let directionLength = Math.sqrt(directionX * directionX + directionY * directionY);
+        let extendedLength = directionLength * moveMultiplier;
+        let currentRatio = Math.min(extendedLength / maxDistance, 1);
+        let normalizeScale = directionLength > 0 ? 1 / directionLength : 0;
+        let clampedScale = directionLength > 0 ? Math.min(moveMultiplier, maxDistance / directionLength) : 0;
 
         this.isMoving = true;
-        this.currentMoveDirection = direction.clone().normalize().multiplyScalar(currentRatio);
+        this.currentMoveDirection.set(directionX * normalizeScale * currentRatio, directionY * normalizeScale * currentRatio, 0);
 
         // 设置摇杆点的位置
-        rockerPoint.setPosition(clampedDirection);
+        rockerPoint.setPosition(directionX * clampedScale, directionY * clampedScale, 0);
     }
 
     /**摇杆区域点击结束 */

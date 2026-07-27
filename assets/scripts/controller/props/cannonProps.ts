@@ -1,4 +1,4 @@
-import { _decorator, instantiate, Node, sp, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, Node, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { ccTools } from '../../extention/generalTools';
 import { imgPath, spinePath } from '../../manager/pathConfig';
@@ -177,10 +177,8 @@ export class cannonProps extends gamePropsBase {
     /**发射子弹 */
     private shoot(target: enemyBaseController) {
         this.playScaleDownAnim(this.img2.node);
-        let bulletNode = poolMgr.bulletPool.get();
-        if (!bulletNode) {
-            bulletNode = instantiate(uiMgr.bulletPrefab);
-        }
+        // 统一从子弹池获取；池为空时管理器仍会动态创建新实例
+        let bulletNode = poolMgr.getBulletNode(uiMgr.bulletPrefab);
 
         bulletNode.active = false;
         this.gameComp.gameUINode.addChild(bulletNode);

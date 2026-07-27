@@ -34,6 +34,15 @@ export class netController extends Component {
         this.refreshDirection();
     }
 
+    /**放回对象池前清理命中状态和控制计时 */
+    onPoolPut() {
+        this.unschedule(this.finishControl);
+        this.target = null;
+        this.duration = 0;
+        this.hasHit = false;
+        this.enabled = false;
+    }
+
     protected update(dt: number): void {
         if (this.hasHit) {
             this.refreshHitPosition();
@@ -138,11 +147,6 @@ export class netController extends Component {
 
     /**移除蛛网 */
     private recycle() {
-        this.unschedule(this.finishControl);
-        this.target = null;
-        this.duration = 0;
-        this.hasHit = false;
-        this.enabled = false;
         poolMgr.putGameSpriteNode(this.node);
     }
 }

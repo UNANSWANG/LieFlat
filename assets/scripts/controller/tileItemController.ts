@@ -189,45 +189,13 @@ export class tileItemController extends Component {
             return;
         }
 
-        let propsItem = poolMgr.getPropsNode(this.propsItemPre);
-        let propComp: gamePropsBase = null;
-        if (this.tileType == tilePropsType.bed) {
-            propComp = propsItem.addComponent(bedProps);
-        } else if (this.tileType == tilePropsType.door) {
-            propComp = propsItem.addComponent(doorProps);
-        } else if (this.tileType == tilePropsType.cannon) {
-            propComp = propsItem.addComponent(cannonProps);
-        } else if (this.tileType == tilePropsType.generator) {
-            propComp = propsItem.addComponent(generatorProps);
-        } else if (this.tileType == tilePropsType.vein) {
-            propComp = propsItem.addComponent(veinProps);
-        } else if (this.tileType == tilePropsType.machine) {
-            propComp = propsItem.addComponent(machineProps);
-        } else if (this.tileType == tilePropsType.ice) {
-            propComp = propsItem.addComponent(iceProps);
-        } else if (this.tileType == tilePropsType.printer) {
-            propComp = propsItem.addComponent(printerProps);
-        } else if (this.tileType == tilePropsType.net) {
-            propComp = propsItem.addComponent(netProps);
-        } else if (this.tileType == tilePropsType.saw) {
-            propComp = propsItem.addComponent(sawProps);
-        } else if (this.tileType == tilePropsType.fire) {
-            propComp = propsItem.addComponent(fireProps);
-        } else if (this.tileType == tilePropsType.telescope) {
-            propComp = propsItem.addComponent(telescopeProps);
-        } else if (this.tileType == tilePropsType.bearing) {
-            propComp = propsItem.addComponent(bearingProps);
-        } else if (this.tileType == tilePropsType.alarm) {
-            propComp = propsItem.addComponent(alarmProps);
-        } else if (this.tileType == tilePropsType.box) {
-            propComp = propsItem.addComponent(boxProps);
-        } else if (this.tileType == tilePropsType.cage) {
-            propComp = propsItem.addComponent(cageProps);
-        } else if (this.tileType == tilePropsType.cover) {
-            propComp = propsItem.addComponent(coverProps);
-        } else if (this.tileType == tilePropsType.thorn) {
-            propComp = propsItem.addComponent(thornProps);
+        let componentType = this.getPropsComponentType(this.tileType);
+        if (!componentType) {
+            return;
         }
+        // 每种道具使用独立对象池，复用时直接取已有脚本，避免重复addComponent/destroy
+        let propsItem = poolMgr.getPropsNode(this.propsItemPre, this.tileType, componentType);
+        let propComp = propsItem.getComponent(componentType) as gamePropsBase;
 
         this.propsNode.addChild(propsItem);
         this.propsItem = propsItem;
@@ -236,6 +204,31 @@ export class tileItemController extends Component {
         propComp.init(this, level, isSpecialSellProps, isAutoStartProps);
 
         this.checkUpgrade();
+    }
+
+    /**获取道具类型对应的运行脚本，用于分类对象池复用 */
+    private getPropsComponentType(type: tilePropsType): any {
+        switch (type) {
+            case tilePropsType.bed: return bedProps;
+            case tilePropsType.door: return doorProps;
+            case tilePropsType.cannon: return cannonProps;
+            case tilePropsType.generator: return generatorProps;
+            case tilePropsType.vein: return veinProps;
+            case tilePropsType.machine: return machineProps;
+            case tilePropsType.ice: return iceProps;
+            case tilePropsType.printer: return printerProps;
+            case tilePropsType.net: return netProps;
+            case tilePropsType.saw: return sawProps;
+            case tilePropsType.fire: return fireProps;
+            case tilePropsType.telescope: return telescopeProps;
+            case tilePropsType.bearing: return bearingProps;
+            case tilePropsType.alarm: return alarmProps;
+            case tilePropsType.box: return boxProps;
+            case tilePropsType.cage: return cageProps;
+            case tilePropsType.cover: return coverProps;
+            case tilePropsType.thorn: return thornProps;
+            default: return null;
+        }
     }
 
     /**设置门的初始位置 */
@@ -280,13 +273,13 @@ export class tileItemController extends Component {
             return;
         }
         let propComp = this.propsComp;
+        // 清理并禁用脚本后整节点回池，不再销毁组件
         propComp?.endProps();
         propComp?.clearData();
         if (propComp) {
             propComp.enabled = false;
-            propComp.destroy();
         }
-        poolMgr.putPropsNode(this.propsItem);
+        poolMgr.putPropsNode(this.propsItem, this.tileType);
         this.propsItem = null;
         this.propsCompCache = null;
         this.tileType = tilePropsType.none;

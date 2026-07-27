@@ -5,8 +5,14 @@ const { ccclass, property } = _decorator;
 
 @ccclass('resTools')
 export class resTools {
+    /**已完成的图片资源缓存，本地与远端使用不同前缀避免路径碰撞 */
     picMap: Map<string, SpriteFrame> = new Map();
+    /**已完成的Spine资源缓存 */
     spineMap: Map<string, sp.SkeletonData> = new Map();
+    /**正在加载的图片Promise，同路径并发请求共享一次加载 */
+    private picLoadingMap: Map<string, Promise<SpriteFrame>> = new Map();
+    /**正在加载的Spine Promise，同路径并发请求共享一次加载 */
+    private spineLoadingMap: Map<string, Promise<sp.SkeletonData>> = new Map();
     //加载bundle
     loadBundle($name): Promise<AssetManager.Bundle> {
         return new Promise(($resolve) => {
@@ -54,27 +60,36 @@ export class resTools {
         });
     }
     /**加载网络图片 */
-    loadPicByUrl($url: string): Promise<SpriteFrame> {
-        return new Promise(($resolve) => {
-            if (this.picMap.has($url)) {
-                $resolve(this.picMap.get($url));
-                return;
-            }
-            assetManager.loadRemote($url, { ext: `.jpg` },
-                (err, res: ImageAsset) => {
-                    if (err) {
-                        console.log(err);
-                        return;
-                    }
-                    let $img = res instanceof ImageAsset ? res : new ImageAsset(res);
-                    let $tex = new Texture2D();
-                    let $spriteFrame = new SpriteFrame();
-                    $tex.image = $img;
-                    $spriteFrame.texture = $tex;
-                    this.picMap.set($url, $spriteFrame);
-                    $resolve($spriteFrame);
-                });
-        })
+    async loadPicByUrl($url: string): Promise<SpriteFrame> {
+        let cacheKey = `remote:${$url}`;
+        if (this.picMap.has(cacheKey)) {
+            return this.picMap.get(cacheKey);
+        }
+        if (this.picLoadingMap.has(cacheKey)) {
+            // 相同URL已在加载时直接等待同一个Promise，避免重复创建纹理
+            return this.picLoadingMap.get(cacheKey);
+        }
+
+        let loading = new Promise<SpriteFrame>(($resolve) => {
+            assetManager.loadRemote($url, { ext: `.jpg` }, (err, res: ImageAsset) => {
+                if (err || !res) {
+                    console.log(err);
+                    $resolve(null);
+                    return;
+                }
+                let $img = res instanceof ImageAsset ? res : new ImageAsset(res);
+                let $tex = new Texture2D();
+                let $spriteFrame = new SpriteFrame();
+                $tex.image = $img;
+                $spriteFrame.texture = $tex;
+                this.picMap.set(cacheKey, $spriteFrame);
+                $resolve($spriteFrame);
+            });
+        });
+        this.picLoadingMap.set(cacheKey, loading);
+        let result = await loading;
+        this.picLoadingMap.delete(cacheKey);
+        return result;
     }
 
     /**加载预制体*/
@@ -120,30 +135,59 @@ export class resTools {
      * @param call 回调
      * @returns 
      */
-    loadPic($bundle: AssetManager.Bundle, $path: string, call?): Promise<SpriteFrame> {
-        return new Promise(($resolve) => {
-            if (this.picMap.has($path)) {
-                $resolve(this.picMap.get($path));
+    async loadPic($bundle: AssetManager.Bundle, $path: string, call?): Promise<SpriteFrame> {
+        let cacheKey = `local:${$path}`;
+        if (this.picMap.has(cacheKey)) {
+            let cached = this.picMap.get(cacheKey);
+            call && call(cached);
+            return cached;
+        }
+        if (this.picLoadingMap.has(cacheKey)) {
+            // 相同资源路径只发起一次bundle.load
+            let loadingResult = await this.picLoadingMap.get(cacheKey);
+            call && call(loadingResult);
+            return loadingResult;
+        }
+
+        let loading = new Promise<SpriteFrame>(($resolve) => {
+            if (!$bundle) {
+                $resolve(null);
                 return;
             }
             $bundle.load($path, SpriteFrame, (err, res: SpriteFrame) => {
-                call && call(res);
-                this.picMap.set($path, res);
+                if (err || !res) {
+                    console.error("加载图片失败", $path, err);
+                    $resolve(null);
+                    return;
+                }
+                this.picMap.set(cacheKey, res);
                 $resolve(res);
             });
         });
+        this.picLoadingMap.set(cacheKey, loading);
+        let result = await loading;
+        this.picLoadingMap.delete(cacheKey);
+        call && call(result);
+        return result;
     }
 
     /**加载spine数据 */
-    loadSpine($bundle: AssetManager.Bundle, $path: string): Promise<sp.SkeletonData> {
-        return new Promise(($resolve) => {
-            if (this.spineMap.has($path)) {
-                $resolve(this.spineMap.get($path));
+    async loadSpine($bundle: AssetManager.Bundle, $path: string): Promise<sp.SkeletonData> {
+        if (this.spineMap.has($path)) {
+            return this.spineMap.get($path);
+        }
+        if (this.spineLoadingMap.has($path)) {
+            // 多个节点同时请求同一份骨骼数据时复用加载任务
+            return this.spineLoadingMap.get($path);
+        }
+
+        let loading = new Promise<sp.SkeletonData>(($resolve) => {
+            if (!$bundle) {
+                $resolve(null);
                 return;
             }
-
             $bundle.load($path, sp.SkeletonData, (err, res: sp.SkeletonData) => {
-                if (err) {
+                if (err || !res) {
                     console.log("加载spine失败", $path, err);
                     $resolve(null);
                     return;
@@ -153,6 +197,10 @@ export class resTools {
                 $resolve(res);
             });
         });
+        this.spineLoadingMap.set($path, loading);
+        let result = await loading;
+        this.spineLoadingMap.delete($path);
+        return result;
     }
 
     loadJson($bundle: AssetManager.Bundle, $path: string): Promise<any> {

@@ -41,14 +41,14 @@
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": 0,
-        "offsetY": 0,
-        "trimX": 0,
-        "trimY": 0,
-        "width": 43,
-        "height": 39,
-        "rawWidth": 43,
-        "rawHeight": 39,
+        "offsetX": -0.5,
+        "offsetY": 0.5,
+        "trimX": 24,
+        "trimY": 26,
+        "width": 79,
+        "height": 75,
+        "rawWidth": 128,
+        "rawHeight": 128,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -21.5,
-            -19.5,
+            -39.5,
+            -37.5,
             0,
-            21.5,
-            -19.5,
+            39.5,
+            -37.5,
             0,
-            -21.5,
-            19.5,
+            -39.5,
+            37.5,
             0,
-            21.5,
-            19.5,
+            39.5,
+            37.5,
             0
           ],
           "indexes": [
@@ -82,40 +82,40 @@
             3
           ],
           "uv": [
-            0,
-            39,
-            43,
-            39,
-            0,
-            0,
-            43,
-            0
+            24,
+            102,
+            103,
+            102,
+            24,
+            27,
+            103,
+            27
           ],
           "nuv": [
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1,
-            1
+            0.1875,
+            0.2109375,
+            0.8046875,
+            0.2109375,
+            0.1875,
+            0.796875,
+            0.8046875,
+            0.796875
           ],
           "minPos": [
-            -21.5,
-            -19.5,
+            -39.5,
+            -37.5,
             0
           ],
           "maxPos": [
-            21.5,
-            19.5,
+            39.5,
+            37.5,
             0
           ]
         },
         "isUuid": true,
         "imageUuidOrDatabaseUri": "64422368-b4a8-474f-ac18-1123bd8c5c1f@6c48a",
         "atlasUuid": "",
-        "trimType": "none"
+        "trimType": "auto"
       },
       "ver": "1.0.12",
       "imported": true,

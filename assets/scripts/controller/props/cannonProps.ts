@@ -176,7 +176,7 @@ export class cannonProps extends gamePropsBase {
 
     /**发射子弹 */
     private shoot(target: enemyBaseController) {
-        this.playScaleDownAnim(this.img2.node);
+        this.playScaleDownAnim(this.img2.node, 0.5);
         // 统一从子弹池获取；池为空时管理器仍会动态创建新实例
         let bulletNode = poolMgr.getBulletNode(uiMgr.bulletPrefab);
 

@@ -227,13 +227,14 @@ export class gamePropsBase extends Component {
     }
 
     /**播放缩小动画 */
-    playScaleDownAnim(node = this.scaleNode) {
+    playScaleDownAnim(node = this.scaleNode,baseScale = 1) {
         Tween.stopAllByTarget(node);
 
+        let firstSacle = baseScale * 0.8;
         tween(node)
-            .set({ scale: new Vec3(1, 1, 1) })
-            .to(0.05, { scale: new Vec3(0.8, 0.8, 1) })
-            .to(0.15, { scale: new Vec3(1, 1, 1) }, { easing: "backOut" })
+            .set({ scale: new Vec3(baseScale, firstSacle, 1) })
+            .to(0.05, { scale: new Vec3(firstSacle, firstSacle, 1) })
+            .to(0.15, { scale: new Vec3(baseScale, baseScale, 1) }, { easing: "backOut" })
             .start();
     }
 

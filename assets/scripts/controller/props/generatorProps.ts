@@ -135,14 +135,14 @@ export class generatorProps extends gamePropsBase {
         }
 
         this.clearGeneratorNode();
-        if (!uiMgr.gameSpineItemPrefab || !this.img2?.node) {
+        if (!uiMgr.gameSpineItemPrefab || !this.img3?.node) {
             return;
         }
 
         this.generatorSpinePath = path;
         this.generatorNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.generatorNode.name = "generatorSpine";
-        this.img2.node.addChild(this.generatorNode);
+        this.img3.node.addChild(this.generatorNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.generatorNode);
         if (skeleton) {

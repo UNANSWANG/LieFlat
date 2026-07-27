@@ -146,6 +146,8 @@ export enum spinePath {
     generator3 = "spine/generator3/D3",
     /**发电机4 */
     generator4 = "spine/generator4/D4",
+    /**手指点击 */
+    click = "spine/click/UI_attack",
 }
 
 /**动画路径 */

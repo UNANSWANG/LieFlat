@@ -23,27 +23,57 @@ export class UILoading extends Component {
     /**界面加载完成 */
     uiComplete = false;
 
-    /**总进度 */
-    totalProgressMap = {};
-    /**当前进度 */
-    currentProgressMap = {};
     /**当前进度条百分比 */
     currentProgressPercent = 0;
     /**sdk登录完成 */
     sdkLoginComplete = false;
+    /**假进度条到达95%的时间（秒） */
+    fakeProgressTime = 3;
+    /**假进度条从95%到达99%的时间（秒） */
+    fakeProgressTime2 = 2;
+    /**假进度条从99%到达100%的时间（秒） */
+    fakeProgressTime3 = 10;
+    /**假进度条已运行时间 */
+    private fakeProgressElapsedTime = 0;
+    /**是否已经准备跳转场景 */
+    private isSceneLoading = false;
 
     start() {
+        this.refreshProgress();
         this.initData();
     }
 
+    protected update(deltaTime: number): void {
+        if (this.currentProgressPercent >= 1) {
+            return;
+        }
+
+        this.fakeProgressElapsedTime += deltaTime;
+        let firstProgressTime = Math.max(this.fakeProgressTime, 0);
+        let secondProgressTime = Math.max(this.fakeProgressTime2, 0);
+        let thirdProgressTime = Math.max(this.fakeProgressTime3, 0);
+        if (firstProgressTime > 0 && this.fakeProgressElapsedTime < firstProgressTime) {
+            this.currentProgressPercent = this.fakeProgressElapsedTime / firstProgressTime * 0.95;
+        } else if (secondProgressTime > 0 && this.fakeProgressElapsedTime < firstProgressTime + secondProgressTime) {
+            let secondElapsedTime = this.fakeProgressElapsedTime - firstProgressTime;
+            this.currentProgressPercent = 0.95 + secondElapsedTime / secondProgressTime * 0.04;
+        } else {
+            let thirdElapsedTime = this.fakeProgressElapsedTime - firstProgressTime - secondProgressTime;
+            if (thirdProgressTime <= 0) {
+                this.currentProgressPercent = 1;
+            } else {
+                this.currentProgressPercent = 0.99 + Math.min(thirdElapsedTime / thirdProgressTime, 1) * 0.01;
+            }
+        }
+        this.refreshProgress();
+    }
+
     protected onEnable(): void {
-        gm.Event.on(GameEvent.loading, this.loadingComplete, this);
         gm.Event.on(GameEvent.checkLoginLoad, this.checkLoadComplete, this);
         gm.Event.on(GameEvent.commonTableFinish, this.commonTableFinish, this);
     }
 
     protected onDisable(): void {
-        gm.Event.off(GameEvent.loading, this.loadingComplete, this);
         gm.Event.off(GameEvent.checkLoginLoad, this.checkLoadComplete, this);
         gm.Event.off(GameEvent.commonTableFinish, this.commonTableFinish, this);
     }
@@ -74,12 +104,6 @@ export class UILoading extends Component {
     /**预加载界面 */
     async preLoadPage() {
         return new Promise<void>(async (resolve, reject) => {
-            this.totalProgressMap = {};
-            this.currentProgressMap = {};
-            this.currentProgressPercent = 0;
-
-            this.refreshProgress();
-
             let prefabLoad = uiMgr.preLoadCommonPrefab();
 
             let pageLoad = Promise.all(this.loadItems.map(async ($path) => {
@@ -92,45 +116,10 @@ export class UILoading extends Component {
 
             await Promise.all([prefabLoad, pageLoad]);
 
-            this.currentProgressPercent = 1;
-            this.refreshProgress();
             this.uiComplete = true;
             this.checkLoadComplete();
             resolve();
         });
-    }
-
-    /**预制体加载回调 */
-    loadingComplete(data) {
-        let finish = data[0];
-        let total = data[1];
-        let path = data[2];
-        // console.log("finish:", finish, "total:", total, "path:", path);
-
-        this.totalProgressMap[path] = total;
-        this.currentProgressMap[path] = finish;
-
-        let totalProgress = 0;
-        let currentProgress = 0;
-
-        for (let key in this.totalProgressMap) {
-            totalProgress += this.totalProgressMap[key];
-        }
-        for (let key in this.currentProgressMap) {
-            currentProgress += this.currentProgressMap[key];
-        }
-
-        let tempPercent = currentProgress / totalProgress;
-
-        //防止进度条回退（且保证进度条加载完不丢失）
-        if (tempPercent != 1 && tempPercent < this.currentProgressPercent) {
-            return;
-        }
-
-        this.currentProgressPercent = tempPercent;
-        this.refreshProgress();
-
-        this.checkLoadComplete();
     }
 
     /**刷新进度条 */
@@ -152,9 +141,14 @@ export class UILoading extends Component {
 
     /**加载完成判断 */
     checkLoadComplete() {
-        if (this.tableComplete && this.uiComplete && gm.isLogin && this.sdkLoginComplete) {
-            director.loadScene("main");
+        if (this.isSceneLoading || !this.tableComplete || !this.uiComplete || !gm.isLogin || !this.sdkLoginComplete) {
+            return;
         }
+
+        this.isSceneLoading = true;
+        this.currentProgressPercent = 1;
+        this.refreshProgress();
+        this.scheduleOnce(() => director.loadScene("main"), 0);
     }
 
     /**通用配置表加载完成 */

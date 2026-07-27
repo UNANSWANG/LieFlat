@@ -1,6 +1,6 @@
-import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label, UITransform } from 'cc';
+import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label, UITransform, sp } from 'cc';
 import { UIBase } from './UIBase';
-import { imgPath, UIPath } from '../manager/pathConfig';
+import { imgPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
@@ -10,6 +10,7 @@ import { pData } from '../manager/playerData';
 import { ccStorageTools } from '../extention/storageTools';
 import { SaveKey } from '../manager/configData';
 import { videoMgr } from '../manager/videoManager';
+import { roleAnimName } from '../controller/roleController';
 
 const { ccclass, property } = _decorator;
 
@@ -21,8 +22,8 @@ export class UISkinStore extends UIBase {
     @property(Prefab)
     itemPre: Prefab;
 
-    @property(Sprite)
-    showRoleSkin: Sprite;
+    @property(sp.Skeleton)
+    showRoleSkin: sp.Skeleton;
 
     @property(Node)
     getNode: Node;
@@ -157,11 +158,18 @@ export class UISkinStore extends UIBase {
     }
 
     /** 刷新右侧预览皮肤 */
-    private refreshShowRoleSkin() {
+    private async refreshShowRoleSkin() {
         if (!this.showRoleSkin) {
             return;
         }
-        ccTools.loadImg(this.showRoleSkin, imgPath.roleBodyFull + this.selectId);
+
+        this.showRoleSkin.skeletonData = null;
+        let isLoaded = await ccTools.loadSpine(this.showRoleSkin, spinePath.role + this.selectId);
+        if (!isLoaded) {
+            return;
+        }
+
+        this.showRoleSkin.setAnimation(0, roleAnimName.idle, true);
     }
 
     /** 更新提示节点宽度 */

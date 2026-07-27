@@ -82,6 +82,7 @@ export class netProps extends gamePropsBase {
         }
 
         let netNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
+        netNode.setScale(0.5, 0.5, 1);
         this.gameComp.gameUINode.addChild(netNode);
 
         let parentTransform = netNode.parent?.getComponent(UITransform);

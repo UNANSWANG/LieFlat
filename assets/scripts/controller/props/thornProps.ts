@@ -53,6 +53,7 @@ export class thornProps extends gamePropsBase {
         this.clearDoorEffect();
         this.doorEffectNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.doorEffectNode.name = "thornDoorEffect";
+        this.doorEffectNode.setScale(0.5, 0.5, 1);
         doorComp.effectNode.addChild(this.doorEffectNode);
 
         let img = poolMgr.getGameNodeSprite(this.doorEffectNode);

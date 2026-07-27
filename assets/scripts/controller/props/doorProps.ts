@@ -181,7 +181,7 @@ export class doorProps extends gamePropsBase {
         this.machineRepairEffectNode = poolMgr.getGameSpriteNode(uiMgr.gameSpriteItemPrefab);
         this.machineRepairEffectNode.name = "machineRepairEffect";
         this.machineRepairEffectNode.active = false;
-        this.machineRepairEffectNode.setScale(new Vec3(0.7, 0.7, 1));
+        this.machineRepairEffectNode.setScale(new Vec3(0.4, 0.4, 1));
         this.effectNode.addChild(this.machineRepairEffectNode);
 
         let trans = this.machineRepairEffectNode.getComponent(UITransform);

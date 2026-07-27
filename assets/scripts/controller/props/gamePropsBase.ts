@@ -202,7 +202,27 @@ export class gamePropsBase extends Component {
 
     /**初始化道具的图片(可重写，默认固定只有一个图片) */
     initPropsImg() {
-        ccTools.loadImg(this.img1, imgPath.gamePprops + this.propsType + "_" + this.level);
+        this.loadPropsImg(this.img1, imgPath.gamePprops + this.propsType + "_" + this.level);
+    }
+
+    /**加载道具图片，并使用图片节点的统一缩放 */
+    protected loadPropsImg(img: Sprite, path: string) {
+        if (!img?.node) {
+            return Promise.resolve(false);
+        }
+
+        img.node.setScale(0.5, 0.5, 1);
+        return ccTools.loadImg(img, path);
+    }
+
+    /**将Spine节点挂到图片占位节点，并恢复为原始缩放 */
+    protected addSpineToImg(img: Sprite, spineNode: Node) {
+        if (!img?.node || !spineNode) {
+            return;
+        }
+
+        img.node.setScale(1, 1, 1);
+        img.node.addChild(spineNode);
     }
 
     /**操作道具 */

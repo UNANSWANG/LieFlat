@@ -38,7 +38,7 @@ export class alarmProps extends gamePropsBase {
 
         this.alarmNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.alarmNode.name = "alarmSpine";
-        this.img1.node.addChild(this.alarmNode);
+        this.addSpineToImg(this.img1, this.alarmNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.alarmNode);
         if (skeleton) {

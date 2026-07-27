@@ -2,7 +2,6 @@ import { _decorator, tween, Tween } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
-import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
 const { ccclass } = _decorator;
 @ccclass('bearingProps')
@@ -21,7 +20,7 @@ export class bearingProps extends gamePropsBase {
     /**初始化道具图片 */
     initPropsImg() {
         super.initPropsImg();
-        ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType);
+        this.loadPropsImg(this.img2, imgPath.gamePprops + this.propsType);
     }
     
     /**道具开始生效 */

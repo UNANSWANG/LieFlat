@@ -1,6 +1,5 @@
 import { _decorator, Component, Node, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
-import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
 import { configData } from '../../manager/configData';
 import { playerMgr } from '../../manager/playerManager';
@@ -41,7 +40,7 @@ export class bedProps extends gamePropsBase {
         this.isRobotOccupied = true;
         this.isOccupied = true;
 
-        ccTools.loadImg(this.img2, imgPath.roleBody + skinId);
+        this.loadPropsImg(this.img2, imgPath.roleBody + skinId);
 
         //生产金币
         this.isProduceCoin = true;
@@ -91,7 +90,7 @@ export class bedProps extends gamePropsBase {
     /**初始化道具的图片(可重写，默认固定只有一个图片) */
     initPropsImg() {
         super.initPropsImg();
-        ccTools.loadImg(this.img3, imgPath.gamePprops + "quilt_" + this.level);
+        this.loadPropsImg(this.img3, imgPath.gamePprops + "quilt_" + this.level);
         this.img3.getComponent(UITransform).setAnchorPoint(new Vec2(0.5, 1));
         this.img3.node.setPosition(new Vec3(0, 12, 0));
     }

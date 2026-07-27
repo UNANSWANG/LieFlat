@@ -24,7 +24,7 @@ export class generatorProps extends gamePropsBase {
     /**初始化道具图片 */
     initPropsImg() {
         super.initPropsImg();
-        ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
+        this.loadPropsImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
         this.refreshGeneratorAnim();
         this.showBaseImg();
 
@@ -142,7 +142,7 @@ export class generatorProps extends gamePropsBase {
         this.generatorSpinePath = path;
         this.generatorNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.generatorNode.name = "generatorSpine";
-        this.img3.node.addChild(this.generatorNode);
+        this.addSpineToImg(this.img3, this.generatorNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.generatorNode);
         if (skeleton) {
@@ -187,4 +187,3 @@ export class generatorProps extends gamePropsBase {
         this.generatorSpinePath = "";
     }
 }
-

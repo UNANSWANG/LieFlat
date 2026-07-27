@@ -313,7 +313,7 @@ export class cannonProps extends gamePropsBase {
     /**初始化道具的图片(可重写，默认固定只有一个图片) */
     initPropsImg() {
         super.initPropsImg();
-        ccTools.loadImg(this.img2, imgPath.weaponSkin + this.level);
+        this.loadPropsImg(this.img2, imgPath.weaponSkin + this.level);
         // this.img2.node.position = new Vec3(0, 10, 0);
     }
 }

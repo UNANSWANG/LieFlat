@@ -49,7 +49,7 @@ export class boxProps extends gamePropsBase {
 
         this.boxNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.boxNode.name = "boxSpine";
-        this.img1.node.addChild(this.boxNode);
+        this.addSpineToImg(this.img1, this.boxNode);
         this.boxNode.setPosition(0, -10, 0);
         this.boxSkeleton = poolMgr.getGameNodeSkeleton(this.boxNode);
     }

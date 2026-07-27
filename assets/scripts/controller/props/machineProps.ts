@@ -1,7 +1,6 @@
 import { _decorator, tween, Tween, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
-import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
 const { ccclass } = _decorator;
 
@@ -23,7 +22,7 @@ export class machineProps extends gamePropsBase {
     /**初始化道具图片 */
     initPropsImg() {
         super.initPropsImg();
-        ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType);
+        this.loadPropsImg(this.img2, imgPath.gamePprops + this.propsType);
         this.img2.node.position = new Vec3(0, 3, 0);
     }
 

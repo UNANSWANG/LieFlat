@@ -2,7 +2,6 @@ import { _decorator } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
-import { ccTools } from '../../extention/generalTools';
 import { imgPath } from '../../manager/pathConfig';
 import { configData } from '../../manager/configData';
 const { ccclass } = _decorator;
@@ -23,7 +22,7 @@ export class telescopeProps extends gamePropsBase {
     /**初始化道具图片 */
     initPropsImg() {
         super.initPropsImg();
-        ccTools.loadImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
+        this.loadPropsImg(this.img2, imgPath.gamePprops + this.propsType + "_" + this.level + "_1");
         this.showBaseImg();
     }
 

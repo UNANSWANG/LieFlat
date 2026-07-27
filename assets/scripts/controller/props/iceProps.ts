@@ -67,7 +67,7 @@ export class iceProps extends gamePropsBase {
 
         this.snowNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.snowNode.name = "snowSpine";
-        this.img2.node.addChild(this.snowNode);
+        this.addSpineToImg(this.img2, this.snowNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.snowNode);
         if (skeleton) {

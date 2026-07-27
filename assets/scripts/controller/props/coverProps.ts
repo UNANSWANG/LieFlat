@@ -23,6 +23,7 @@ export class coverProps extends gamePropsBase {
     /**初始化道具的图片 */
     initPropsImg() {
         super.initPropsImg();
+        this.img1.node.setPosition(0, -7, 0);
         this.createLightNode();
     }
 
@@ -44,7 +45,7 @@ export class coverProps extends gamePropsBase {
         this.lightNode.name = "coverLight";
         this.lightNode.setScale(new Vec3(0.55, 0.55, 1));
         this.lightNode.setPosition(0, -7, 0);
-        this.img2.node.addChild(this.lightNode);
+        this.addSpineToImg(this.img2, this.lightNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.lightNode);
         if (skeleton) {

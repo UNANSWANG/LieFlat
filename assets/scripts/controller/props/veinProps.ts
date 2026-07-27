@@ -104,7 +104,7 @@ export class veinProps extends gamePropsBase {
         this.veinSpinePath = path;
         this.veinNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.veinNode.name = "veinSpine";
-        this.img2.node.addChild(this.veinNode);
+        this.addSpineToImg(this.img2, this.veinNode);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.veinNode);
         if (skeleton) {

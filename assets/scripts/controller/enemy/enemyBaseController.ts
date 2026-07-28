@@ -1797,6 +1797,7 @@ export class enemyBaseController extends Component {
     private killTargetPlayer() {
         let targetPlayer = this.targetPlayer;
         if (this.isTargetPlayerValid()) {
+            audioMgr.playEffect(audioPath.bossAttack);
             let scratchWorldPos = targetPlayer.node.worldPosition.clone();
             if (targetPlayer.state != roleState.bed) {
                 let roleAnimNode = targetPlayer.node.getChildByName("roleAnim");
@@ -1948,6 +1949,7 @@ export class enemyBaseController extends Component {
         let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
         let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;
         if (actualDamage > 0) {
+            audioMgr.playEffect(audioPath.bossAttack);
             this.playScratchEffectAtWorldPos(scratchWorldPos);
         }
         if (isAttackDoor) {

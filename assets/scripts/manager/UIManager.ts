@@ -170,6 +170,8 @@ export class UIManager {
         this.gamePage.addChild(gameNode);
         let uiComp = gameNode.getComponent(UIBase);
         uiMgr.closePage(UIPath.UIMain);
+        audioMgr.closeBackgroundMusic();
+        audioMgr.playBackgroundMusic(audioPath.gameBackground);
         uiComp.onUI_Open(data);
     }
 
@@ -181,6 +183,8 @@ export class UIManager {
             uiComp.onUI_Close();
             this.uiMap.get(keyName).active = false;
         }
+        audioMgr.closeBackgroundMusic();
+        audioMgr.playBackgroundMusic(audioPath.background);
         uiMgr.openPage(UIPath.UIMain);
     }
 

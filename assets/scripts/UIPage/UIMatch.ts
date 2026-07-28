@@ -291,7 +291,9 @@ export class UIMatch extends UIBase {
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
-        this.readyBtn.addComponent(zoomButton).onClick = this.clickReadyBtn.bind(this);
+        let readyComp = this.readyBtn.addComponent(zoomButton);
+        readyComp.onClick = this.clickReadyBtn.bind(this);
+        readyComp.setPlayClickSound(false);
     }
 
     openGame() {

@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Animation, Label, Sprite } from 'cc';
-import { imgPath, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
 import { gm } from '../manager/gm';
@@ -10,6 +10,7 @@ import { videoMgr } from '../manager/videoManager';
 import { pData } from '../manager/playerData';
 import { tilePropsType } from '../controller/tileItemController';
 import { loop_anim, loopAnimation } from '../controller/loopAnimation';
+import { audioMgr } from '../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 export enum FailType {
@@ -57,6 +58,7 @@ export class UIFail extends UIBase {
 
     onUI_Open(data?: any) {
         gm.gamePause();
+        audioMgr.playEffect(audioPath.fail);
         this.initData(data);
         this.adBtnAnimation.playAni();
     }

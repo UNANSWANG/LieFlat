@@ -76,12 +76,36 @@ export const mapNameArr = [
 
 /**物品路径 */
 export enum audioPath {
-    /**背景音乐 */
-    background = "audio/background",
+    /**主页背景音乐 */
+    background = "audio/zhuyeBGM",
+    /**游戏内背景音乐 */
+    gameBackground = "audio/juneiBGM",
     /**游戏内点击音效 */
-    click = "audio/click",
+    click = "audio/dianji",
     /**单局胜利音效 */
-    success = "audio/success",
+    success = "audio/shengli",
+    /**游戏内失败音效 */
+    fail = "audio/shibai",
+    /**子弹攻击音效1（1，2级） */
+    bulletAttack1 = "audio/shuidan",
+    /**子弹攻击音效2（3，4，5，6级） */
+    bulletAttack2 = "audio/gongjiangongji",
+    /**子弹攻击音效3（11，12级） */
+    bulletAttack3 = "audio/jiguanggongji",
+    /**子弹攻击音效4 */
+    bulletAttack4 = "audio/paodangongji",
+    /**boss攻击音效 */
+    bossAttack = "audio/bossgongji",
+    /**回收出售建筑音效 */
+    buildSell = "audio/jianzhuhuishou",
+    /**建造建筑音效 */
+    build = "audio/jianzhaochenggong",
+    /**获得金币音效 */
+    getMoney = "audio/jinbihuode",
+    /**boss狂暴和震慑技能音效 */
+    bossSkill = "audio/jineng",
+    /**点击准备音效 */
+    clickPrepare = "audio/zhunbei",
 }
 
 /**图片路径 */

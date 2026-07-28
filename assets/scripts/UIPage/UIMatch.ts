@@ -1,6 +1,6 @@
 import { _decorator, Node, Animation, Color, Label, Sprite, SpriteFrame } from 'cc';
 import { UIBase } from './UIBase';
-import { imgPath, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { configData } from '../manager/configData';
@@ -8,6 +8,7 @@ import { pData } from '../manager/playerData';
 import { ccTools } from '../extention/generalTools';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { nicknameConfig } from '../json/jsonNickname';
+import { audioMgr } from '../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 type MatchTarget = {
@@ -326,6 +327,8 @@ export class UIMatch extends UIBase {
         if (this.isReady) {
             return;
         }
+
+        audioMgr.playEffect(audioPath.clickPrepare);
         this.isReady = true;
         this.readyBtn.active = false;
         this.readyedBtn.active = true;

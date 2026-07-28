@@ -1,10 +1,11 @@
 import { _decorator, AnimationClip, AssetManager, Component, instantiate, Node, Prefab, Sprite, tween, UITransform, Vec3 } from 'cc';
 import { UIBase } from '../UIPage/UIBase';
-import { animPath, gamePath, imgPath, ItemPath, mapNameArr, UIPath } from './pathConfig';
+import { animPath, audioPath, gamePath, imgPath, ItemPath, mapNameArr, UIPath } from './pathConfig';
 import { ccResTools } from '../extention/resTools';
 import { tipsNotice } from '../UIPage/tips/tipsNotice';
 import { pData } from './playerData';
 import { ccTools } from '../extention/generalTools';
+import { audioMgr } from './audioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIManager')
@@ -271,6 +272,7 @@ export class UIManager {
             return;
         }
 
+        audioMgr.playEffect(audioPath.getMoney);
         let itemCount = Math.min(Math.ceil(num / 10), 10);
         let completedCount = 0;
 

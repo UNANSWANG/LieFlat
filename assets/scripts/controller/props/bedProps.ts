@@ -42,6 +42,8 @@ export class bedProps extends gamePropsBase {
 
         this.loadPropsImg(this.img2, imgPath.roleBody + skinId);
 
+        this.img2.getComponent(UITransform).setAnchorPoint(new Vec2(0.5, 0));
+
         //生产金币
         this.isProduceCoin = true;
         this.startProduceCoin();

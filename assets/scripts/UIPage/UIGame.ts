@@ -2,7 +2,7 @@ import { _decorator, AnimationClip, Camera, Canvas, EventKeyboard, EventTouch, I
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { UIBase } from './UIBase';
-import { imgPath, ItemPath, mapNameArr, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, ItemPath, mapNameArr, UIPath } from '../manager/pathConfig';
 import { configData, enemyCommonConfig, GameEvent, robotCommonConfig } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { zoomButton } from '../extention/zoomButton';
@@ -27,6 +27,7 @@ import { netController } from '../controller/netController';
 import { sawController } from '../controller/sawController';
 import { gameAnimController } from '../controller/gameAnimController';
 import { coverProps } from '../controller/props/coverProps';
+import { audioMgr } from '../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIGame')
@@ -878,15 +879,17 @@ export class UIGame extends UIBase {
             //不存在瓦片就添加瓦片
             tileComp = this.createTileItem(tilePos, tileData.roomIdx);
         }
-        this.playPropsFog(tileComp.node.worldPosition);
+        this.playPropsFog(tileComp.node.worldPosition, audioPath.build);
         tileComp.addProps(propsType, level);
         let buildRole = this.getBuildRoleByRoomIdx(tileData.roomIdx);
         buildRole?.addGamePropsBuildCount(propsType);
     }
 
     /**在道具所在位置播放一次雾气动画 */
-    playPropsFog(worldPos: Vec3) {
-        this.playGameAnim(this.gameBottomUINode, uiMgr.fogAnimClip, worldPos);
+    playPropsFog(worldPos: Vec3, audioName: string = "") {
+        if (this.playGameAnim(this.gameBottomUINode, uiMgr.fogAnimClip, worldPos) && audioName) {
+            audioMgr.playEffect(audioName);
+        }
     }
 
     /**在人物上层播放一次敌人爆气动画 */
@@ -898,14 +901,14 @@ export class UIGame extends UIBase {
     /**在指定游戏层按世界坐标播放一次动画，完成后回收 */
     private playGameAnim(parent: Node, clip: AnimationClip, worldPos: Vec3, localOffsetY: number = 0) {
         if (!uiMgr.gameAnimItemPrefab || !parent || !clip || !worldPos) {
-            return;
+            return false;
         }
 
         let animNode = poolMgr.getGameAnimNode(uiMgr.gameAnimItemPrefab);
         let parentTransform = parent.getComponent(UITransform);
         if (!parentTransform) {
             poolMgr.putGameAnimNode(animNode);
-            return;
+            return false;
         }
 
         parent.addChild(animNode);
@@ -915,10 +918,11 @@ export class UIGame extends UIBase {
         let animComp = animNode.getComponent(gameAnimController);
         if (!animComp) {
             poolMgr.putGameAnimNode(animNode);
-            return;
+            return false;
         }
 
         animComp.startAnim(clip, () => poolMgr.putGameAnimNode(animNode));
+        return true;
     }
 
     /**通过房间号获取建造归属角色 */
@@ -1147,7 +1151,7 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(buildPos, roomIdx);
         }
 
-        this.playPropsFog(tileComp.node.worldPosition);
+        this.playPropsFog(tileComp.node.worldPosition, audioPath.build);
         tileComp.addProps(propsData.propsType, propsData.level, propsData.isSpecialSellProps, true);
         tileComp.isRandomPickProps = false;
         tileComp.randomPickPropsRobotId = 0;
@@ -1246,7 +1250,7 @@ export class UIGame extends UIBase {
             tileComp = this.createTileItem(buildPos, roomIdx);
         }
 
-        this.playPropsFog(tileComp.node.worldPosition);
+        this.playPropsFog(tileComp.node.worldPosition, audioPath.build);
         tileComp.addProps(carriedData.propsType, carriedData.level, carriedData.isSpecialSellProps, true);
         tileComp.isRandomPickProps = false;
         return true;

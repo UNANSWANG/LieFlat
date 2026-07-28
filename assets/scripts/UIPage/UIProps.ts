@@ -1,6 +1,6 @@
 import { _decorator, instantiate, Label, Node, Prefab, Sprite, UITransform, Vec2, Vec3 } from 'cc';
 import { UIBase } from './UIBase';
-import { imgPath, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { propsConfig } from '../json/jsonProps';
 import { gamePropsBase } from '../controller/props/gamePropsBase';
@@ -398,7 +398,7 @@ export class UIProps extends UIBase {
         }
 
         //移除道具
-        this.propsComp.removeProps();
+        this.propsComp.removeProps(audioPath.buildSell);
         this.onClose();
     }
 

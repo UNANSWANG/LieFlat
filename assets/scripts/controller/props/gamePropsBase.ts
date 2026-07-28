@@ -1,7 +1,7 @@
 import { _decorator, Component, Node, sp, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
 import { tileItemController, tilePropsType } from '../tileItemController';
 import { ccTools } from '../../extention/generalTools';
-import { imgPath } from '../../manager/pathConfig';
+import { audioPath, imgPath } from '../../manager/pathConfig';
 import { produceType } from '../../UIPage/tips/produceTips';
 import { roleController, roleState } from '../roleController';
 import { playerMgr } from '../../manager/playerManager';
@@ -237,7 +237,7 @@ export class gamePropsBase extends Component {
         }
         this.level++;
         this.isSpecialSellProps = false;
-        this.gameComp?.playPropsFog(this.tileItemComp?.node.worldPosition);
+        this.gameComp?.playPropsFog(this.tileItemComp?.node.worldPosition, audioPath.build);
         this.initPropsImg();
     }
 
@@ -287,9 +287,9 @@ export class gamePropsBase extends Component {
     }
 
     /**移除道具 */
-    removeProps() {
+    removeProps(audioName: string = "") {
         let tileItemComp = this.tileItemComp;
-        this.gameComp?.playPropsFog(tileItemComp?.node.worldPosition);
+        this.gameComp?.playPropsFog(tileItemComp?.node.worldPosition, audioName);
         tileItemComp?.removeProps();
         tileItemComp?.checkUpgrade();
     }

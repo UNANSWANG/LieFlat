@@ -21,6 +21,7 @@ export class CameraController extends Component {
     private playerPos: Vec3 = null;
     private cameraPos: Vec3 = null;
     private move: Vec3 = null;
+    private cameraWorldPos: Vec3 = new Vec3();
     onLoad() {
         this.camera = this.node.getComponent(Camera);
     }
@@ -105,6 +106,26 @@ export class CameraController extends Component {
         pos.x -= delta.x * worldPerPixel;
         pos.y -= delta.y * worldPerPixel;
         this.setCameraPos(pos);
+    }
+
+    /**世界坐标是否位于当前游戏摄像机视野内 */
+    isWorldPosVisible(worldPos: Vec3) {
+        if (!this.camera || !worldPos) {
+            return false;
+        }
+
+        const visibleSize = view.getVisibleSize();
+        if (visibleSize.width <= 0 || visibleSize.height <= 0) {
+            return false;
+        }
+
+        this.node.getWorldPosition(this.cameraWorldPos);
+        const halfViewHeight = this.camera.orthoHeight;
+        const halfViewWidth = halfViewHeight * visibleSize.width / visibleSize.height;
+        return worldPos.x >= this.cameraWorldPos.x - halfViewWidth
+            && worldPos.x <= this.cameraWorldPos.x + halfViewWidth
+            && worldPos.y >= this.cameraWorldPos.y - halfViewHeight
+            && worldPos.y <= this.cameraWorldPos.y + halfViewHeight;
     }
 
     lateUpdate(deltaTime: number) {

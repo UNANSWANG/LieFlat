@@ -13,7 +13,6 @@ import { printerProps } from './printerProps';
 import { telescopeProps } from './telescopeProps';
 import { bearingProps } from './bearingProps';
 import { fireProps } from './fireProps';
-import { audioMgr } from '../../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('cannonProps')
@@ -183,13 +182,13 @@ export class cannonProps extends gamePropsBase {
 
         //子弹音效
         if (this.level == 0 || this.level == 1) {
-            audioMgr.playEffect(audioPath.bulletAttack1);
+            this.gameComp?.playSceneEffect(audioPath.bulletAttack1, this.node.worldPosition);
         } else if (this.level == 2 || this.level == 3 || this.level == 4 || this.level == 5) {
-            audioMgr.playEffect(audioPath.bulletAttack2);
+            this.gameComp?.playSceneEffect(audioPath.bulletAttack2, this.node.worldPosition);
         } else if (this.level == 10 || this.level == 11) {
-            audioMgr.playEffect(audioPath.bulletAttack3);
+            this.gameComp?.playSceneEffect(audioPath.bulletAttack3, this.node.worldPosition);
         } else {
-            audioMgr.playEffect(audioPath.bulletAttack4);
+            this.gameComp?.playSceneEffect(audioPath.bulletAttack4, this.node.worldPosition);
         }
 
         bulletNode.active = false;

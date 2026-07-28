@@ -211,6 +211,7 @@ export class UIGame extends UIBase {
 
         this.bindBtn();
         this.initCamera();
+        audioMgr.initSceneAudio(this.node);
     }
 
     async onUI_Open(data?: any) {
@@ -231,6 +232,7 @@ export class UIGame extends UIBase {
     }
 
     onUI_Close(): void {
+        audioMgr.stopSceneEffects();
         // 先提升版本号，使本局尚未完成的异步地图加载结果失效
         this.openVersion++;
         this.removeListener();
@@ -888,8 +890,16 @@ export class UIGame extends UIBase {
     /**在道具所在位置播放一次雾气动画 */
     playPropsFog(worldPos: Vec3, audioName: string = "") {
         if (this.playGameAnim(this.gameBottomUINode, uiMgr.fogAnimClip, worldPos) && audioName) {
-            audioMgr.playEffect(audioName);
+            this.playSceneEffect(audioName, worldPos);
         }
+    }
+
+    /**在音效来源位于游戏摄像机内时播放场景音效 */
+    playSceneEffect(audioName: string, worldPos: Vec3) {
+        if (!audioName || !this.node.activeInHierarchy || !this.gameCameraComp?.isWorldPosVisible(worldPos)) {
+            return;
+        }
+        audioMgr.playSceneEffect(audioName);
     }
 
     /**在人物上层播放一次敌人爆气动画 */

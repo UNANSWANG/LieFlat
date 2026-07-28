@@ -19,6 +19,10 @@ export class audioManager {
     private dic_loading: Map<string, number> = new Map();
     /**默认音效使用的音频组件 */
     private _audioSource: AudioSource = null;
+    /**游戏页内使用的场景音效组件 */
+    private _sceneAudioSource: AudioSource = null;
+    /**场景音效会话序号，用于丢弃退出游戏前的异步播放请求 */
+    private _sceneEffectVersion: number = 0;
     /**音效开关 */
     private _isEffect: boolean = true;
     /**背景音乐开关 */
@@ -46,6 +50,20 @@ export class audioManager {
 
         //获取一个音频组件并打断所有语音
         this._audioSource = this.getOneSoundAudio(false);
+    }
+
+    /**初始化游戏页内的场景音效组件 */
+    initSceneAudio(node: Node) {
+        if (!node || (this._sceneAudioSource?.isValid && this._sceneAudioSource.node == node)) {
+            return;
+        }
+        this._sceneEffectVersion++;
+        if (this._sceneAudioSource?.isValid) {
+            this._sceneAudioSource.stop();
+        }
+
+        this._sceneAudioSource = node.addComponent(AudioSource);
+        this._sceneAudioSource.volume = this._effectVolume;
     }
 
     /**初始化内存的存储数据 */
@@ -117,6 +135,9 @@ export class audioManager {
         if (this._audioSource) {
             this._audioSource.volume = this._effectVolume;
         }
+        if (this._sceneAudioSource) {
+            this._sceneAudioSource.volume = this._effectVolume;
+        }
     }
 
     private applyMusicVolume() {
@@ -127,8 +148,22 @@ export class audioManager {
 
     /**关闭所有音频 */
     closeAllSound() {
+        this.closeGlobalEffects();
+        this.stopSceneEffects();
+    }
+
+    /**停止全局音效通道 */
+    private closeGlobalEffects() {
         for (let i = 0; i < this.audios.length; i++) {
             this.audios[i].stop();
+        }
+    }
+
+    /**停止游戏页内的全部场景音效 */
+    stopSceneEffects() {
+        this._sceneEffectVersion++;
+        if (this._sceneAudioSource?.isValid) {
+            this._sceneAudioSource.stop();
         }
     }
 
@@ -180,7 +215,7 @@ export class audioManager {
     /**获取一个音频组件 */
     getOneSoundAudio(closeSound = true) {
         // 先打断所有的语音
-        if (closeSound) this.closeAllSound();
+        if (closeSound) this.closeGlobalEffects();
         let cur = this._curAudioSource;
         this._curAudioSource++;
         if (this._curAudioSource >= this.audios.length) {
@@ -191,7 +226,23 @@ export class audioManager {
 
     /**播放音效（单次音效播放（互不干涉） */
     playEffect($name: string, bundle: AssetManager.Bundle = uiMgr.resBundle) {
-        if (!this._isEffect || !bundle) {
+        this.playEffectBySource($name, this._audioSource, bundle);
+    }
+
+    /**播放游戏页内的场景音效 */
+    playSceneEffect($name: string, bundle: AssetManager.Bundle = uiMgr.resBundle) {
+        if (!this._sceneAudioSource?.isValid || !this._sceneAudioSource.node.activeInHierarchy) {
+            return;
+        }
+        let sceneEffectVersion = this._sceneEffectVersion;
+        this.playEffectBySource($name, this._sceneAudioSource, bundle, () => {
+            return sceneEffectVersion == this._sceneEffectVersion;
+        });
+    }
+
+    /**使用指定音频组件播放音效 */
+    private playEffectBySource($name: string, source: AudioSource, bundle: AssetManager.Bundle, canPlay?: () => boolean) {
+        if (!bundle || !this.canEffectPlay(source, canPlay)) {
             return;
         }
         let key = $name;
@@ -200,20 +251,27 @@ export class audioManager {
             return;
         }
         if (this._dic.has(key)) {
-            this._audioSource.playOneShot(this._dic.get(key));
+            source.playOneShot(this._dic.get(key));
             return;
         } else {
             this.dic_loading.set(key, 1);
             bundle.load($name, AudioClip, (err, res) => {
+                this.dic_loading.delete(key);
                 if (!res) {
                     console.error("没有找到声音资源>>>", $name);
                     return;
                 }
-                this.dic_loading.delete(key);
                 this._dic.set(key, res);
-                this._audioSource.playOneShot(res);
+                if (this.canEffectPlay(source, canPlay)) {
+                    source.playOneShot(res);
+                }
             });
         }
+    }
+
+    /**音效组件当前是否允许播放 */
+    private canEffectPlay(source: AudioSource, canPlay?: () => boolean) {
+        return this._isEffect && source?.isValid && source.node.activeInHierarchy && (!canPlay || canPlay());
     }
 
     /**播放背景音乐（单次播放，互不干涉） */

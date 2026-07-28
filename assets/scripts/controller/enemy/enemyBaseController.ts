@@ -20,7 +20,6 @@ import { thornProps } from '../props/thornProps';
 import { netProps } from '../props/netProps';
 import { alarmProps } from '../props/alarmProps';
 import { poolMgr } from '../../manager/poolManager';
-import { audioMgr } from '../../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -386,7 +385,7 @@ export class enemyBaseController extends Component {
         this.isRageReady = false;
         this.rageUseTimer = 0;
         uiMgr.showTips("感染者释放狂怒技能");
-        audioMgr.playEffect(audioPath.bossSkill);
+        this.gameComp?.playSceneEffect(audioPath.bossSkill, this.node.worldPosition);
         if (this.tryStartCageControl()) {
             return true;
         }
@@ -753,6 +752,9 @@ export class enemyBaseController extends Component {
         if (Number.isInteger(killerSkinId) && killerSkinId >= 0) {
             this.killerSkinId = killerSkinId;
         }
+
+        //TODO 敌人无敌
+        return false;
         this.recordDamage(damage);
         this.hp = this.gameComp?.isRoleDisappearPlaying ? Math.max(1, this.hp - damage) : this.hp - damage;
         this.refreshHp();
@@ -1797,7 +1799,7 @@ export class enemyBaseController extends Component {
     private killTargetPlayer() {
         let targetPlayer = this.targetPlayer;
         if (this.isTargetPlayerValid()) {
-            audioMgr.playEffect(audioPath.bossAttack);
+            this.gameComp?.playSceneEffect(audioPath.bossAttack, this.node.worldPosition);
             let scratchWorldPos = targetPlayer.node.worldPosition.clone();
             if (targetPlayer.state != roleState.bed) {
                 let roleAnimNode = targetPlayer.node.getChildByName("roleAnim");
@@ -1949,7 +1951,7 @@ export class enemyBaseController extends Component {
         let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
         let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;
         if (actualDamage > 0) {
-            audioMgr.playEffect(audioPath.bossAttack);
+            this.gameComp?.playSceneEffect(audioPath.bossAttack, this.node.worldPosition);
             this.playScratchEffectAtWorldPos(scratchWorldPos);
         }
         if (isAttackDoor) {
@@ -2039,7 +2041,7 @@ export class enemyBaseController extends Component {
         }
 
         uiMgr.showTips("感染者释放震慑技能");
-        audioMgr.playEffect(audioPath.bossSkill);
+        this.gameComp?.playSceneEffect(audioPath.bossSkill, this.node.worldPosition);
         if (this.tryStartCageControl()) {
             this.hasFearCurAttackDoor = true;
             return;

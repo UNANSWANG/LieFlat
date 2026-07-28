@@ -7,6 +7,8 @@ const { ccclass, property } = _decorator;
 export class zoomButton extends Button {
     //函数回调
     onClick: Function = null;
+    /**播放音效 */
+    private playClickSound: boolean = true;
 
     protected onLoad(): void {
         this.node.on(Node.EventType.TOUCH_END, this.clickBtn, this);
@@ -14,9 +16,16 @@ export class zoomButton extends Button {
         this.zoomScale = 0.9;
     }
 
+    /**设置是否播放音效 */
+    setPlayClickSound(play: boolean) {
+        this.playClickSound = play;
+    }
+
     clickBtn() {
         //点击音效
-        audioMgr.playEffect(audioPath.click);
+        if(this.playClickSound){
+            audioMgr.playEffect(audioPath.click);
+        }
         this.onClick && this.onClick();
     }
 }

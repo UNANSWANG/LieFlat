@@ -1,7 +1,7 @@
 import { _decorator, Node, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { ccTools } from '../../extention/generalTools';
-import { imgPath, spinePath } from '../../manager/pathConfig';
+import { audioPath, imgPath, spinePath } from '../../manager/pathConfig';
 import { enemyMgr } from '../../manager/enemyManager';
 import { configData } from '../../manager/configData';
 import { poolMgr } from '../../manager/poolManager';
@@ -13,6 +13,7 @@ import { printerProps } from './printerProps';
 import { telescopeProps } from './telescopeProps';
 import { bearingProps } from './bearingProps';
 import { fireProps } from './fireProps';
+import { audioMgr } from '../../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('cannonProps')
@@ -179,6 +180,17 @@ export class cannonProps extends gamePropsBase {
         this.playScaleDownAnim(this.img2.node, 0.5);
         // 统一从子弹池获取；池为空时管理器仍会动态创建新实例
         let bulletNode = poolMgr.getBulletNode(uiMgr.bulletPrefab);
+
+        //子弹音效
+        if (this.level == 0 || this.level == 1) {
+            audioMgr.playEffect(audioPath.bulletAttack1);
+        } else if (this.level == 2 || this.level == 3 || this.level == 4 || this.level == 5) {
+            audioMgr.playEffect(audioPath.bulletAttack2);
+        } else if (this.level == 10 || this.level == 11) {
+            audioMgr.playEffect(audioPath.bulletAttack3);
+        } else {
+            audioMgr.playEffect(audioPath.bulletAttack4);
+        }
 
         bulletNode.active = false;
         this.gameComp.gameUINode.addChild(bulletNode);

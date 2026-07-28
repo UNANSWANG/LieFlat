@@ -8,7 +8,7 @@ import { gamePropsBase } from '../props/gamePropsBase';
 import { tilePropsType } from '../tileItemController';
 import { UIGame } from '../../UIPage/UIGame';
 import { uiMgr } from '../../manager/UIManager';
-import { spinePath, UIPath } from '../../manager/pathConfig';
+import { audioPath, spinePath, UIPath } from '../../manager/pathConfig';
 import { enemyMgr } from '../../manager/enemyManager';
 import { bedProps } from '../props/bedProps';
 import { enemyConfig } from '../../json/jsonEnemy';
@@ -20,6 +20,7 @@ import { thornProps } from '../props/thornProps';
 import { netProps } from '../props/netProps';
 import { alarmProps } from '../props/alarmProps';
 import { poolMgr } from '../../manager/poolManager';
+import { audioMgr } from '../../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -385,6 +386,7 @@ export class enemyBaseController extends Component {
         this.isRageReady = false;
         this.rageUseTimer = 0;
         uiMgr.showTips("感染者释放狂怒技能");
+        audioMgr.playEffect(audioPath.bossSkill);
         if (this.tryStartCageControl()) {
             return true;
         }
@@ -2035,6 +2037,7 @@ export class enemyBaseController extends Component {
         }
 
         uiMgr.showTips("感染者释放震慑技能");
+        audioMgr.playEffect(audioPath.bossSkill);
         if (this.tryStartCageControl()) {
             this.hasFearCurAttackDoor = true;
             return;

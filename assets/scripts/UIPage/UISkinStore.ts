@@ -1,4 +1,4 @@
-import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label, UITransform, sp } from 'cc';
+import { _decorator, Node, Prefab, Sprite, ScrollView, instantiate, Label, UITransform, sp, Animation } from 'cc';
 import { UIBase } from './UIBase';
 import { imgPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -24,6 +24,9 @@ export class UISkinStore extends UIBase {
 
     @property(sp.Skeleton)
     showRoleSkin: sp.Skeleton;
+
+    @property(Label)
+    nameLab: Label;
 
     @property(Node)
     getNode: Node;
@@ -55,6 +58,8 @@ export class UISkinStore extends UIBase {
     }
 
     onUI_Open() {
+        let anim = this.getComponent(Animation);
+        anim.play();
         this.initData();
     }
 
@@ -170,6 +175,8 @@ export class UISkinStore extends UIBase {
         }
 
         this.showRoleSkin.setAnimation(0, roleAnimName.idle, true);
+
+        this.nameLab.string = roleSkinConfig.getSkinDataById(this.selectId)?.name || "";
     }
 
     /** 更新提示节点宽度 */

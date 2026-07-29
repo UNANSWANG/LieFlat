@@ -125,7 +125,7 @@ export class UILoading extends Component {
     /**刷新进度条 */
     refreshProgress() {
         this.progress.fillRange = this.currentProgressPercent;
-        this.percentLab.string = `加载中 ${(this.currentProgressPercent * 100).toFixed(1)}%`;
+        this.percentLab.string = `${(this.currentProgressPercent * 100).toFixed(0)}%`;
     }
 
     /**加载表格 */

@@ -170,6 +170,8 @@ export class UIGame extends UIBase {
     private tempCurrentMoveTilePos: Vec2 = new Vec2();
     /**玩家碰撞矩形默认偏移 */
     private readonly defaultMoveMatrixOffset: Vec2 = new Vec2(0, 8);
+    /**等待玩家碰撞区域离开后恢复阻挡的门格 */
+    private pendingDoorBlockPosMap: { [key: string]: Vec2 } = {};
     /**是否在滑动区域移动 */
     private isSlideMoving = false;
     /**游戏开始倒计时时间 */
@@ -388,6 +390,7 @@ export class UIGame extends UIBase {
         this.isRoleDisappearPlaying = false;
         this.robotSuchRoomDelayTime = 0;
         this.playerLastRoomIdx = 0;
+        this.pendingDoorBlockPosMap = {};
         this.gameStartElapsedTime = 0;
         Tween.stopAllByTarget(this.repairMask);
         this.repairMask.fillRange = 0;
@@ -2030,6 +2033,32 @@ export class UIGame extends UIBase {
         return this.isBlockTile(tileX, tileY);
     }
 
+    /**玩家移动碰撞矩形是否仍与指定瓦片重叠 */
+    private isPlayerMoveMatrixOverlappingTile(tilePos: Vec2, matrixWidth = 20, matrixHeight = 25, matrixOffsetPos: Vec2 = this.defaultMoveMatrixOffset) {
+        if (!tilePos || !playerMgr.player || playerMgr.playerComp?.state != roleState.normal) {
+            return false;
+        }
+
+        let matrixCenterX = playerMgr.player.position.x + matrixOffsetPos.x;
+        let matrixCenterY = playerMgr.player.position.y + matrixOffsetPos.y;
+        let halfWidth = matrixWidth / 2;
+        let halfHeight = matrixHeight / 2;
+        let edgeOffset = 0.001;
+        let playerLeft = matrixCenterX - halfWidth;
+        let playerRight = matrixCenterX + halfWidth;
+        let playerTop = matrixCenterY + halfHeight;
+        let playerBottom = matrixCenterY - halfHeight;
+        let tileLeft = this.getTileLeftByTileX(tilePos.x);
+        let tileRight = this.getTileRightByTileX(tilePos.x);
+        let tileTop = this.getTileTopByTileY(tilePos.y);
+        let tileBottom = this.getTileBottomByTileY(tilePos.y);
+
+        return playerRight > tileLeft + edgeOffset
+            && playerLeft < tileRight - edgeOffset
+            && playerTop > tileBottom + edgeOffset
+            && playerBottom < tileTop - edgeOffset;
+    }
+
     /**通过本地坐标x获取瓦片索引 */
     private getTileXByNodeX(nodeX: number) {
         return Math.floor((nodeX + pData.mapHalfSize.x) / configData.tileSize);
@@ -2401,6 +2430,8 @@ export class UIGame extends UIBase {
             //检测人物坐标事件
             this.checkPlayerPos();
         }
+
+        this.refreshPendingDoorBlocks();
     }
 
     /**刷新倒计时结束后的游戏经过时间 */
@@ -2461,7 +2492,51 @@ export class UIGame extends UIBase {
 
     /**修改地图内的行走区域 */
     fixTileMapBlock(pos, flag) {
-        this.tileMap[pos.x][pos.y].block = flag;
+        let tileData = this.tileMap[pos.x]?.[pos.y];
+        if (!tileData) {
+            return;
+        }
+
+        let key = this.getTilePosKey(pos);
+        if (flag != 1) {
+            delete this.pendingDoorBlockPosMap[key];
+            tileData.block = flag;
+            return;
+        }
+
+        if (this.isPlayerMoveMatrixOverlappingTile(pos)) {
+            tileData.block = 0;
+            this.pendingDoorBlockPosMap[key] = new Vec2(pos.x, pos.y);
+            return;
+        }
+
+        delete this.pendingDoorBlockPosMap[key];
+        tileData.block = 1;
+    }
+
+    /**玩家完全离开门格后，再把已关闭的门恢复为不可行走 */
+    private refreshPendingDoorBlocks() {
+        for (let key in this.pendingDoorBlockPosMap) {
+            let pos = this.pendingDoorBlockPosMap[key];
+            let tileData = this.tileMap[pos.x]?.[pos.y];
+            let doorComp = tileData?.item?.propsComp as doorProps;
+            if (!tileData || !doorComp || !doorComp.isClose) {
+                delete this.pendingDoorBlockPosMap[key];
+                continue;
+            }
+
+            if (this.isPlayerMoveMatrixOverlappingTile(pos)) {
+                continue;
+            }
+
+            tileData.block = 1;
+            delete this.pendingDoorBlockPosMap[key];
+        }
+    }
+
+    /**生成瓦片坐标键 */
+    private getTilePosKey(pos: Vec2) {
+        return `${pos.x}_${pos.y}`;
     }
 
     /**关闭指定房间的门 */

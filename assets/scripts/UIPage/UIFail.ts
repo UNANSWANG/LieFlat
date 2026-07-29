@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Animation, Label, sp } from 'cc';
+import { _decorator, Component, Node, Animation, Label, sp, tween, Tween, Vec3 } from 'cc';
 import { audioPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
@@ -39,9 +39,14 @@ export class UIFail extends UIBase {
     @property(sp.Skeleton)
     roleSk: sp.Skeleton;
 
-
     @property(Label)
     timeLab: Label;
+
+    @property(Node)
+    title: Node;
+
+    @property(Node)
+    titleLogo: Node;
 
     /**奖励污染币数量 */
     moneyNum = 0;
@@ -60,8 +65,26 @@ export class UIFail extends UIBase {
     onUI_Open(data?: any) {
         gm.gamePause();
         audioMgr.playEffect(audioPath.fail);
+        this.playOpenAnim();
         this.initData(data);
         this.adBtnAnimation.playAni();
+    }
+
+    /**播放标题开屏缩放动画 */
+    private playOpenAnim() {
+        let titleNodes = [this.title, this.titleLogo];
+        for (let i = 0; i < titleNodes.length; i++) {
+            let titleNode = titleNodes[i];
+            if (!titleNode || !titleNode.isValid) {
+                continue;
+            }
+
+            Tween.stopAllByTarget(titleNode);
+            titleNode.setScale(new Vec3(2, 2, 1));
+            tween(titleNode)
+                .to(0.5, { scale: new Vec3(1, 1, 1) }, { easing: "backOut" })
+                .start();
+        }
     }
 
     /**初始化广告按钮循环放缩动画 */

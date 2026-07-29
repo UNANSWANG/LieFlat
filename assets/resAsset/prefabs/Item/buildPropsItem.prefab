@@ -465,8 +465,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 42.4072265625,
-      "height": 50.4
+      "width": 46.4072265625,
+      "height": 54.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -518,7 +518,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,

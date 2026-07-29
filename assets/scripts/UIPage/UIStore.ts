@@ -94,12 +94,14 @@ export class UIStore extends UIBase {
             let moneyLab = buyBtn.getChildByName("moneyLab").getComponent(Label);
             let hasLab = item.getChildByName("hasLab").getComponent(Label);
             let numNode = item.getChildByName("numNode");
+            let nameLab = item.getChildByName("nameLab").getComponent(Label);
             let numLab = numNode.getChildByName("numLab").getComponent(Label);
             let propsNum = pData.getLevelPropsNum(propsData.propsType, propsData.level);
             let buyBtnComp = buyBtn.getComponent(zoomButton) || buyBtn.addComponent(zoomButton);
             let adBtnComp = adBtn.getComponent(zoomButton) || adBtn.addComponent(zoomButton);
 
             numNode.active = propsNum > 0;
+            nameLab.string = propsData.name;
             let propsNumText = propsNum < 100 ? propsNum + "" : "99+";
 
             buyBtn.active = propsData.storePrice >= 0;

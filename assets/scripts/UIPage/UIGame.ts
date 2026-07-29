@@ -2867,6 +2867,9 @@ export class UIGame extends UIBase {
             case KeyCode.KEY_P:
                 //打开控制台
                 uiMgr.openPage(UIPath.UIConsole);
+            case KeyCode.KEY_R:
+                //重新开始游戏
+                this.restartGame();
                 break;
         }
     }

@@ -1,6 +1,6 @@
-import { _decorator, Label, Node, Sprite } from 'cc';
+import { _decorator, Label, Node, sp } from 'cc';
 import { UIBase } from './UIBase';
-import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
+import { audioPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { gm } from '../manager/gm';
@@ -10,6 +10,7 @@ import { ccTools } from '../extention/generalTools';
 import { videoMgr } from '../manager/videoManager';
 import { tilePropsType } from '../controller/tileItemController';
 import { loop_anim, loopAnimation } from '../controller/loopAnimation';
+import { roleAnimName } from '../controller/roleController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
@@ -29,8 +30,8 @@ export class UISuccess extends UIBase {
     @property(Node)
     boxNode: Node;
 
-    @property(Sprite)
-    roleImg: Sprite;
+    @property(sp.Skeleton)
+    roleSk: sp.Skeleton;
 
     @property(Label)
     timeLab: Label;
@@ -66,7 +67,7 @@ export class UISuccess extends UIBase {
 
     initData(data?) {
         let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
-        ccTools.loadImg(this.roleImg, imgPath.roleBodyFull + skinId);
+        this.refreshRoleSpine(skinId);
 
         //TODO 临时写数量
         this.moneyNum = 30;
@@ -79,6 +80,21 @@ export class UISuccess extends UIBase {
 
         pData.SDKReportLevelComplete();
         pData.addLevel();
+    }
+
+    /**加载胜利角色并循环播放待机动画 */
+    private async refreshRoleSpine(skinId: number) {
+        if (!this.roleSk) {
+            return;
+        }
+
+        this.roleSk.skeletonData = null;
+        let isLoaded = await ccTools.loadSpine(this.roleSk, spinePath.role + skinId);
+        if (!isLoaded) {
+            return;
+        }
+
+        this.roleSk.setAnimation(0, roleAnimName.idle, true);
     }
 
     bindBtn() {

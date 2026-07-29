@@ -1,5 +1,5 @@
-import { _decorator, Component, Node, Animation, Label, Sprite } from 'cc';
-import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
+import { _decorator, Component, Node, Animation, Label, sp } from 'cc';
+import { audioPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
 import { gm } from '../manager/gm';
@@ -36,8 +36,9 @@ export class UIFail extends UIBase {
     @property(Node)
     boxNode: Node;
 
-    @property(Sprite)
-    roleImg: Sprite;
+    @property(sp.Skeleton)
+    roleSk: sp.Skeleton;
+
 
     @property(Label)
     timeLab: Label;
@@ -73,7 +74,7 @@ export class UIFail extends UIBase {
 
     initData(data?) {
         let enemySkinId = Number.isInteger(data?.enemySkinId) && data.enemySkinId >= 0 ? data.enemySkinId : 0;
-        ccTools.loadImg(this.roleImg, imgPath.enemyBodyFull + enemySkinId);
+        this.refreshEnemySpine(enemySkinId);
 
         //TODO 临时写数量
         this.moneyNum = 30;
@@ -86,6 +87,22 @@ export class UIFail extends UIBase {
 
         pData.SDKReportLevelComplete();
         pData.addLevel();
+    }
+
+    /**加载失败界面敌人并循环播放待机动画 */
+    private async refreshEnemySpine(enemySkinId: number) {
+        if (!this.roleSk) {
+            return;
+        }
+
+        this.roleSk.skeletonData = null;
+        let isLoaded = await ccTools.loadSpine(this.roleSk, spinePath.boss + enemySkinId);
+        if (!isLoaded) {
+            return;
+        }
+
+        this.roleSk.timeScale = 0.5;
+        this.roleSk.setAnimation(0, "attack", true);
     }
 
     bindBtn() {

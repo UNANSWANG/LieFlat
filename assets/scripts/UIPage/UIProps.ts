@@ -254,7 +254,7 @@ export class UIProps extends UIBase {
         }
 
 
-        let addOffset = 139;
+        let addOffset = 180;
 
         let height = 131 + addOffset * propsLength;
 

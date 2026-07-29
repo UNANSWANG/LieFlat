@@ -207,7 +207,7 @@ export class UIBuild extends UIBase {
             adBtnComp.onClick = this.clickAdBtn.bind(this, i);
         }
 
-        let addOffset = 139;
+        let addOffset = 180;
 
         let height = 215 + addOffset * propsLength;
 

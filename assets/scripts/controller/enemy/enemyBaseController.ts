@@ -753,8 +753,10 @@ export class enemyBaseController extends Component {
             this.killerSkinId = killerSkinId;
         }
 
-        //TODO 敌人无敌
-        // return false;
+        //boss无敌
+        if (gmConfig.isBossInvincible) {
+            return false;
+        }
         this.recordDamage(damage);
         this.hp = this.gameComp?.isRoleDisappearPlaying ? Math.max(1, this.hp - damage) : this.hp - damage;
         this.refreshHp();

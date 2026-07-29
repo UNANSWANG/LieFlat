@@ -37,6 +37,9 @@ export class UIConsole extends UIBase {
     @property(Toggle)
     adToggle: Toggle;
 
+    @property(Toggle)
+    bossToggle: Toggle;
+
     protected onLoad(): void {
         this.bindBtn();
     }
@@ -60,12 +63,14 @@ export class UIConsole extends UIBase {
         this.forceStartBtn.addComponent(zoomButton).onClick = this.clickForceStartBtn.bind(this);
         this.onlyAttackSelfToggle.node.on(Toggle.EventType.TOGGLE, this.clickOnlyAttackSelfToggle, this);
         this.adToggle.node.on(Toggle.EventType.TOGGLE, this.clickAdToggle, this);
+        this.bossToggle.node.on(Toggle.EventType.TOGGLE, this.clickBossToggle, this);
     }
 
     /**刷新只攻击玩家自身开关 */
     refreshToggle() {
         this.onlyAttackSelfToggle.isChecked = gmConfig.onlyAttackSelf;
         this.adToggle.isChecked = gmConfig.isFreeAd;
+        this.bossToggle.isChecked = gmConfig.isBossInvincible;
     }
 
     ///
@@ -106,6 +111,11 @@ export class UIConsole extends UIBase {
     clickAdToggle() {
         gmConfig.isFreeAd = this.adToggle?.isChecked;
         ccStorageTools.setData(SaveKey.isFreeAd, gmConfig.isFreeAd ? 1 : 0);
+    }
+
+    /**点击boss无敌开关 */
+    clickBossToggle() {
+        gmConfig.isBossInvincible = this.bossToggle?.isChecked;
     }
 
     /**点击关闭 */

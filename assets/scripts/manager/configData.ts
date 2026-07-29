@@ -145,6 +145,8 @@ export const gmConfig = {
     onlyAttackSelf: false,
     /**是否免广告 */
     isFreeAd: false,
+    /**boss是否无敌 */
+    isBossInvincible: false,
 }
 
 /**游戏事件 */

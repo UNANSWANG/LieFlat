@@ -250,8 +250,12 @@ export class playerData {
 
     /**设置当前穿戴皮肤 */
     setSkinId(skinId: number) {
+        let isChanged = this.skinId != skinId;
         this.skinId = skinId;
         ccStorageTools.setData(SaveKey.skinId, this.skinId);
+        if (isChanged) {
+            gm.Event.emit(GameEvent.refreshRoleSkin);
+        }
     }
 
     /**设置全皮肤拥有 */

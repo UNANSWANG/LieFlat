@@ -1,5 +1,5 @@
-import { _decorator, Button, Component, EventKeyboard, input, Input, KeyCode, Label, Node, NodeEventType } from 'cc';
-import { gamePath, UIPath } from '../manager/pathConfig';
+import { _decorator, Button, Component, EventKeyboard, input, Input, KeyCode, Label, Node, NodeEventType, sp } from 'cc';
+import { gamePath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
 import { zoomButton } from '../extention/zoomButton';
@@ -11,6 +11,8 @@ import { TTManager } from '../sdk/plat/tt/TTManager';
 import { loopAnimation } from '../controller/loopAnimation';
 import { userMgr } from '../manager/userManager';
 import { WXManager } from '../sdk/plat/wx/WXManager';
+import { ccTools } from '../extention/generalTools';
+import { roleAnimName } from '../controller/roleController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIMain')
@@ -33,6 +35,10 @@ export class UIMain extends UIBase {
     @property(Node)
     revisitBtn: Node = null;
 
+    @property(sp.Skeleton)
+    roleAnim: sp.Skeleton = null;
+
+
     /**是否展示过复访按钮 */
     isShowRevisit = false;
 
@@ -53,6 +59,7 @@ export class UIMain extends UIBase {
     initData() {
         this.refreshRed();
         this.checkRevisitBtn();
+        this.refreshRoleAnim();
     }
 
     bindBtn() {
@@ -68,12 +75,29 @@ export class UIMain extends UIBase {
     addListener() {
         // 监听刷新红点事件
         gm.Event.on(GameEvent.refreshRed, this.refreshRed, this);
+        gm.Event.on(GameEvent.refreshRoleSkin, this.refreshRoleAnim, this);
     }
 
     /**删除监听 */
     removeListener() {
         // 监听刷新红点事件
         gm.Event.off(GameEvent.refreshRed, this.refreshRed, this);
+        gm.Event.off(GameEvent.refreshRoleSkin, this.refreshRoleAnim, this);
+    }
+
+    /**刷新主页角色皮肤并循环播放待机动画 */
+    private async refreshRoleAnim() {
+        if (!this.roleAnim) {
+            return;
+        }
+
+        this.roleAnim.skeletonData = null;
+        let isLoaded = await ccTools.loadSpine(this.roleAnim, spinePath.role + pData.skinId);
+        if (!isLoaded || !this.roleAnim || !this.roleAnim.isValid) {
+            return;
+        }
+
+        this.roleAnim.setAnimation(0, roleAnimName.idle, true);
     }
 
     /**刷新红点 */

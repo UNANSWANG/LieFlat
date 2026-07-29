@@ -195,6 +195,8 @@ export enum GameEvent {
     fullSkin = "fullSkin",
     /**强制开始游戏 */
     forceStart = "forceStart",
+    /**刷新角色皮肤 */
+    refreshRoleSkin = "refreshRoleSkin",
 }
 
 /**存储的键值 */

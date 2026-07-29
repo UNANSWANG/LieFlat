@@ -1697,7 +1697,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "赚钱",
+    "_string": "收益",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,
@@ -2190,7 +2190,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 105,
+      "width": 70,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -2226,7 +2226,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "高科技",
+    "_string": "攻击",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,
@@ -2719,7 +2719,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 105,
+      "width": 70,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -2755,7 +2755,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "黑科技",
+    "_string": "防御",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,
@@ -3284,7 +3284,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "工坊",
+    "_string": "功能",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,

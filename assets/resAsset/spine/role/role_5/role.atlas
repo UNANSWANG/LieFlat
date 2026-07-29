@@ -1,69 +1,62 @@
 
 role.png
-size: 93,93
+size: 653,653
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 shenti
   rotate: true
-  xy: 2, 17
-  size: 25, 35
-  orig: 25, 35
-  offset: 0, 0
+  xy: 142, 426
+  size: 225, 324
+  orig: 233, 333
+  offset: 8, 0
   index: -1
 tou
   rotate: false
-  xy: 52, 71
-  size: 20, 20
-  orig: 20, 20
+  xy: 468, 468
+  size: 183, 183
+  orig: 183, 183
   offset: 0, 0
   index: -1
 xiashen
   rotate: true
-  xy: 21, 69
-  size: 22, 29
-  orig: 22, 29
-  offset: 0, 0
-  index: -1
-youdatui
-  rotate: true
-  xy: 2, 2
-  size: 13, 19
-  orig: 13, 19
+  xy: 2, 5
+  size: 199, 264
+  orig: 199, 264
   offset: 0, 0
   index: -1
 youshou
-  rotate: false
-  xy: 62, 31
-  size: 10, 38
-  orig: 10, 38
+  rotate: true
+  xy: 268, 87
+  size: 82, 363
+  orig: 82, 363
   offset: 0, 0
   index: -1
 youxiaotui
-  rotate: false
-  xy: 39, 21
-  size: 15, 29
-  orig: 15, 29
+  rotate: true
+  xy: 268, 171
+  size: 132, 373
+  orig: 132, 373
   offset: 0, 0
   index: -1
 zuoshou
   rotate: true
-  xy: 39, 10
-  size: 9, 37
-  orig: 9, 37
+  xy: 268, 13
+  size: 72, 353
+  orig: 72, 353
   offset: 0, 0
   index: -1
 zuoxiaotui
   rotate: false
-  xy: 2, 44
-  size: 17, 47
-  orig: 17, 47
-  offset: 0, 0
+  xy: 2, 206
+  size: 138, 445
+  orig: 144, 454
+  offset: 3, 0
   index: -1
 zuoxiaotui+
   rotate: true
-  xy: 21, 52
-  size: 15, 39
-  orig: 15, 39
-  offset: 0, 0
+  xy: 142, 305
+  size: 119, 438
+  orig: 132, 455
+  offset: 5, 7
   index: -1

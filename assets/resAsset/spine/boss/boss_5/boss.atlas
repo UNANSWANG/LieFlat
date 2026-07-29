@@ -6,7 +6,7 @@ filter: Linear,Linear
 repeat: none
 kudou
   rotate: true
-  xy: 763, 26
+  xy: 769, 26
   size: 231, 121
   orig: 238, 127
   offset: 0, 0
@@ -34,7 +34,7 @@ youxiabi
   index: -1
 youxiaotui
   rotate: true
-  xy: 406, 41
+  xy: 412, 41
   size: 216, 355
   orig: 216, 355
   offset: 0, 0
@@ -56,7 +56,7 @@ zuoshangbi
 zuoxiaotui
   rotate: true
   xy: 2, 52
-  size: 269, 402
+  size: 269, 408
   orig: 275, 414
-  offset: 0, 6
+  offset: 0, 0
   index: -1

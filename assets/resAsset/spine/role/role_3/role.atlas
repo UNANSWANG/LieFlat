@@ -1,48 +1,55 @@
 
 role.png
-size: 110,110
+size: 705,705
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
-handwear-l
-  rotate: true
-  xy: 2, 95
-  size: 13, 42
-  orig: 13, 42
-  offset: 0, 0
+kudou
+  rotate: false
+  xy: 2, 2
+  size: 213, 183
+  orig: 216, 183
+  offset: 3, 0
   index: -1
-handwear-r
-  rotate: true
-  xy: 46, 93
-  size: 15, 42
-  orig: 15, 42
-  offset: 0, 0
-  index: -1
-topwear
-  rotate: true
-  xy: 59, 57
-  size: 33, 45
-  orig: 33, 45
+shenti
+  rotate: false
+  xy: 422, 158
+  size: 269, 431
+  orig: 269, 431
   offset: 0, 0
   index: -1
 tou
-  rotate: true
-  xy: 90, 92
-  size: 16, 18
-  orig: 18, 20
-  offset: 1, 1
+  rotate: false
+  xy: 217, 16
+  size: 145, 188
+  orig: 145, 188
+  offset: 0, 0
   index: -1
-youjiao
+youshangbi
   rotate: true
-  xy: 2, 50
-  size: 20, 55
-  orig: 21, 55
-  offset: 1, 0
+  xy: 299, 591
+  size: 112, 397
+  orig: 112, 397
+  offset: 0, 0
   index: -1
-zuojiao
-  rotate: true
-  xy: 2, 72
-  size: 19, 55
-  orig: 19, 55
+youxiaotui
+  rotate: false
+  xy: 134, 206
+  size: 163, 497
+  orig: 163, 497
+  offset: 0, 0
+  index: -1
+zuoshangbi
+  rotate: false
+  xy: 299, 206
+  size: 121, 383
+  orig: 121, 383
+  offset: 0, 0
+  index: -1
+zuoxiaotui
+  rotate: false
+  xy: 2, 187
+  size: 130, 516
+  orig: 130, 516
   offset: 0, 0
   index: -1

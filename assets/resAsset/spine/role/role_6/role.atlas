@@ -1,55 +1,55 @@
 
 role.png
-size: 132,132
+size: 820,820
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 kudou
-  rotate: true
-  xy: 52, 104
-  size: 26, 18
-  orig: 26, 18
+  rotate: false
+  xy: 557, 109
+  size: 234, 149
+  orig: 234, 157
   offset: 0, 0
   index: -1
 shenti
-  rotate: false
-  xy: 2, 25
-  size: 31, 44
-  orig: 31, 44
-  offset: 0, 0
+  rotate: true
+  xy: 193, 379
+  size: 274, 408
+  orig: 282, 408
+  offset: 8, 0
   index: -1
 tou
   rotate: true
-  xy: 52, 86
-  size: 16, 19
-  orig: 16, 19
+  xy: 612, 681
+  size: 137, 166
+  orig: 137, 166
   offset: 0, 0
   index: -1
 youshou
   rotate: false
-  xy: 35, 39
-  size: 20, 43
-  orig: 20, 43
+  xy: 603, 260
+  size: 172, 393
+  orig: 172, 393
   offset: 0, 0
   index: -1
 youxiaotui
-  rotate: false
-  xy: 2, 71
-  size: 27, 59
-  orig: 27, 59
+  rotate: true
+  xy: 2, 2
+  size: 243, 553
+  orig: 243, 553
   offset: 0, 0
   index: -1
 zuodatui
-  rotate: true
-  xy: 2, 2
-  size: 21, 63
-  orig: 21, 63
+  rotate: false
+  xy: 2, 247
+  size: 189, 571
+  orig: 189, 579
   offset: 0, 0
   index: -1
 zuoshangbi
-  rotate: false
-  xy: 31, 84
-  size: 19, 46
-  orig: 19, 46
+  rotate: true
+  xy: 193, 655
+  size: 163, 417
+  orig: 163, 417
   offset: 0, 0
   index: -1

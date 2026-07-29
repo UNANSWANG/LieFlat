@@ -74,7 +74,7 @@ export const mapNameArr = [
     "map05",
 ]
 
-/**物品路径 */
+/**音效路径 */
 export enum audioPath {
     /**主页背景音乐 */
     background = "audio/zhuyeBGM",

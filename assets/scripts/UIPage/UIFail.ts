@@ -102,7 +102,7 @@ export class UIFail extends UIBase {
         }
 
         this.roleSk.timeScale = 0.5;
-        this.roleSk.setAnimation(0, "attack", true);
+        this.roleSk.setAnimation(0, "idle", true);
     }
 
     bindBtn() {

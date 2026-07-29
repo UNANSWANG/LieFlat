@@ -1,55 +1,62 @@
 
 boss.png
-size: 137,137
+size: 904,904
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
+kudou
+  rotate: true
+  xy: 763, 26
+  size: 231, 121
+  orig: 238, 127
+  offset: 0, 0
+  index: -1
 shenti
   rotate: false
-  xy: 2, 71
-  size: 58, 64
-  orig: 58, 64
-  offset: 0, 0
+  xy: 296, 551
+  size: 343, 351
+  orig: 356, 363
+  offset: 7, 6
   index: -1
 tou
   rotate: false
-  xy: 106, 59
-  size: 24, 30
-  orig: 24, 30
+  xy: 296, 359
+  size: 195, 190
+  orig: 195, 190
   offset: 0, 0
   index: -1
-youjiao
+youxiabi
   rotate: false
-  xy: 106, 91
-  size: 27, 44
-  orig: 27, 44
+  xy: 2, 323
+  size: 292, 579
+  orig: 304, 592
+  offset: 6, 6
+  index: -1
+youxiaotui
+  rotate: true
+  xy: 406, 41
+  size: 216, 355
+  orig: 216, 355
   offset: 0, 0
   index: -1
-youshangbi
+youxiaotui+
   rotate: false
-  xy: 2, 6
-  size: 40, 63
-  orig: 40, 63
+  xy: 641, 500
+  size: 257, 402
+  orig: 258, 402
   offset: 0, 0
   index: -1
-zuojiao
-  rotate: false
-  xy: 44, 2
-  size: 32, 55
-  orig: 32, 55
+zuoshangbi
+  rotate: true
+  xy: 493, 259
+  size: 239, 409
+  orig: 245, 415
   offset: 0, 0
   index: -1
-zuojiao+
-  rotate: false
-  xy: 78, 5
-  size: 31, 52
-  orig: 31, 52
-  offset: 0, 0
-  index: -1
-zuoshagnbi
-  rotate: false
-  xy: 62, 59
-  size: 42, 76
-  orig: 42, 76
-  offset: 0, 0
+zuoxiaotui
+  rotate: true
+  xy: 2, 52
+  size: 269, 402
+  orig: 275, 414
+  offset: 0, 6
   index: -1

@@ -9,7 +9,7 @@ export const configData = {
     /**人物皮肤数量 */
     roleSkinCount: 7,
     /**怪物皮肤数量 */
-    enemySkinCount: 7,
+    enemySkinCount: 6,
     /**生产金币频率（秒） */
     produceCoinFreq: 1,
     /**生产电能频率（秒） */

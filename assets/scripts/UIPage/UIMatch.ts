@@ -1,6 +1,6 @@
-import { _decorator, Node, Animation, Color, Label, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Node, Animation, Color, Label, sp, Sprite, SpriteFrame } from 'cc';
 import { UIBase } from './UIBase';
-import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { configData } from '../manager/configData';
@@ -121,9 +121,21 @@ export class UIMatch extends UIBase {
         }
 
         let enemyImg = this.enemyItem.getChildByName("roleImg")?.getComponent(Sprite);
-        if (enemyImg && this.unknownRoleSpriteFrame) {
-            enemyImg.spriteFrame = this.unknownRoleSpriteFrame;
-            enemyImg.node.setScale(1, 1, 1);
+        if (enemyImg) {
+            enemyImg.node.active = true;
+            if (this.unknownRoleSpriteFrame) {
+                enemyImg.spriteFrame = this.unknownRoleSpriteFrame;
+                enemyImg.node.setScale(1, 1, 1);
+            }
+        }
+        let bossAnimNode = this.enemyItem.getChildByName("bossAnim");
+        let bossAnim = bossAnimNode?.getComponent(sp.Skeleton);
+        if (bossAnim) {
+            ccTools.cancelAssetLoad(bossAnim);
+            bossAnim.skeletonData = null;
+        }
+        if (bossAnimNode) {
+            bossAnimNode.active = false;
         }
         let enemyNameLab = this.enemyItem.getChildByName("nameLab")?.getComponent(Label);
         if (enemyNameLab) {
@@ -253,8 +265,7 @@ export class UIMatch extends UIBase {
     /**完成当前人机或敌人的匹配 */
     private finishCurrentMatch() {
         let target = this.matchTargets[this.currentMatchIndex];
-        let roleImg = target?.node.getChildByName("roleImg")?.getComponent(Sprite);
-        if (!target || !roleImg) {
+        if (!target) {
             return;
         }
 
@@ -267,8 +278,12 @@ export class UIMatch extends UIBase {
         if (target.type == "enemy") {
             this.enemySkinId = ccTools.getRandomNum(0, configData.enemySkinCount);
             this.enemyNickname = nickname;
-            roleImg.node.setScale(0.7, 0.7, 1);
-            ccTools.loadImg(roleImg, imgPath.enemyBodyFull + this.enemySkinId);
+            this.showBossAnim(target.node, this.enemySkinId);
+            return;
+        }
+
+        let roleImg = target.node.getChildByName("roleImg")?.getComponent(Sprite);
+        if (!roleImg) {
             return;
         }
 
@@ -280,6 +295,29 @@ export class UIMatch extends UIBase {
         this.roleNicknames[target.roleIndex] = nickname;
         roleImg.node.setScale(0.7, 0.7, 1);
         ccTools.loadImg(roleImg, imgPath.roleBodyFull + skinId);
+    }
+
+    /**Boss匹配完成后隐藏图片并播放待机动画 */
+    private async showBossAnim(enemyNode: Node, skinId: number) {
+        let roleImgNode = enemyNode.getChildByName("roleImg");
+        let bossAnimNode = enemyNode.getChildByName("bossAnim");
+        let bossAnim = bossAnimNode?.getComponent(sp.Skeleton);
+        if (roleImgNode) {
+            roleImgNode.active = false;
+        }
+        if (!bossAnimNode || !bossAnim) {
+            console.error("匹配界面没有找到bossAnim节点或Skeleton组件");
+            return;
+        }
+
+        bossAnimNode.active = true;
+        bossAnim.skeletonData = null;
+        let isLoaded = await ccTools.loadSpine(bossAnim, spinePath.boss + skinId);
+        if (!isLoaded || !bossAnimNode.activeInHierarchy) {
+            return;
+        }
+
+        bossAnim.setAnimation(0, "idle", true);
     }
 
     /**刷新匹配耗时，匹配完成后不再调用以保持最终时间 */
@@ -341,6 +379,10 @@ export class UIMatch extends UIBase {
         this.gamePreloadVersion++;
         this.isMatching = false;
         this.isGamePreloadComplete = false;
+        let bossAnim = this.enemyItem?.getChildByName("bossAnim")?.getComponent(sp.Skeleton);
+        if (bossAnim) {
+            ccTools.cancelAssetLoad(bossAnim);
+        }
     }
 
     onClose() {

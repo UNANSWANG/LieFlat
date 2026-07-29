@@ -1372,7 +1372,7 @@
       "__id__": 44
     },
     "_children": [],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 58
@@ -1399,8 +1399,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 3.5,
-      "y": 3.5,
+      "x": 3,
+      "y": 3,
       "z": 1
     },
     "_mobility": 0,

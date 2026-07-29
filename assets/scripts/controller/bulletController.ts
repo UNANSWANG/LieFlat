@@ -14,6 +14,8 @@ export class bulletController extends Component {
     private damage: number = 0;
     /**命中距离 */
     private hitDistance: number = 20;
+    /**目标点向上的世界坐标偏移 */
+    private readonly targetYOffset: number = 50;
     /**临时世界坐标 */
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */
@@ -102,6 +104,7 @@ export class bulletController extends Component {
         }
 
         this.target.node.getWorldPosition(this.tempWorldPos);
+        this.tempWorldPos.y += this.targetYOffset;
         let parentTransform = this.node.parent?.getComponent(UITransform);
         if (parentTransform) {
             parentTransform.convertToNodeSpaceAR(this.tempWorldPos, this.tempLocalPos);

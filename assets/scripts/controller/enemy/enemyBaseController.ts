@@ -754,7 +754,7 @@ export class enemyBaseController extends Component {
         }
 
         //TODO 敌人无敌
-        return false;
+        // return false;
         this.recordDamage(damage);
         this.hp = this.gameComp?.isRoleDisappearPlaying ? Math.max(1, this.hp - damage) : this.hp - damage;
         this.refreshHp();

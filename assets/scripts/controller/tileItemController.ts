@@ -287,21 +287,20 @@ export class tileItemController extends Component {
         this.randomPickPropsRobotId = 0;
     }
 
-    /**摘下道具节点，不销毁节点，用于玩家携带 */
-    takePropsItem() {
-        if (!this.propsItem) {
+    /**将现有道具节点转移到角色身上，不创建新节点 */
+    takePropsItem(targetParent: Node) {
+        if (!this.propsItem || !targetParent || !targetParent.isValid) {
             return null;
         }
 
         let propsItem = this.propsItem;
-        let propComp = this.propsComp;
-        propComp?.endProps();
 
         this.propsItem = null;
         this.propsCompCache = null;
         this.tileType = tilePropsType.none;
         this.isRandomPickProps = false;
         this.randomPickPropsRobotId = 0;
+        propsItem.setParent(targetParent);
 
         return propsItem;
     }

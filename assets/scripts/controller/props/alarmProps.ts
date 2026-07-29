@@ -18,6 +18,11 @@ export class alarmProps extends gamePropsBase {
     /**警示铃spine节点 */
     private alarmNode: Node = null;
 
+    clearData() {
+        this.clearAlarmNode();
+        super.clearData();
+    }
+
     /**初始化道具的图片 */
     initPropsImg() {
         this.createAlarmNode();

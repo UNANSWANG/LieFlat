@@ -14,6 +14,11 @@ export class fireProps extends gamePropsBase {
     /**火焰spine节点 */
     private fireNode: Node = null;
 
+    clearData() {
+        this.clearFireNode();
+        super.clearData();
+    }
+
     /**初始化道具的图片 */
     initPropsImg() {
         this.createFireNode();

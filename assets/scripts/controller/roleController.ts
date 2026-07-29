@@ -541,7 +541,7 @@ export class roleController extends Component {
 
     /**到达随机道具 */
     private arriveRandomProps() {
-        let propsData = this.gameComp.robotPickupRandomProps(this.targetPos, this.roleId);
+        let propsData = this.gameComp.robotPickupRandomProps(this.targetPos, this.roleId, this.node);
         this.movePath = [];
         this.movePathIdx = 0;
         this.hasTargetRandomProps = false;
@@ -962,14 +962,13 @@ export class roleController extends Component {
         return 0;
     }
 
-    /**把拾取到的随机道具挂到人机身上 */
+    /**刷新人机身上携带道具的位置和缩放 */
     private attachCarriedRandomProps() {
         let carriedData = this.carriedRandomPropsData;
         if (!carriedData?.propsNode) {
             return;
         }
 
-        this.node.addChild(carriedData.propsNode);
         carriedData.propsNode.setPosition(this.getCarriedPropsLocalPos());
         carriedData.propsNode.setScale(new Vec3(0.7, 0.7, 1));
     }

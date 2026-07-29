@@ -1115,9 +1115,9 @@ export class UIGame extends UIBase {
     }
 
     /**人机拾取地图随机道具 */
-    robotPickupRandomProps(tilePos: Vec2, robotId: number) {
+    robotPickupRandomProps(tilePos: Vec2, robotId: number, targetParent: Node) {
         let tileItem = this.getPickableRandomPropsTile(tilePos);
-        if (!tileItem || (tileItem.randomPickPropsRobotId > 0 && tileItem.randomPickPropsRobotId != robotId)) {
+        if (!tileItem || !targetParent || !targetParent.isValid || (tileItem.randomPickPropsRobotId > 0 && tileItem.randomPickPropsRobotId != robotId)) {
             return null;
         }
 
@@ -1126,7 +1126,7 @@ export class UIGame extends UIBase {
             propsType: tileItem.tileType,
             level: propComp?.level || 0,
             isSpecialSellProps: propComp?.isSpecialSellProps || false,
-            propsNode: tileItem.takePropsItem(),
+            propsNode: tileItem.takePropsItem(targetParent),
             propsComp: propComp,
         };
 
@@ -1179,12 +1179,11 @@ export class UIGame extends UIBase {
         let propsType = tileItem.tileType;
         let level = propComp?.level || 0;
         let isSpecialSellProps = propComp?.isSpecialSellProps || false;
-        let propsNode = tileItem.takePropsItem();
+        let propsNode = tileItem.takePropsItem(playerMgr.player);
         if (!propsNode) {
             return false;
         }
 
-        playerMgr.player.addChild(propsNode);
         propsNode.setPosition(this.getCarriedPropsLocalPos());
         propsNode.setScale(new Vec3(0.7, 0.7, 1));
 

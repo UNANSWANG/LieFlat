@@ -147,6 +147,8 @@ export const gmConfig = {
     isFreeAd: false,
     /**boss是否无敌 */
     isBossInvincible: false,
+    /**强制引导 */
+    forceGuide: false,
 }
 
 /**游戏事件 */

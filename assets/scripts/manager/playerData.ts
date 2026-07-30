@@ -40,9 +40,9 @@ export class playerData {
         this.gameCoin = 0;
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
-        this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1;
+        this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
 
-        console.warn("isGuide", this.isGuide);
+        console.warn("---------->是否为引导关", this.isGuide);
 
         this.SDKReportLevelStart();
     }

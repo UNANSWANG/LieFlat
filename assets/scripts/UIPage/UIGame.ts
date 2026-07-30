@@ -608,7 +608,7 @@ export class UIGame extends UIBase {
     getMapObjectLayer() {
         let objGroupData: TiledObjectGroup = this.tiledMap.getObjectGroup("obj");
         let objList = objGroupData.getObjects();
-        console.warn("----------->地图对象层数据：\n", objList);
+        // console.warn("----------->地图对象层数据：\n", objList);
         for (let i = 0; i < objList.length; i++) {
             let objItem = objList[i];
 
@@ -706,7 +706,7 @@ export class UIGame extends UIBase {
             }
             roomIdx++;
         }
-        console.warn("房间数据", this.roomMap);
+        // console.warn("房间数据", this.roomMap);
         this.createRandomPropsByMapPoint();
         this.createRandomPropsAroundRoomBed();
     }

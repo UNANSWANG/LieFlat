@@ -40,6 +40,9 @@ export class UIConsole extends UIBase {
     @property(Toggle)
     bossToggle: Toggle;
 
+    @property(Toggle)
+    forceGuideToggle: Toggle;
+
     protected onLoad(): void {
         this.bindBtn();
     }
@@ -64,6 +67,7 @@ export class UIConsole extends UIBase {
         this.onlyAttackSelfToggle.node.on(Toggle.EventType.TOGGLE, this.clickOnlyAttackSelfToggle, this);
         this.adToggle.node.on(Toggle.EventType.TOGGLE, this.clickAdToggle, this);
         this.bossToggle.node.on(Toggle.EventType.TOGGLE, this.clickBossToggle, this);
+        this.forceGuideToggle.node.on(Toggle.EventType.TOGGLE, this.clickForceGuideToggle, this);
     }
 
     /**刷新只攻击玩家自身开关 */
@@ -71,6 +75,7 @@ export class UIConsole extends UIBase {
         this.onlyAttackSelfToggle.isChecked = gmConfig.onlyAttackSelf;
         this.adToggle.isChecked = gmConfig.isFreeAd;
         this.bossToggle.isChecked = gmConfig.isBossInvincible;
+        this.forceGuideToggle.isChecked = gmConfig.forceGuide;
     }
 
     ///
@@ -116,6 +121,11 @@ export class UIConsole extends UIBase {
     /**点击boss无敌开关 */
     clickBossToggle() {
         gmConfig.isBossInvincible = this.bossToggle?.isChecked;
+    }
+
+    /**点击强制引导开关 */
+    clickForceGuideToggle() {
+        gmConfig.forceGuide = this.forceGuideToggle?.isChecked;
     }
 
     /**点击关闭 */

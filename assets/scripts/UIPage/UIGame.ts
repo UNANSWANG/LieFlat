@@ -196,6 +196,16 @@ export class UIGame extends UIBase {
     private isGuideBedUpgradeReady = false;
     /**是否已完成或跳过首次床升级引导 */
     private isGuideBedUpgradeComplete = false;
+    /**发电机建造引导所指向的空闲瓦片 */
+    private guideGeneratorBuildTilePos: Vec2 = null;
+    /**空闲瓦片上的发电机建造点击手指 */
+    private guideGeneratorBuildClickNode: Node = null;
+    /**是否已触发首次发电机建造引导 */
+    private isGuideGeneratorBuildReady = false;
+    /**是否已完成或跳过首次发电机建造引导 */
+    private isGuideGeneratorBuildComplete = false;
+    /**发电机建造引导期间是否已打开建造界面 */
+    private isGuideGeneratorBuildUIOpen = false;
     /**是否在滑动区域移动 */
     private isSlideMoving = false;
     /**游戏开始倒计时时间 */
@@ -448,6 +458,11 @@ export class UIGame extends UIBase {
         this.clearGuideBedClickNode();
         this.isGuideBedUpgradeReady = false;
         this.isGuideBedUpgradeComplete = false;
+        this.clearGuideGeneratorBuildClickNode();
+        this.guideGeneratorBuildTilePos = null;
+        this.isGuideGeneratorBuildReady = false;
+        this.isGuideGeneratorBuildComplete = false;
+        this.isGuideGeneratorBuildUIOpen = false;
         this.recycleAllTileItems();
         this.recycleGameBottomUINodeChildren();
         this.guideArrowNodeMap = {};
@@ -808,14 +823,18 @@ export class UIGame extends UIBase {
 
     /**首次升级玩家引导房间的门后结束本阶段引导 */
     completeGuideDoorUpgrade(doorComp: doorProps) {
-        if (!pData.isGuide || this.isGuideDoorUpgradeComplete || !this.isPlayerGuideDoor(doorComp)) {
+        if (!pData.isGuide || !this.isPlayerGuideDoor(doorComp)) {
             return;
         }
 
-        this.isGuideDoorUpgradeComplete = true;
-        this.isGuideDoorUpgradeReady = false;
-        this.clearGuideDoorClickNode();
-        this.scheduleOnce(this.refreshGuideBedUpgradeGuide, 0);
+        if (!this.isGuideDoorUpgradeComplete) {
+            this.isGuideDoorUpgradeComplete = true;
+            this.isGuideDoorUpgradeReady = false;
+            this.clearGuideDoorClickNode();
+            this.scheduleOnce(this.refreshGuideBedUpgradeGuide, 0);
+        }
+
+        this.scheduleOnce(this.refreshGuideGeneratorBuildGuide, 0);
     }
 
     /**金币首次足够升级门时，在玩家房门上显示点击手指 */
@@ -843,16 +862,17 @@ export class UIGame extends UIBase {
     /**在游戏道具层创建门点击手指 */
     private async createGuideDoorClickNode(doorComp: doorProps) {
         this.clearGuideDoorClickNode();
-        if (!this.shouldShowGuideDoorUpgrade(doorComp) || !uiMgr.gameSpineItemPrefab || !doorComp.effectNode) {
+        if (!this.shouldShowGuideDoorUpgrade(doorComp) || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
             return;
         }
 
         let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.guideDoorClickNode = clickNode;
         clickNode.name = "guideDoorClick";
-        clickNode.layer = doorComp.effectNode.layer;
-        doorComp.effectNode.addChild(clickNode);
-        clickNode.setPosition(20, 0, 0);
+        if (!this.addGuideClickNodeToGameBottom(clickNode, doorComp.pos, 20, 0)) {
+            this.clearGuideDoorClickNode();
+            return;
+        }
         clickNode.setScale(0.85, 0.85, 1);
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
@@ -940,16 +960,17 @@ export class UIGame extends UIBase {
     /**在游戏道具层创建床点击手指 */
     private async createGuideBedClickNode(bedComp: bedProps) {
         this.clearGuideBedClickNode();
-        if (!this.shouldShowGuideBedUpgrade(bedComp) || !uiMgr.gameSpineItemPrefab || !bedComp.effectNode) {
+        if (!this.shouldShowGuideBedUpgrade(bedComp) || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
             return;
         }
 
         let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.guideBedClickNode = clickNode;
         clickNode.name = "guideBedClick";
-        clickNode.layer = bedComp.effectNode.layer;
-        bedComp.effectNode.addChild(clickNode);
-        clickNode.setPosition(20, 0, 0);
+        if (!this.addGuideClickNodeToGameBottom(clickNode, bedComp.pos, 20, 0)) {
+            this.clearGuideBedClickNode();
+            return;
+        }
         clickNode.setScale(0.85, 0.85, 1);
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
@@ -971,6 +992,136 @@ export class UIGame extends UIBase {
         }
 
         this.guideBedClickNode = null;
+    }
+
+    /**发电机建造界面是否仍处于引导状态 */
+    shouldShowGuideGeneratorBuild() {
+        return pData.isGuide
+            && this.isGuideGeneratorBuildReady
+            && !this.isGuideGeneratorBuildComplete;
+    }
+
+    /**打开引导中的建造界面时，隐藏游戏层空闲格手指 */
+    onGuideGeneratorBuildUIOpened() {
+        if (!this.shouldShowGuideGeneratorBuild()) {
+            return;
+        }
+
+        this.isGuideGeneratorBuildUIOpen = true;
+        this.clearGuideGeneratorBuildClickNode();
+    }
+
+    /**未完成购买便关闭建造界面时，恢复空闲格手指 */
+    onGuideGeneratorBuildUIClosed() {
+        if (!this.isGuideGeneratorBuildUIOpen) {
+            return;
+        }
+
+        this.isGuideGeneratorBuildUIOpen = false;
+        if (this.shouldShowGuideGeneratorBuild() && this.guideGeneratorBuildTilePos) {
+            this.createGuideGeneratorBuildClickNode();
+        }
+    }
+
+    /**成功购买首个引导发电机后结束本阶段引导 */
+    completeGuideGeneratorBuild() {
+        if (!this.shouldShowGuideGeneratorBuild()) {
+            return;
+        }
+
+        this.isGuideGeneratorBuildComplete = true;
+        this.isGuideGeneratorBuildReady = false;
+        this.isGuideGeneratorBuildUIOpen = false;
+        this.guideGeneratorBuildTilePos = null;
+        this.clearGuideGeneratorBuildClickNode();
+    }
+
+    /**门达到7级且金币达到200时，引导在床边空闲格建造发电机 */
+    private refreshGuideGeneratorBuildGuide() {
+        if (!pData.isGuide || this.isGuideGeneratorBuildReady || this.isGuideGeneratorBuildComplete
+            || playerMgr.playerComp?.state != roleState.bed || pData.gameCoin < 200) {
+            return;
+        }
+
+        let roomIdx = playerMgr.playerComp.roomIdx;
+        if (!this.isGuideRoom(roomIdx)) {
+            return;
+        }
+
+        let doorComp = this.getDoorByRoom(roomIdx);
+        if (!doorComp || doorComp.level + 1 < 7) {
+            return;
+        }
+
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (this.hasRoomPropsByType(roomData, tilePropsType.generator)) {
+            this.isGuideGeneratorBuildComplete = true;
+            return;
+        }
+
+        let emptyPos = this.getNearestEmptyPosByBed(roomData);
+        if (!emptyPos) {
+            return;
+        }
+
+        this.guideGeneratorBuildTilePos = new Vec2(emptyPos.x, emptyPos.y);
+        this.isGuideGeneratorBuildReady = true;
+        this.createGuideGeneratorBuildClickNode();
+    }
+
+    /**在床边最近空闲格中心创建发电机建造点击手指 */
+    private async createGuideGeneratorBuildClickNode() {
+        this.clearGuideGeneratorBuildClickNode();
+        if (!this.shouldShowGuideGeneratorBuild() || this.isGuideGeneratorBuildUIOpen
+            || !this.guideGeneratorBuildTilePos || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
+            return;
+        }
+
+        let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.guideGeneratorBuildClickNode = clickNode;
+        clickNode.name = "guideGeneratorBuildClick";
+        if (!this.addGuideClickNodeToGameBottom(clickNode, this.guideGeneratorBuildTilePos)) {
+            this.clearGuideGeneratorBuildClickNode();
+            return;
+        }
+        clickNode.setScale(0.85, 0.85, 1);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
+        if (!isLoaded || clickNode != this.guideGeneratorBuildClickNode
+            || !this.shouldShowGuideGeneratorBuild() || this.isGuideGeneratorBuildUIOpen) {
+            if (clickNode == this.guideGeneratorBuildClickNode) {
+                this.clearGuideGeneratorBuildClickNode();
+            }
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**将游戏层手指统一放到gameBottomUINode，并定位到瓦片中心 */
+    private addGuideClickNodeToGameBottom(clickNode: Node, tilePos: Vec2, offsetX = 0, offsetY = 0) {
+        if (!clickNode || !tilePos || !this.gameBottomUINode) {
+            return false;
+        }
+
+        this.getTileCenterWorldPos(tilePos, this.tempTileCenterWorldPos);
+        clickNode.layer = this.gameBottomUINode.layer;
+        if (!this.addGameBottomUINodeChild(clickNode, this.tempTileCenterWorldPos)) {
+            return false;
+        }
+
+        clickNode.setPosition(clickNode.position.x + offsetX, clickNode.position.y + offsetY, clickNode.position.z);
+        return true;
+    }
+
+    /**清理空闲格上的发电机建造点击手指 */
+    private clearGuideGeneratorBuildClickNode() {
+        if (this.guideGeneratorBuildClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideGeneratorBuildClickNode);
+        }
+
+        this.guideGeneratorBuildClickNode = null;
     }
 
     /**初始化机器人 */
@@ -1230,6 +1381,9 @@ export class UIGame extends UIBase {
         tileComp.addProps(propsType, level);
         let buildRole = this.getBuildRoleByRoomIdx(tileData.roomIdx);
         buildRole?.addGamePropsBuildCount(propsType);
+        if (propsType == tilePropsType.generator && this.shouldShowGuideGeneratorBuild()) {
+            this.completeGuideGeneratorBuild();
+        }
     }
 
     /**在道具所在位置播放一次雾气动画 */
@@ -1635,6 +1789,34 @@ export class UIGame extends UIBase {
 
         let randomIdx = Math.floor(Math.random() * emptyPosArr.length);
         return emptyPosArr[randomIdx];
+    }
+
+    /**获取床边距离最近的房间空闲位置 */
+    private getNearestEmptyPosByBed(roomData: roomData) {
+        let bedPos = roomData?.bedPos;
+        if (!bedPos || !roomData.roomArr) {
+            return null;
+        }
+
+        let nearestPos: Vec2 = null;
+        let nearestDistance = Number.MAX_SAFE_INTEGER;
+        for (let i = 0; i < roomData.roomArr.length; i++) {
+            let tilePos = roomData.roomArr[i];
+            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
+            let tileComp = tileData?.item;
+            if (!tileData || this.isSameTilePos(tilePos, bedPos) || this.isSameTilePos(tilePos, roomData.doorPos)
+                || (tileComp && tileComp.tileType != tilePropsType.none)) {
+                continue;
+            }
+
+            let distance = Math.abs(tilePos.x - bedPos.x) + Math.abs(tilePos.y - bedPos.y);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestPos = tilePos;
+            }
+        }
+
+        return nearestPos;
     }
 
     /**随机获取床边上下左右空闲位置 */
@@ -2736,7 +2918,14 @@ export class UIGame extends UIBase {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });
             }
         } else {
-            uiMgr.openPage(UIPath.UIBuild, { pos: this.tempUILocalPos, tilePos: tilePos, roomData: this.getBuildRoomData(tilePos) });
+            let isGuideGeneratorBuild = this.shouldShowGuideGeneratorBuild();
+            uiMgr.openPage(UIPath.UIBuild, {
+                pos: this.tempUILocalPos,
+                tilePos: tilePos,
+                roomData: this.getBuildRoomData(tilePos),
+                isGuideGeneratorBuild: isGuideGeneratorBuild,
+                gameComp: this,
+            });
         }
     }
 
@@ -3112,6 +3301,7 @@ export class UIGame extends UIBase {
         this.powerLab.string = pData.gamePower.toString();
         this.refreshGuideDoorUpgradeGuide();
         this.refreshGuideBedUpgradeGuide();
+        this.refreshGuideGeneratorBuildGuide();
     }
 
     /**摇杆区域点击开始 */

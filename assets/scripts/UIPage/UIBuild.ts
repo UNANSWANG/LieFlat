@@ -4,12 +4,14 @@ import { zoomButton } from "../extention/zoomButton";
 import { propsConfig } from "../json/jsonProps";
 import { configData, GameEvent } from "../manager/configData";
 import { gm } from "../manager/gm";
-import { imgPath, UIPath } from "../manager/pathConfig";
+import { imgPath, spinePath, UIPath } from "../manager/pathConfig";
 import { pData } from "../manager/playerData";
 import { playerMgr } from "../manager/playerManager";
+import { poolMgr } from "../manager/poolManager";
 import { uiMgr } from "../manager/UIManager";
 import { videoMgr } from "../manager/videoManager";
 import { UIBase } from "./UIBase";
+import type { UIGame } from "./UIGame";
 const { ccclass, property } = _decorator;
 import { _decorator, instantiate, Label, Node, Prefab, Sprite, UITransform, Vec2, Vec3 } from 'cc';
 
@@ -40,6 +42,12 @@ export class UIBuild extends UIBase {
     currentPropsDataArr: any[] = [];
     /**当前房间数据 */
     roomData: any = null;
+    /**是否处于首次发电机建造引导 */
+    private isGuideGeneratorBuild = false;
+    /**游戏界面组件，用于同步引导状态与摄像机比例 */
+    private gameComp: UIGame = null;
+    /**发电机购买按钮上的点击手指 */
+    private guideGeneratorBuyClickNode: Node = null;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -55,17 +63,30 @@ export class UIBuild extends UIBase {
 
     addListener() {
         gm.Event.on(GameEvent.refreshGameMonetary, this.refreshPropsBtnState, this);
+        gm.Event.on(GameEvent.refreshGameCamera, this.refreshGuideGeneratorBuyClickScale, this);
     }
 
     removeListener() {
         gm.Event.off(GameEvent.refreshGameMonetary, this.refreshPropsBtnState, this);
+        gm.Event.off(GameEvent.refreshGameCamera, this.refreshGuideGeneratorBuyClickScale, this);
     }
 
     onUI_Open(data) {
         this.initData(data);
     }
 
+    onUI_Close() {
+        this.clearGuideGeneratorBuyClickNode();
+        if (this.isGuideGeneratorBuild) {
+            this.gameComp?.onGuideGeneratorBuildUIClosed();
+        }
+        this.isGuideGeneratorBuild = false;
+        this.gameComp = null;
+    }
+
     initData(data) {
+        this.isGuideGeneratorBuild = !!data?.isGuideGeneratorBuild;
+        this.gameComp = data?.gameComp || null;
         if (data) {
             this.targetPos.set(data.pos);
             this.tilePos.set(data.tilePos);
@@ -73,6 +94,10 @@ export class UIBuild extends UIBase {
         }
         if (!this.propsTypeArr || this.propsTypeArr.length == 0) {
             this.initPropsData();
+        }
+        if (this.isGuideGeneratorBuild) {
+            this.gameComp?.onGuideGeneratorBuildUIOpened();
+            this.currentIdx = this.getGeneratorTabIdx();
         }
         this.refreshPage();
     }
@@ -217,6 +242,82 @@ export class UIBuild extends UIBase {
         let posY = this.targetPos.y + (height / 2 + configData.tileSize + 15) * (this.targetPos.y < 0 ? 1 : -1);
 
         this.bg.setPosition(new Vec3(this.bg.position.x, posY, 0));
+        this.refreshGuideGeneratorBuyClickNode();
+    }
+
+    /**获取发电机所在页签 */
+    private getGeneratorTabIdx() {
+        for (let i = 0; i < this.propsTypeArr.length; i++) {
+            if (this.propsTypeArr[i].some((item) => item.type == tilePropsType.generator)) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    /**刷新发电机购买按钮上的点击手指 */
+    private refreshGuideGeneratorBuyClickNode() {
+        this.clearGuideGeneratorBuyClickNode();
+        if (!this.isGuideGeneratorBuild || !this.gameComp?.shouldShowGuideGeneratorBuild() || !uiMgr.gameSpineItemPrefab) {
+            return;
+        }
+
+        let generatorIdx = this.currentPropsDataArr.findIndex((item) => item?.propsType == tilePropsType.generator);
+        let propsItem = this.propsLayout.children[generatorIdx];
+        let buyBtn = generatorIdx >= 0 && propsItem?.active ? propsItem.getChildByName("buyBtn") : null;
+        if (!buyBtn?.active) {
+            return;
+        }
+
+        this.createGuideGeneratorBuyClickNode(buyBtn);
+    }
+
+    /**在UI_2D层的发电机购买按钮上创建点击手指 */
+    private async createGuideGeneratorBuyClickNode(buyBtn: Node) {
+        let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.guideGeneratorBuyClickNode = clickNode;
+        clickNode.name = "guideGeneratorBuyClick";
+        clickNode.layer = buyBtn.layer;
+        buyBtn.addChild(clickNode);
+        clickNode.setPosition(60, 0, 0);
+        this.refreshGuideGeneratorBuyClickScale();
+
+        let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
+        if (!isLoaded || clickNode != this.guideGeneratorBuyClickNode
+            || !this.isGuideGeneratorBuild || !this.gameComp?.shouldShowGuideGeneratorBuild()) {
+            if (clickNode == this.guideGeneratorBuyClickNode) {
+                this.clearGuideGeneratorBuyClickNode();
+            }
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**按游戏摄像机与UI摄像机的视角比例缩放UI手指 */
+    private refreshGuideGeneratorBuyClickScale() {
+        if (!this.guideGeneratorBuyClickNode?.isValid) {
+            return;
+        }
+
+        let scale = this.gameComp?.gameToUIViewScale || 1;
+        this.guideGeneratorBuyClickNode.setScale(scale, scale, 1);
+    }
+
+    /**清理发电机购买按钮上的点击手指 */
+    private clearGuideGeneratorBuyClickNode() {
+        if (this.guideGeneratorBuyClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideGeneratorBuyClickNode);
+        }
+
+        this.guideGeneratorBuyClickNode = null;
+    }
+
+    /**显示建造引导期间的限制提示 */
+    private showGuideBuildLimitTips() {
+        uiMgr.showTips("请先完成新手引导");
     }
 
     /**刷新按钮状态 */
@@ -349,6 +450,11 @@ export class UIBuild extends UIBase {
             return;
         }
 
+        if (this.isGuideGeneratorBuild) {
+            this.showGuideBuildLimitTips();
+            return;
+        }
+
         if (!this.propsTypeArr?.[idx] || this.propsTypeArr[idx].length == 0) {
             uiMgr.showTips("暂无道具");
             return;;
@@ -360,6 +466,11 @@ export class UIBuild extends UIBase {
     /**点击购买按钮 */
     clickBuyBtn(idx: number) {
         let curData = this.currentPropsDataArr[idx];
+        if (this.isGuideGeneratorBuild && curData?.propsType != tilePropsType.generator) {
+            this.showGuideBuildLimitTips();
+            return;
+        }
+
         let buildPrice = this.getBuildPrice(curData);
         if (this.isBuildNumLimit(curData)) {
             uiMgr.showTips("建造数量已达上限");
@@ -370,6 +481,9 @@ export class UIBuild extends UIBase {
         } else if (buildPrice.power > 0 && buildPrice.power > pData.gamePower) {
             uiMgr.showTips("电能不足");
         } else {
+            if (this.isGuideGeneratorBuild && curData.propsType == tilePropsType.generator) {
+                this.gameComp?.completeGuideGeneratorBuild();
+            }
             this.onClose();
             //扣除金币
             if (buildPrice.coin > 0) {
@@ -388,6 +502,11 @@ export class UIBuild extends UIBase {
 
     /**点击广告按钮 */
     clickAdBtn(idx: number) {
+        if (this.isGuideGeneratorBuild) {
+            this.showGuideBuildLimitTips();
+            return;
+        }
+
         let curData = this.currentPropsDataArr[idx];
         if (!this.isStoreProps(curData) || this.getStorePropsNum(curData) > 0) {
             return;

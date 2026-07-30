@@ -11,6 +11,8 @@ import { videoMgr } from '../manager/videoManager';
 import { tilePropsType } from '../controller/tileItemController';
 import { loop_anim, loopAnimation } from '../controller/loopAnimation';
 import { roleAnimName } from '../controller/roleController';
+import { ccStorageTools } from '../extention/storageTools';
+import { SaveKey } from '../manager/configData';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
@@ -92,6 +94,10 @@ export class UISuccess extends UIBase {
     initData(data?) {
         let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
         this.refreshRoleSpine(skinId);
+
+        if(pData.isGuide){
+            ccStorageTools.setData(SaveKey.guide, 1);
+        }
 
         //TODO 临时写数量
         this.moneyNum = 30;

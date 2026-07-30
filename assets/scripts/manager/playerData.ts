@@ -32,12 +32,17 @@ export class playerData {
     passCount = 0;
     /**当前皮肤id */
     skinId = 0;
+    /**是否为引导关 */
+    isGuide = false;
 
     levelInit() {
         pData.adNum = 0;
         this.gameCoin = 0;
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
+        this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1;
+
+        console.warn("isGuide", this.isGuide);
 
         this.SDKReportLevelStart();
     }

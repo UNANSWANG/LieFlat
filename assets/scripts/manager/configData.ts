@@ -203,6 +203,8 @@ export enum GameEvent {
 export enum SaveKey {
     /**关卡数据 */
     level = "level",
+    /**引导 */
+    guide = "guide",
     /**游戏外货币（场外） */
     money = "money",
     /**音效开关 */

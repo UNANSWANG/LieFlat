@@ -1,20 +1,27 @@
 
-UI_attack.png
-size: 80,80
+dianji.png
+size: 121,121
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 1
   rotate: false
-  xy: 52, 47
+  xy: 48, 19
   size: 26, 31
   orig: 26, 31
   offset: 0, 0
   index: -1
 2
-  rotate: false
-  xy: 2, 34
+  rotate: true
+  xy: 2, 2
   size: 48, 44
   orig: 48, 44
+  offset: 0, 0
+  index: -1
+guangquan
+  rotate: false
+  xy: 2, 52
+  size: 67, 67
+  orig: 67, 67
   offset: 0, 0
   index: -1

@@ -326,7 +326,7 @@ export class UIProps extends UIBase {
         clickNode.name = "guideUpgradeClick";
         clickNode.layer = buyBtn.layer;
         buyBtn.addChild(clickNode);
-        clickNode.setPosition(55, -16, 0);
+        clickNode.setPosition(60, 0, 0);
         this.refreshGuideUpgradeClickScale();
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);

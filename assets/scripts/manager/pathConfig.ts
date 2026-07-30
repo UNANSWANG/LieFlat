@@ -171,7 +171,7 @@ export enum spinePath {
     /**发电机4 */
     generator4 = "spine/generator4/D4",
     /**手指点击 */
-    click = "spine/click/UI_attack",
+    click = "spine/click/dianji",
 }
 
 /**动画路径 */

@@ -425,7 +425,12 @@ export class roleController extends Component {
         let roomKeys = Object.keys(roomMap);
 
         for (let i = 0; i < roomKeys.length; i++) {
-            let roomData = roomMap[roomKeys[i]];
+            let roomIdx = Number(roomKeys[i]);
+            if (this.gameComp.isGuideRoom(roomIdx)) {
+                continue;
+            }
+
+            let roomData = roomMap[roomIdx];
             let bedPos: Vec2 = roomData?.bedPos;
             if (!bedPos) {
                 continue;

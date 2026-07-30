@@ -1,6 +1,6 @@
 import { _decorator, instantiate, Label, Node, Prefab, Sprite, UITransform, Vec2, Vec3 } from 'cc';
 import { UIBase } from './UIBase';
-import { audioPath, imgPath, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { propsConfig } from '../json/jsonProps';
 import { gamePropsBase } from '../controller/props/gamePropsBase';
@@ -14,6 +14,7 @@ import { produceType } from './tips/produceTips';
 import { playerMgr } from '../manager/playerManager';
 import { videoMgr } from '../manager/videoManager';
 import { doorProps } from '../controller/props/doorProps';
+import { poolMgr } from '../manager/poolManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIProps')
@@ -42,6 +43,8 @@ export class UIProps extends UIBase {
     isMaxLevel: boolean = false;
     /**是否为敌人置灰后的道具 */
     isGrayProps: boolean = false;
+    /**门升级按钮上的点击手指 */
+    private guideDoorUpgradeClickNode: Node = null;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -67,6 +70,10 @@ export class UIProps extends UIBase {
         this.initData(data);
     }
 
+    onUI_Close() {
+        this.clearGuideDoorUpgradeClickNode();
+    }
+
     initData(data) {
         if (data) {
             this.targetPos.set(data.pos);
@@ -78,6 +85,7 @@ export class UIProps extends UIBase {
 
         this.refreshTitle();
         this.refreshPage();
+        this.refreshGuideDoorUpgradeClickNode();
     }
 
     bindBtn() {
@@ -268,6 +276,7 @@ export class UIProps extends UIBase {
 
     /**刷新按钮状态 */
     refreshPropsBtnState() {
+        this.refreshGuideDoorUpgradeClickNode();
         if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid || !this.propsComp.tileItemComp) {
             return;
         }
@@ -284,6 +293,58 @@ export class UIProps extends UIBase {
 
         let nextPropsData = propsConfig.getPropsData(this.propsComp.propsType)[level];
         this.refreshBuyBtnState(upgradeItem.getChildByName("buyBtn"), nextPropsData);
+    }
+
+    /**刷新门升级按钮上的首次升级点击手指 */
+    private refreshGuideDoorUpgradeClickNode() {
+        let doorComp = this.propsComp?.propsType == tilePropsType.door ? this.propsComp as doorProps : null;
+        if (!doorComp?.gameComp?.shouldShowGuideDoorUpgrade(doorComp)) {
+            this.clearGuideDoorUpgradeClickNode();
+            return;
+        }
+
+        if (this.guideDoorUpgradeClickNode?.isValid) {
+            return;
+        }
+
+        let upgradeItem = this.propsLayout.children[0];
+        let buyBtn = upgradeItem?.active ? upgradeItem.getChildByName("buyBtn") : null;
+        if (!buyBtn || !uiMgr.gameSpineItemPrefab) {
+            return;
+        }
+
+        this.createGuideDoorUpgradeClickNode(buyBtn, doorComp);
+    }
+
+    /**在UI_2D层的升级按钮上创建点击手指 */
+    private async createGuideDoorUpgradeClickNode(buyBtn: Node, doorComp: doorProps) {
+        let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.guideDoorUpgradeClickNode = clickNode;
+        clickNode.name = "guideDoorUpgradeClick";
+        clickNode.layer = buyBtn.layer;
+        buyBtn.addChild(clickNode);
+        clickNode.setPosition(Vec3.ZERO);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
+        if (!isLoaded || clickNode != this.guideDoorUpgradeClickNode
+            || !doorComp.gameComp?.shouldShowGuideDoorUpgrade(doorComp)) {
+            if (clickNode == this.guideDoorUpgradeClickNode) {
+                this.clearGuideDoorUpgradeClickNode();
+            }
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理升级按钮上的点击手指 */
+    private clearGuideDoorUpgradeClickNode() {
+        if (this.guideDoorUpgradeClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideDoorUpgradeClickNode);
+        }
+
+        this.guideDoorUpgradeClickNode = null;
     }
 
     /**刷新购买按钮状态 */

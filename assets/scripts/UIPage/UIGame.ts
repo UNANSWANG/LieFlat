@@ -1,8 +1,8 @@
-import { _decorator, AnimationClip, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset, UIOpacity, tween } from 'cc';
+import { _decorator, AnimationClip, Camera, Canvas, EventKeyboard, EventTouch, Input, input, instantiate, KeyCode, Label, Layout, Node, UITransform, Vec2, Vec3, NodeEventType, director, TiledMap, TiledObjectGroup, Prefab, view, Sprite, Tween, TiledMapAsset, UIOpacity, tween, sp } from 'cc';
 import { uiMgr } from '../manager/UIManager';
 import { pData } from '../manager/playerData';
 import { UIBase } from './UIBase';
-import { audioPath, imgPath, ItemPath, mapNameArr, UIPath } from '../manager/pathConfig';
+import { audioPath, imgPath, ItemPath, mapNameArr, spinePath, UIPath } from '../manager/pathConfig';
 import { configData, enemyCommonConfig, GameEvent, robotCommonConfig } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { zoomButton } from '../extention/zoomButton';
@@ -29,6 +29,8 @@ import { gameAnimController } from '../controller/gameAnimController';
 import { coverProps } from '../controller/props/coverProps';
 import { audioMgr } from '../manager/audioManager';
 const { ccclass, property } = _decorator;
+const GUIDE_MAP_NAME = "map05";
+const GUIDE_ROOM_IDX = 8;
 
 @ccclass('UIGame')
 export class UIGame extends UIBase {
@@ -91,6 +93,12 @@ export class UIGame extends UIBase {
     ///
     oprateBtn: Node = null;
     touchSelect: Node = null;
+    /**上床按钮引导节点 */
+    private bedGuideNode: Node = null;
+    /**上床按钮引导动画 */
+    private bedGuideSkeleton: sp.Skeleton = null;
+    /**上床按钮引导动画是否正在播放 */
+    private isBedGuidePlaying = false;
 
     ///
     ///属性
@@ -172,6 +180,14 @@ export class UIGame extends UIBase {
     private readonly defaultMoveMatrixOffset: Vec2 = new Vec2(0, 8);
     /**等待玩家碰撞区域离开后恢复阻挡的门格 */
     private pendingDoorBlockPosMap: { [key: string]: Vec2 } = {};
+    /**引导路径瓦片对应的箭头节点 */
+    private guideArrowNodeMap: { [key: string]: Node } = {};
+    /**引导关门上的点击手指 */
+    private guideDoorClickNode: Node = null;
+    /**是否已触发首次门升级引导 */
+    private isGuideDoorUpgradeReady = false;
+    /**是否已完成首次门升级 */
+    private isGuideDoorUpgradeComplete = false;
     /**是否在滑动区域移动 */
     private isSlideMoving = false;
     /**游戏开始倒计时时间 */
@@ -210,6 +226,9 @@ export class UIGame extends UIBase {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
         this.repairMask = this.repairBtn.getChildByName("mask").getComponent(Sprite);
+        this.bedGuideNode = this.oprateBtn.getChildByName("guideNode");
+        this.bedGuideSkeleton = this.bedGuideNode?.getComponent(sp.Skeleton);
+        this.refreshBedGuideVisible(false);
 
         this.bindBtn();
         this.initCamera();
@@ -257,7 +276,7 @@ export class UIGame extends UIBase {
         }
 
         let randomIdx = Math.floor(Math.random() * mapNameArr.length);
-        let mapName = mapNameArr[randomIdx];
+        let mapName = pData.isGuide ? GUIDE_MAP_NAME : mapNameArr[randomIdx];
         let mapAsset: TiledMapAsset = await ccResTools.loadTiledMap(uiMgr.resBundle, ItemPath.tileMap + mapName);
         // 页面关闭或新一局开始后，旧请求不能再覆盖当前地图
         if (!mapAsset || version != this.openVersion || !this.node.activeInHierarchy) {
@@ -273,6 +292,7 @@ export class UIGame extends UIBase {
     /**重新开始单局 */
     private async restartGame() {
         let version = this.openVersion;
+        pData.levelInit();
         let mapReady = await this.randomTiledMap(version);
         if (version != this.openVersion || !this.node.activeInHierarchy) {
             return;
@@ -352,8 +372,6 @@ export class UIGame extends UIBase {
     }
 
     initData() {
-        pData.levelInit();
-
         /**清除数据 */
         this.clearData();
 
@@ -365,6 +383,7 @@ export class UIGame extends UIBase {
 
         this.initRobot();
         this.initPlayer();
+        this.showGuidePath();
         this.initRoleBtnList();
 
         this.initEnemy();
@@ -381,6 +400,7 @@ export class UIGame extends UIBase {
         this.rockerTouchNode.active = false;
         this.slideTouchNode.active = false;
         this.oprateBtn.active = false;
+        this.refreshBedGuideVisible(false);
         this.closeTouchSelect();
         this.timeNode.active = false;
         this.repairBtn.active = false;
@@ -398,8 +418,12 @@ export class UIGame extends UIBase {
 
         this.stopGameCountDown();
 
+        this.clearGuideDoorClickNode();
+        this.isGuideDoorUpgradeReady = false;
+        this.isGuideDoorUpgradeComplete = false;
         this.recycleAllTileItems();
         this.recycleGameBottomUINodeChildren();
+        this.guideArrowNodeMap = {};
         this.recycleGameUINodeChildren();
         ccTools.destroyAllChild(this.roleNode);
         ccTools.destroyAllChild(this.roleBtnLayout);
@@ -629,6 +653,198 @@ export class UIGame extends UIBase {
         this.initRolePos(playerMgr.player);
         playerMgr.playerComp.init(this, 0, pData.skinId);
         this.playerLastRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp.currentPos);
+    }
+
+    /**引导关内判断指定房间是否为引导房间 */
+    isGuideRoom(roomIdx: number) {
+        return pData.isGuide && roomIdx == GUIDE_ROOM_IDX;
+    }
+
+    /**显示玩家出生点到引导房间床位之间的路径箭头 */
+    private showGuidePath() {
+        if (!pData.isGuide || !this.gameBottomUINode || !uiMgr.gameAnimItemPrefab || !uiMgr.guideArrowAnimClip) {
+            return;
+        }
+
+        let startPos = playerMgr.playerComp?.currentPos;
+        let bedPos: Vec2 = this.roomMap[GUIDE_ROOM_IDX]?.bedPos;
+        let width = Math.floor(pData.mapSize?.width || 0);
+        let height = Math.floor(pData.mapSize?.height || 0);
+        if (!startPos || !bedPos || width <= 0 || height <= 0) {
+            console.warn("引导路径数据不完整，无法显示引导箭头");
+            return;
+        }
+
+        let path = ccTools.findGridPath(
+            width,
+            height,
+            startPos,
+            bedPos,
+            (x, y) => this.canGuidePathWalk(x, y, bedPos),
+        );
+        if (path.length == 0) {
+            console.warn("玩家出生点无法寻路到引导房间床位");
+            return;
+        }
+
+        let previousPos = startPos;
+        for (let i = 0; i < path.length - 1; i++) {
+            let tilePos = path[i];
+            this.createGuideArrow(tilePos, previousPos);
+            previousPos = tilePos;
+        }
+    }
+
+    /**引导路径可通行判断：门可经过，目标床位可到达 */
+    private canGuidePathWalk(tileX: number, tileY: number, bedPos: Vec2) {
+        if (tileX == bedPos.x && tileY == bedPos.y) {
+            return true;
+        }
+
+        let tileData = this.tileMap[tileX]?.[tileY];
+        if (!tileData) {
+            return false;
+        }
+
+        if (tileData.item?.tileType == tilePropsType.door) {
+            return true;
+        }
+
+        return tileData.block != 1;
+    }
+
+    /**在指定路径格创建朝向前进方向的循环箭头 */
+    private createGuideArrow(tilePos: Vec2, previousPos: Vec2) {
+        let arrowNode = poolMgr.getGameAnimNode(uiMgr.gameAnimItemPrefab);
+        let animComp = arrowNode.getComponent(gameAnimController);
+        if (!animComp) {
+            poolMgr.putGameAnimNode(arrowNode);
+            return;
+        }
+
+        this.gameBottomUINode.addChild(arrowNode);
+        arrowNode.setPosition(ccTools.getPosByTileIndex(tilePos));
+        arrowNode.setScale(0.1, 0.1, 0.1);
+        let directionX = tilePos.x - previousPos.x;
+        let directionY = previousPos.y - tilePos.y;
+        arrowNode.angle = Math.atan2(directionY, directionX) * 180 / Math.PI;
+        animComp.startAnim(uiMgr.guideArrowAnimClip);
+        this.guideArrowNodeMap[this.getTilePosKey(tilePos)] = arrowNode;
+    }
+
+    /**回收玩家当前经过瓦片上的引导箭头 */
+    private recycleGuideArrowByTilePos(tilePos: Vec2) {
+        if (!tilePos) {
+            return;
+        }
+
+        let key = this.getTilePosKey(tilePos);
+        let arrowNode = this.guideArrowNodeMap[key];
+        if (!arrowNode) {
+            return;
+        }
+
+        delete this.guideArrowNodeMap[key];
+        if (arrowNode.isValid) {
+            poolMgr.putGameAnimNode(arrowNode);
+        }
+    }
+
+    /**回收全部引导路径箭头 */
+    private recycleAllGuideArrows() {
+        let keys = Object.keys(this.guideArrowNodeMap);
+        for (let i = 0; i < keys.length; i++) {
+            let arrowNode = this.guideArrowNodeMap[keys[i]];
+            if (arrowNode?.isValid) {
+                poolMgr.putGameAnimNode(arrowNode);
+            }
+        }
+
+        this.guideArrowNodeMap = {};
+    }
+
+    /**当前道具是否为引导关玩家房间的门 */
+    private isPlayerGuideDoor(doorComp: doorProps) {
+        let roomIdx = playerMgr.playerComp?.roomIdx || 0;
+        return !!doorComp
+            && this.isGuideRoom(roomIdx)
+            && this.getDoorByRoom(roomIdx) == doorComp;
+    }
+
+    /**门升级界面是否需要显示首次升级点击引导 */
+    shouldShowGuideDoorUpgrade(doorComp: doorProps) {
+        return pData.isGuide
+            && this.isGuideDoorUpgradeReady
+            && !this.isGuideDoorUpgradeComplete
+            && this.isPlayerGuideDoor(doorComp);
+    }
+
+    /**首次升级玩家引导房间的门后结束本阶段引导 */
+    completeGuideDoorUpgrade(doorComp: doorProps) {
+        if (!pData.isGuide || this.isGuideDoorUpgradeComplete || !this.isPlayerGuideDoor(doorComp)) {
+            return;
+        }
+
+        this.isGuideDoorUpgradeComplete = true;
+        this.isGuideDoorUpgradeReady = false;
+        this.clearGuideDoorClickNode();
+    }
+
+    /**金币首次足够升级门时，在玩家房门上显示点击手指 */
+    private refreshGuideDoorUpgradeGuide() {
+        if (!pData.isGuide || this.isGuideDoorUpgradeReady || this.isGuideDoorUpgradeComplete
+            || playerMgr.playerComp?.state != roleState.bed) {
+            return;
+        }
+
+        let roomIdx = playerMgr.playerComp.roomIdx;
+        if (!this.isGuideRoom(roomIdx)) {
+            return;
+        }
+
+        let doorComp = this.getDoorByRoom(roomIdx);
+        let nextPropsData = doorComp?.propsDatas?.[doorComp.level + 1];
+        if (!doorComp || !nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
+            return;
+        }
+
+        this.isGuideDoorUpgradeReady = true;
+        this.createGuideDoorClickNode(doorComp);
+    }
+
+    /**在游戏道具层创建门点击手指 */
+    private async createGuideDoorClickNode(doorComp: doorProps) {
+        this.clearGuideDoorClickNode();
+        if (!this.shouldShowGuideDoorUpgrade(doorComp) || !uiMgr.gameSpineItemPrefab || !doorComp.effectNode) {
+            return;
+        }
+
+        let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.guideDoorClickNode = clickNode;
+        clickNode.name = "guideDoorClick";
+        clickNode.layer = doorComp.effectNode.layer;
+        doorComp.effectNode.addChild(clickNode);
+        clickNode.setPosition(Vec3.ZERO);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
+        if (!isLoaded || clickNode != this.guideDoorClickNode || !this.shouldShowGuideDoorUpgrade(doorComp)) {
+            if (clickNode == this.guideDoorClickNode) {
+                this.clearGuideDoorClickNode();
+            }
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理门上的点击手指 */
+    private clearGuideDoorClickNode() {
+        if (this.guideDoorClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideDoorClickNode);
+        }
+
+        this.guideDoorClickNode = null;
     }
 
     /**初始化机器人 */
@@ -1086,7 +1302,8 @@ export class UIGame extends UIBase {
         for (let i = 0; i < this.randomPropsPosArr.length; i++) {
             let tilePos = this.randomPropsPosArr[i];
             let tileItem = this.getPickableRandomPropsTile(tilePos);
-            if (!tileItem || tileItem.randomPickPropsRobotId > 0) {
+            let roomIdx = this.tileMap[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+            if (!tileItem || tileItem.randomPickPropsRobotId > 0 || this.isGuideRoom(roomIdx)) {
                 continue;
             }
 
@@ -2170,13 +2387,18 @@ export class UIGame extends UIBase {
     /**检测人物坐标事件 */
     checkPlayerPos() {
         if (playerMgr.playerComp?.state == roleState.bed) {
+            this.recycleAllGuideArrows();
+            this.refreshBedGuideVisible(false);
             this.opratePos = null;
             this.oprateBtn.active = false;
             return;
         }
 
+        this.recycleGuideArrowByTilePos(playerMgr.playerComp?.currentPos);
+
         let roomIdx = this.tileMap[playerMgr.playerComp.currentPos.x][playerMgr.playerComp.currentPos.y].roomIdx;
         let showOprateBtn = false;
+        let showBedGuide = false;
         this.opratePos = null;
         this.oprateAction = "operate";
 
@@ -2226,6 +2448,7 @@ export class UIGame extends UIBase {
                 //检测床
                 opetateLab.string = "上床";
                 showOprateBtn = true;
+                showBedGuide = true;
                 this.opratePos = bedPos;
             } else if (doorPos && !isClose) {
                 //检测没关的门
@@ -2243,7 +2466,33 @@ export class UIGame extends UIBase {
         if (showOprateBtn && this.opratePos) {
             this.updateOprateBtnPos(this.opratePos, this.oprateAction == "pickup" ? this.pickupBtnScreenOffsetY : null);
         }
+        this.refreshBedGuideVisible(showBedGuide);
         this.oprateBtn.active = showOprateBtn;
+    }
+
+    /**刷新引导关上床按钮的引导动画 */
+    private refreshBedGuideVisible(show: boolean) {
+        let shouldShow = pData.isGuide && show;
+        if (!this.bedGuideNode) {
+            return;
+        }
+
+        if (shouldShow) {
+            this.bedGuideNode.active = true;
+            if (!this.isBedGuidePlaying && this.bedGuideSkeleton?.skeletonData) {
+                this.bedGuideSkeleton.setAnimation(0, "animation", true);
+                this.isBedGuidePlaying = true;
+            }
+            return;
+        }
+
+        if (!this.bedGuideNode.active && !this.isBedGuidePlaying) {
+            return;
+        }
+
+        this.bedGuideNode.active = false;
+        this.bedGuideSkeleton?.clearTracks();
+        this.isBedGuidePlaying = false;
     }
 
     /**获取脚下可拾取的随机道具瓦片 */
@@ -2639,6 +2888,7 @@ export class UIGame extends UIBase {
 
     /**玩家上床回调 */
     playerToBedCall() {
+        this.recycleAllGuideArrows();
         playerMgr.cameraFollow = false;
         this.rockerTouchNode.active = false;
         this.slideTouchNode.active = true;
@@ -2734,6 +2984,7 @@ export class UIGame extends UIBase {
     refreshMonetaryLab() {
         this.coinLab.string = pData.gameCoin.toString();
         this.powerLab.string = pData.gamePower.toString();
+        this.refreshGuideDoorUpgradeGuide();
     }
 
     /**摇杆区域点击开始 */

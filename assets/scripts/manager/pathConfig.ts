@@ -182,4 +182,6 @@ export enum animPath {
     airYellow = "animation/game/airYellow",
     /**雾气动画 */
     fog = "animation/game/fog",
+    /**引导箭头动画 */
+    guideArrow = "animation/game/guideArrow",
 }

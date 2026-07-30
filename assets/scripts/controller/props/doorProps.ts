@@ -317,6 +317,7 @@ export class doorProps extends gamePropsBase {
         this.doorHpShowTimer = doorHpShowTimerBefore;
         this.hpNode.active = this.doorHpShowTimer > 0;
         if (this.level != levelBefore) {
+            this.gameComp?.completeGuideDoorUpgrade(this);
             this.checkEnemyEscapeAfterUpgrade();
         }
     }
@@ -330,6 +331,7 @@ export class doorProps extends gamePropsBase {
         this.doorHpShowTimer = doorHpShowTimerBefore;
         this.hpNode.active = this.doorHpShowTimer > 0;
         if (this.level != levelBefore) {
+            this.gameComp?.completeGuideDoorUpgrade(this);
             this.checkEnemyChoseUpgradeAd();
         }
     }

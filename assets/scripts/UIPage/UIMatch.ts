@@ -120,13 +120,9 @@ export class UIMatch extends UIBase {
             }
         }
 
-        let enemyImg = this.enemyItem.getChildByName("roleImg")?.getComponent(Sprite);
-        if (enemyImg) {
-            enemyImg.node.active = true;
-            if (this.unknownRoleSpriteFrame) {
-                enemyImg.spriteFrame = this.unknownRoleSpriteFrame;
-                enemyImg.node.setScale(1, 1, 1);
-            }
+        let enemyImgNode = this.enemyItem.getChildByName("roleImg");
+        if (enemyImgNode) {
+            enemyImgNode.active = true;
         }
         let bossAnimNode = this.enemyItem.getChildByName("bossAnim");
         let bossAnim = bossAnimNode?.getComponent(sp.Skeleton);

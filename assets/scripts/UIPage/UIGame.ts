@@ -242,7 +242,7 @@ export class UIGame extends UIBase {
     private gameStartElapsedTime = 0;
     /**当前地图资源名称 */
     private currentMapName = "";
-    /**游戏页打开序号，用于避免异步加载回写旧局 */
+    /**当前游戏局序号，用于避免异步加载回写旧局 */
     private openVersion = 0;
     /**匹配界面产生的机器人皮肤 */
     private matchRoleSkinIds: number[] = [];
@@ -325,7 +325,13 @@ export class UIGame extends UIBase {
 
     /**重新开始单局 */
     private async restartGame() {
-        let version = this.openVersion;
+        // 每次重开都先作废上一局的异步任务并立即清场，不能等新地图加载完成后再清理
+        let version = ++this.openVersion;
+        this.clearData();
+        if (this.tiledMap) {
+            this.tiledMap.tmxAsset = null;
+        }
+        this.currentMapName = "";
         pData.levelInit();
         let mapReady = await this.randomTiledMap(version);
         if (version != this.openVersion || !this.node.activeInHierarchy) {

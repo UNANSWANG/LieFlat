@@ -96,6 +96,15 @@ export class bedProps extends gamePropsBase {
         this.img3.getComponent(UITransform).setAnchorPoint(new Vec2(0.5, 1));
         this.img3.node.setPosition(new Vec3(0, 12, 0));
     }
+
+    /**升级床，并通知当前局的新手引导 */
+    upgradeProps() {
+        let levelBefore = this.level;
+        super.upgradeProps();
+        if (this.level != levelBefore) {
+            this.gameComp?.completeGuideBedUpgrade(this);
+        }
+    }
 }
 
 

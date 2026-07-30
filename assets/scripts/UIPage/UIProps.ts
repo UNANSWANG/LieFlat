@@ -15,6 +15,7 @@ import { playerMgr } from '../manager/playerManager';
 import { videoMgr } from '../manager/videoManager';
 import { doorProps } from '../controller/props/doorProps';
 import { poolMgr } from '../manager/poolManager';
+import { bedProps } from '../controller/props/bedProps';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIProps')
@@ -43,8 +44,8 @@ export class UIProps extends UIBase {
     isMaxLevel: boolean = false;
     /**是否为敌人置灰后的道具 */
     isGrayProps: boolean = false;
-    /**门升级按钮上的点击手指 */
-    private guideDoorUpgradeClickNode: Node = null;
+    /**升级按钮上的点击手指 */
+    private guideUpgradeClickNode: Node = null;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -60,10 +61,12 @@ export class UIProps extends UIBase {
 
     addListener() {
         gm.Event.on(GameEvent.refreshGameMonetary, this.refreshPropsBtnState, this);
+        gm.Event.on(GameEvent.refreshGameCamera, this.refreshGuideUpgradeClickScale, this);
     }
 
     removeListener() {
         gm.Event.off(GameEvent.refreshGameMonetary, this.refreshPropsBtnState, this);
+        gm.Event.off(GameEvent.refreshGameCamera, this.refreshGuideUpgradeClickScale, this);
     }
 
     onUI_Open(data) {
@@ -71,7 +74,7 @@ export class UIProps extends UIBase {
     }
 
     onUI_Close() {
-        this.clearGuideDoorUpgradeClickNode();
+        this.clearGuideUpgradeClickNode();
     }
 
     initData(data) {
@@ -85,7 +88,7 @@ export class UIProps extends UIBase {
 
         this.refreshTitle();
         this.refreshPage();
-        this.refreshGuideDoorUpgradeClickNode();
+        this.refreshGuideUpgradeClickNode();
     }
 
     bindBtn() {
@@ -276,7 +279,7 @@ export class UIProps extends UIBase {
 
     /**刷新按钮状态 */
     refreshPropsBtnState() {
-        this.refreshGuideDoorUpgradeClickNode();
+        this.refreshGuideUpgradeClickNode();
         if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid || !this.propsComp.tileItemComp) {
             return;
         }
@@ -295,15 +298,15 @@ export class UIProps extends UIBase {
         this.refreshBuyBtnState(upgradeItem.getChildByName("buyBtn"), nextPropsData);
     }
 
-    /**刷新门升级按钮上的首次升级点击手指 */
-    private refreshGuideDoorUpgradeClickNode() {
-        let doorComp = this.propsComp?.propsType == tilePropsType.door ? this.propsComp as doorProps : null;
-        if (!doorComp?.gameComp?.shouldShowGuideDoorUpgrade(doorComp)) {
-            this.clearGuideDoorUpgradeClickNode();
+    /**刷新门或床升级按钮上的首次升级点击手指 */
+    private refreshGuideUpgradeClickNode() {
+        let guidePropsComp = this.getGuideUpgradePropsComp();
+        if (!guidePropsComp) {
+            this.clearGuideUpgradeClickNode();
             return;
         }
 
-        if (this.guideDoorUpgradeClickNode?.isValid) {
+        if (this.guideUpgradeClickNode?.isValid) {
             return;
         }
 
@@ -313,24 +316,24 @@ export class UIProps extends UIBase {
             return;
         }
 
-        this.createGuideDoorUpgradeClickNode(buyBtn, doorComp);
+        this.createGuideUpgradeClickNode(buyBtn, guidePropsComp);
     }
 
     /**在UI_2D层的升级按钮上创建点击手指 */
-    private async createGuideDoorUpgradeClickNode(buyBtn: Node, doorComp: doorProps) {
+    private async createGuideUpgradeClickNode(buyBtn: Node, propsComp: doorProps | bedProps) {
         let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
-        this.guideDoorUpgradeClickNode = clickNode;
-        clickNode.name = "guideDoorUpgradeClick";
+        this.guideUpgradeClickNode = clickNode;
+        clickNode.name = "guideUpgradeClick";
         clickNode.layer = buyBtn.layer;
         buyBtn.addChild(clickNode);
-        clickNode.setPosition(Vec3.ZERO);
+        clickNode.setPosition(55, -16, 0);
+        this.refreshGuideUpgradeClickScale();
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
         let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
-        if (!isLoaded || clickNode != this.guideDoorUpgradeClickNode
-            || !doorComp.gameComp?.shouldShowGuideDoorUpgrade(doorComp)) {
-            if (clickNode == this.guideDoorUpgradeClickNode) {
-                this.clearGuideDoorUpgradeClickNode();
+        if (!isLoaded || clickNode != this.guideUpgradeClickNode || !this.isGuideUpgradePropsComp(propsComp)) {
+            if (clickNode == this.guideUpgradeClickNode) {
+                this.clearGuideUpgradeClickNode();
             }
             return;
         }
@@ -338,13 +341,43 @@ export class UIProps extends UIBase {
         skeleton.setAnimation(0, "animation", true);
     }
 
-    /**清理升级按钮上的点击手指 */
-    private clearGuideDoorUpgradeClickNode() {
-        if (this.guideDoorUpgradeClickNode?.isValid) {
-            poolMgr.putGameSpineNode(this.guideDoorUpgradeClickNode);
+    /**获取当前界面需要引导升级的门或床 */
+    private getGuideUpgradePropsComp(): doorProps | bedProps {
+        if (this.propsComp?.propsType == tilePropsType.door) {
+            let doorComp = this.propsComp as doorProps;
+            return doorComp.gameComp?.shouldShowGuideDoorUpgrade(doorComp) ? doorComp : null;
         }
 
-        this.guideDoorUpgradeClickNode = null;
+        if (this.propsComp?.propsType == tilePropsType.bed) {
+            let bedComp = this.propsComp as bedProps;
+            return bedComp.gameComp?.shouldShowGuideBedUpgrade(bedComp) ? bedComp : null;
+        }
+
+        return null;
+    }
+
+    /**当前道具是否仍处于升级引导状态 */
+    private isGuideUpgradePropsComp(propsComp: doorProps | bedProps) {
+        return this.getGuideUpgradePropsComp() == propsComp;
+    }
+
+    /**按游戏摄像机与UI摄像机的视角比例缩放UI手指 */
+    private refreshGuideUpgradeClickScale() {
+        if (!this.guideUpgradeClickNode?.isValid) {
+            return;
+        }
+
+        let scale = this.propsComp?.gameComp?.gameToUIViewScale || 1;
+        this.guideUpgradeClickNode.setScale(scale, scale, 1);
+    }
+
+    /**清理升级按钮上的点击手指 */
+    private clearGuideUpgradeClickNode() {
+        if (this.guideUpgradeClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideUpgradeClickNode);
+        }
+
+        this.guideUpgradeClickNode = null;
     }
 
     /**刷新购买按钮状态 */

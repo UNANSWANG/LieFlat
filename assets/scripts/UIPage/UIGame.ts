@@ -138,6 +138,8 @@ export class UIGame extends UIBase {
     private gameCameraComp: CameraController = null;
     /**UI层相机，用于把屏幕坐标转回UI世界坐标 */
     private uiCamera: Camera = null;
+    /**游戏摄像机到UI摄像机的视角比例 */
+    private gameToUICameraScale = 1;
     /**选中坐标 */
     private selectedPos: Vec2 = new Vec2();
 
@@ -188,6 +190,12 @@ export class UIGame extends UIBase {
     private isGuideDoorUpgradeReady = false;
     /**是否已完成首次门升级 */
     private isGuideDoorUpgradeComplete = false;
+    /**引导关床上的点击手指 */
+    private guideBedClickNode: Node = null;
+    /**是否已触发首次床升级引导 */
+    private isGuideBedUpgradeReady = false;
+    /**是否已完成或跳过首次床升级引导 */
+    private isGuideBedUpgradeComplete = false;
     /**是否在滑动区域移动 */
     private isSlideMoving = false;
     /**游戏开始倒计时时间 */
@@ -369,6 +377,22 @@ export class UIGame extends UIBase {
 
         let canvas = director.getScene()?.getChildByName("Canvas")?.getComponent(Canvas);
         this.uiCamera = canvas?.cameraComponent;
+        this.updateGameToUICameraScale();
+    }
+
+    /**游戏摄像机内容换算到UI摄像机时使用的缩放比例 */
+    get gameToUIViewScale() {
+        return this.gameToUICameraScale;
+    }
+
+    /**记录游戏摄像机与UI摄像机的视角比例 */
+    private updateGameToUICameraScale() {
+        if (!this.gameCamera || !this.uiCamera || this.gameCamera.orthoHeight <= 0) {
+            this.gameToUICameraScale = 1;
+            return;
+        }
+
+        this.gameToUICameraScale = this.uiCamera.orthoHeight / this.gameCamera.orthoHeight;
     }
 
     initData() {
@@ -421,6 +445,9 @@ export class UIGame extends UIBase {
         this.clearGuideDoorClickNode();
         this.isGuideDoorUpgradeReady = false;
         this.isGuideDoorUpgradeComplete = false;
+        this.clearGuideBedClickNode();
+        this.isGuideBedUpgradeReady = false;
+        this.isGuideBedUpgradeComplete = false;
         this.recycleAllTileItems();
         this.recycleGameBottomUINodeChildren();
         this.guideArrowNodeMap = {};
@@ -788,6 +815,7 @@ export class UIGame extends UIBase {
         this.isGuideDoorUpgradeComplete = true;
         this.isGuideDoorUpgradeReady = false;
         this.clearGuideDoorClickNode();
+        this.scheduleOnce(this.refreshGuideBedUpgradeGuide, 0);
     }
 
     /**金币首次足够升级门时，在玩家房门上显示点击手指 */
@@ -824,7 +852,8 @@ export class UIGame extends UIBase {
         clickNode.name = "guideDoorClick";
         clickNode.layer = doorComp.effectNode.layer;
         doorComp.effectNode.addChild(clickNode);
-        clickNode.setPosition(Vec3.ZERO);
+        clickNode.setPosition(20, 0, 0);
+        clickNode.setScale(0.85, 0.85, 1);
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
         let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
@@ -845,6 +874,103 @@ export class UIGame extends UIBase {
         }
 
         this.guideDoorClickNode = null;
+    }
+
+    /**当前道具是否为引导关玩家使用的床 */
+    private isPlayerGuideBed(bedComp: bedProps) {
+        let roomIdx = playerMgr.playerComp?.roomIdx || 0;
+        let bedPos = this.roomMap[roomIdx]?.bedPos;
+        return !!bedComp
+            && this.isGuideRoom(roomIdx)
+            && this.tileMap[bedPos?.x]?.[bedPos?.y]?.item?.propsComp == bedComp;
+    }
+
+    /**床升级界面是否需要显示首次升级点击引导 */
+    shouldShowGuideBedUpgrade(bedComp: bedProps) {
+        return pData.isGuide
+            && this.isGuideDoorUpgradeComplete
+            && this.isGuideBedUpgradeReady
+            && !this.isGuideBedUpgradeComplete
+            && this.isPlayerGuideBed(bedComp);
+    }
+
+    /**首次升级床后结束本阶段引导；门升级前已升级床也会据此跳过 */
+    completeGuideBedUpgrade(bedComp: bedProps) {
+        if (!pData.isGuide || this.isGuideBedUpgradeComplete || !this.isPlayerGuideBed(bedComp)) {
+            return;
+        }
+
+        this.isGuideBedUpgradeComplete = true;
+        this.isGuideBedUpgradeReady = false;
+        this.clearGuideBedClickNode();
+    }
+
+    /**门升级完成后，金币首次足够升级床时显示点击手指 */
+    private refreshGuideBedUpgradeGuide() {
+        if (!pData.isGuide || !this.isGuideDoorUpgradeComplete || this.isGuideBedUpgradeReady
+            || this.isGuideBedUpgradeComplete || playerMgr.playerComp?.state != roleState.bed) {
+            return;
+        }
+
+        let roomIdx = playerMgr.playerComp.roomIdx;
+        if (!this.isGuideRoom(roomIdx)) {
+            return;
+        }
+
+        let bedPos = this.roomMap[roomIdx]?.bedPos;
+        let bedComp = this.tileMap[bedPos?.x]?.[bedPos?.y]?.item?.propsComp as bedProps;
+        if (!bedComp) {
+            return;
+        }
+
+        if (bedComp.level > 0) {
+            this.isGuideBedUpgradeComplete = true;
+            return;
+        }
+
+        let nextPropsData = bedComp.propsDatas?.[bedComp.level + 1];
+        if (!nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
+            return;
+        }
+
+        this.isGuideBedUpgradeReady = true;
+        this.createGuideBedClickNode(bedComp);
+    }
+
+    /**在游戏道具层创建床点击手指 */
+    private async createGuideBedClickNode(bedComp: bedProps) {
+        this.clearGuideBedClickNode();
+        if (!this.shouldShowGuideBedUpgrade(bedComp) || !uiMgr.gameSpineItemPrefab || !bedComp.effectNode) {
+            return;
+        }
+
+        let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.guideBedClickNode = clickNode;
+        clickNode.name = "guideBedClick";
+        clickNode.layer = bedComp.effectNode.layer;
+        bedComp.effectNode.addChild(clickNode);
+        clickNode.setPosition(20, 0, 0);
+        clickNode.setScale(0.85, 0.85, 1);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
+        if (!isLoaded || clickNode != this.guideBedClickNode || !this.shouldShowGuideBedUpgrade(bedComp)) {
+            if (clickNode == this.guideBedClickNode) {
+                this.clearGuideBedClickNode();
+            }
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理床上的点击手指 */
+    private clearGuideBedClickNode() {
+        if (this.guideBedClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideBedClickNode);
+        }
+
+        this.guideBedClickNode = null;
     }
 
     /**初始化机器人 */
@@ -2985,6 +3111,7 @@ export class UIGame extends UIBase {
         this.coinLab.string = pData.gameCoin.toString();
         this.powerLab.string = pData.gamePower.toString();
         this.refreshGuideDoorUpgradeGuide();
+        this.refreshGuideBedUpgradeGuide();
     }
 
     /**摇杆区域点击开始 */
@@ -3105,9 +3232,9 @@ export class UIGame extends UIBase {
 
     /**刷新游戏摄像机视角 */
     refreshGameCamera() {
-        let scale = this.uiCamera.orthoHeight / this.gameCamera.orthoHeight;
+        this.updateGameToUICameraScale();
         let uitrans = this.touchSelect.getComponent(UITransform);
-        uitrans.setContentSize(configData.tileSize * scale, configData.tileSize * scale);
+        uitrans.setContentSize(configData.tileSize * this.gameToUICameraScale, configData.tileSize * this.gameToUICameraScale);
     }
 
     /**定位到敌人视角 */

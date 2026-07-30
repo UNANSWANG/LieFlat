@@ -190,8 +190,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 115,
-      "height": 69
+      "width": 130,
+      "height": 130
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -986,7 +986,6 @@
       "__id__": 0
     },
     "fileId": "b3DYuRIk5Mjo9nnIHm4Ow+",
-    "instance": null,
-    "targetOverrides": null
+    "instance": null
   }
 ]

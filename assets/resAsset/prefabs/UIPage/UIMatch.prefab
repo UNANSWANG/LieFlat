@@ -1555,6 +1555,8 @@
       "__id__": 0
     },
     "fileId": "22rjCesCRASJHXW2O4SHNI",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -2255,7 +2257,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "1b6IDWuMZA06lEh+jKhG4j"
+    "fileId": "23BIqgUzRNEb4xFPJXF9P5"
   },
   {
     "__type__": "cc.PrefabInfo",

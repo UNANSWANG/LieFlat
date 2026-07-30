@@ -206,6 +206,18 @@ export class UIGame extends UIBase {
     private isGuideGeneratorBuildComplete = false;
     /**发电机建造引导期间是否已打开建造界面 */
     private isGuideGeneratorBuildUIOpen = false;
+    /**炮台建造引导所指向的空闲瓦片 */
+    private guideCannonBuildTilePos: Vec2 = null;
+    /**空闲瓦片上的炮台建造点击手指 */
+    private guideCannonBuildClickNode: Node = null;
+    /**玩家引导房门是否已被Boss首次攻击 */
+    private hasGuidePlayerDoorBeenAttacked = false;
+    /**是否已触发首次炮台建造引导 */
+    private isGuideCannonBuildReady = false;
+    /**是否已完成或跳过首次炮台建造引导 */
+    private isGuideCannonBuildComplete = false;
+    /**炮台建造引导期间是否已打开建造界面 */
+    private isGuideCannonBuildUIOpen = false;
     /**是否在滑动区域移动 */
     private isSlideMoving = false;
     /**游戏开始倒计时时间 */
@@ -463,6 +475,12 @@ export class UIGame extends UIBase {
         this.isGuideGeneratorBuildReady = false;
         this.isGuideGeneratorBuildComplete = false;
         this.isGuideGeneratorBuildUIOpen = false;
+        this.clearGuideCannonBuildClickNode();
+        this.guideCannonBuildTilePos = null;
+        this.hasGuidePlayerDoorBeenAttacked = false;
+        this.isGuideCannonBuildReady = false;
+        this.isGuideCannonBuildComplete = false;
+        this.isGuideCannonBuildUIOpen = false;
         this.recycleAllTileItems();
         this.recycleGameBottomUINodeChildren();
         this.guideArrowNodeMap = {};
@@ -1059,7 +1077,7 @@ export class UIGame extends UIBase {
             return;
         }
 
-        let emptyPos = this.getNearestEmptyPosByBed(roomData);
+        let emptyPos = this.getGuideEmptyPosNearestTo(roomData, roomData.bedPos, this.guideCannonBuildTilePos);
         if (!emptyPos) {
             return;
         }
@@ -1122,6 +1140,237 @@ export class UIGame extends UIBase {
         }
 
         this.guideGeneratorBuildClickNode = null;
+    }
+
+    /**指定类型建筑是否处于首次建造引导 */
+    shouldShowGuideBuild(propsType: tilePropsType) {
+        if (propsType == tilePropsType.generator) {
+            return this.shouldShowGuideGeneratorBuild();
+        }
+
+        if (propsType == tilePropsType.cannon) {
+            return this.shouldShowGuideCannonBuild();
+        }
+
+        return false;
+    }
+
+    /**获取当前需要在建造界面引导购买的建筑类型 */
+    private getGuideBuildPropsType(tilePos: Vec2) {
+        let showCannonGuide = this.shouldShowGuideCannonBuild();
+        let showGeneratorGuide = this.shouldShowGuideGeneratorBuild();
+        if (!showCannonGuide) {
+            return showGeneratorGuide ? tilePropsType.generator : tilePropsType.none;
+        }
+        if (!showGeneratorGuide) {
+            return tilePropsType.cannon;
+        }
+
+        if (this.isSameTilePos(tilePos, this.guideCannonBuildTilePos)) {
+            return tilePropsType.cannon;
+        }
+        if (this.isSameTilePos(tilePos, this.guideGeneratorBuildTilePos)) {
+            return tilePropsType.generator;
+        }
+
+        let cannonDistanceSqr = this.getTileDistanceSqr(tilePos, this.guideCannonBuildTilePos);
+        let generatorDistanceSqr = this.getTileDistanceSqr(tilePos, this.guideGeneratorBuildTilePos);
+        return cannonDistanceSqr <= generatorDistanceSqr ? tilePropsType.cannon : tilePropsType.generator;
+    }
+
+    /**获取两个瓦片坐标之间的距离平方 */
+    private getTileDistanceSqr(posA: Vec2, posB: Vec2) {
+        if (!posA || !posB) {
+            return Number.MAX_VALUE;
+        }
+
+        let offsetX = posA.x - posB.x;
+        let offsetY = posA.y - posB.y;
+        return offsetX * offsetX + offsetY * offsetY;
+    }
+
+    /**打开指定建筑的引导建造界面 */
+    onGuideBuildUIOpened(propsType: tilePropsType) {
+        if (propsType == tilePropsType.generator) {
+            this.onGuideGeneratorBuildUIOpened();
+        } else if (propsType == tilePropsType.cannon) {
+            this.onGuideCannonBuildUIOpened();
+        }
+    }
+
+    /**关闭指定建筑的引导建造界面 */
+    onGuideBuildUIClosed(propsType: tilePropsType) {
+        if (propsType == tilePropsType.generator) {
+            this.onGuideGeneratorBuildUIClosed();
+        } else if (propsType == tilePropsType.cannon) {
+            this.onGuideCannonBuildUIClosed();
+        }
+    }
+
+    /**完成指定建筑的首次建造引导 */
+    completeGuideBuild(propsType: tilePropsType) {
+        if (propsType == tilePropsType.generator) {
+            this.completeGuideGeneratorBuild();
+        } else if (propsType == tilePropsType.cannon) {
+            this.completeGuideCannonBuild();
+        }
+    }
+
+    /**炮台建造界面是否仍处于引导状态 */
+    private shouldShowGuideCannonBuild() {
+        return pData.isGuide
+            && this.isGuideCannonBuildReady
+            && !this.isGuideCannonBuildComplete;
+    }
+
+    /**打开引导中的建造界面时，隐藏游戏层炮台空闲格手指 */
+    private onGuideCannonBuildUIOpened() {
+        if (!this.shouldShowGuideCannonBuild()) {
+            return;
+        }
+
+        this.isGuideCannonBuildUIOpen = true;
+        this.clearGuideCannonBuildClickNode();
+    }
+
+    /**未完成购买便关闭建造界面时，恢复炮台空闲格手指 */
+    private onGuideCannonBuildUIClosed() {
+        if (!this.isGuideCannonBuildUIOpen) {
+            return;
+        }
+
+        this.isGuideCannonBuildUIOpen = false;
+        if (this.shouldShowGuideCannonBuild() && this.guideCannonBuildTilePos) {
+            this.createGuideCannonBuildClickNode();
+        }
+    }
+
+    /**成功购买首个引导炮台后结束本阶段引导 */
+    private completeGuideCannonBuild() {
+        if (!this.shouldShowGuideCannonBuild()) {
+            return;
+        }
+
+        this.isGuideCannonBuildComplete = true;
+        this.isGuideCannonBuildReady = false;
+        this.isGuideCannonBuildUIOpen = false;
+        this.guideCannonBuildTilePos = null;
+        this.clearGuideCannonBuildClickNode();
+    }
+
+    /**记录玩家引导房门首次受到Boss实际伤害 */
+    private onGuidePlayerDoorAttacked(tilePos: Vec2) {
+        if (!pData.isGuide || this.hasGuidePlayerDoorBeenAttacked || !tilePos) {
+            return;
+        }
+
+        let roomIdx = this.getRoomIdxByTilePos(tilePos);
+        let doorComp = this.getDoorByRoom(roomIdx);
+        if (!this.isGuideRoom(roomIdx) || !doorComp || !this.isSameTilePos(doorComp.pos, tilePos)) {
+            return;
+        }
+
+        this.hasGuidePlayerDoorBeenAttacked = true;
+        this.refreshGuideCannonBuildGuide();
+    }
+
+    /**玩家房门被Boss攻击且金币达到8时，引导在门边建造炮台 */
+    private refreshGuideCannonBuildGuide() {
+        if (!pData.isGuide || !this.hasGuidePlayerDoorBeenAttacked || this.isGuideCannonBuildReady
+            || this.isGuideCannonBuildComplete
+            || playerMgr.playerComp?.state != roleState.bed || pData.gameCoin < 8) {
+            return;
+        }
+
+        let roomIdx = playerMgr.playerComp.roomIdx;
+        if (!this.isGuideRoom(roomIdx)) {
+            return;
+        }
+
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (this.hasRoomPropsByType(roomData, tilePropsType.cannon)) {
+            this.isGuideCannonBuildComplete = true;
+            return;
+        }
+
+        let emptyPos = this.getGuideEmptyPosNearestTo(roomData, roomData.doorPos, this.guideGeneratorBuildTilePos);
+        if (!emptyPos) {
+            return;
+        }
+
+        this.guideCannonBuildTilePos = new Vec2(emptyPos.x, emptyPos.y);
+        this.isGuideCannonBuildReady = true;
+        this.createGuideCannonBuildClickNode();
+    }
+
+    /**在离门最近的空闲格中心创建炮台建造点击手指 */
+    private async createGuideCannonBuildClickNode() {
+        this.clearGuideCannonBuildClickNode();
+        if (!this.shouldShowGuideCannonBuild() || this.isGuideCannonBuildUIOpen
+            || !this.guideCannonBuildTilePos || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
+            return;
+        }
+
+        let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.guideCannonBuildClickNode = clickNode;
+        clickNode.name = "guideCannonBuildClick";
+        if (!this.addGuideClickNodeToGameBottom(clickNode, this.guideCannonBuildTilePos)) {
+            this.clearGuideCannonBuildClickNode();
+            return;
+        }
+        clickNode.setScale(0.85, 0.85, 1);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
+        if (!isLoaded || clickNode != this.guideCannonBuildClickNode
+            || !this.shouldShowGuideCannonBuild() || this.isGuideCannonBuildUIOpen) {
+            if (clickNode == this.guideCannonBuildClickNode) {
+                this.clearGuideCannonBuildClickNode();
+            }
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**提示格被其他建筑占用后，为仍未完成的建造引导重新选择空闲格 */
+    private refreshGuideBuildTilePosAfterCreate(occupiedPos: Vec2) {
+        if (!pData.isGuide || !occupiedPos) {
+            return;
+        }
+
+        let roomIdx = playerMgr.playerComp?.roomIdx || 0;
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!this.isGuideRoom(roomIdx) || !roomData) {
+            return;
+        }
+
+        if (this.shouldShowGuideCannonBuild() && this.isSameTilePos(occupiedPos, this.guideCannonBuildTilePos)) {
+            this.clearGuideCannonBuildClickNode();
+            let emptyPos = this.getGuideEmptyPosNearestTo(roomData, roomData.doorPos, this.guideGeneratorBuildTilePos);
+            this.guideCannonBuildTilePos = emptyPos ? new Vec2(emptyPos.x, emptyPos.y) : null;
+            if (this.guideCannonBuildTilePos && !this.isGuideCannonBuildUIOpen) {
+                this.createGuideCannonBuildClickNode();
+            }
+        }
+
+        if (this.shouldShowGuideGeneratorBuild() && this.isSameTilePos(occupiedPos, this.guideGeneratorBuildTilePos)) {
+            this.clearGuideGeneratorBuildClickNode();
+            let emptyPos = this.getGuideEmptyPosNearestTo(roomData, roomData.bedPos, this.guideCannonBuildTilePos);
+            this.guideGeneratorBuildTilePos = emptyPos ? new Vec2(emptyPos.x, emptyPos.y) : null;
+            if (this.guideGeneratorBuildTilePos && !this.isGuideGeneratorBuildUIOpen) {
+                this.createGuideGeneratorBuildClickNode();
+            }
+        }
+    }
+
+    /**清理空闲格上的炮台建造点击手指 */
+    private clearGuideCannonBuildClickNode() {
+        if (this.guideCannonBuildClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideCannonBuildClickNode);
+        }
+
+        this.guideCannonBuildClickNode = null;
     }
 
     /**初始化机器人 */
@@ -1383,7 +1632,10 @@ export class UIGame extends UIBase {
         buildRole?.addGamePropsBuildCount(propsType);
         if (propsType == tilePropsType.generator && this.shouldShowGuideGeneratorBuild()) {
             this.completeGuideGeneratorBuild();
+        } else if (propsType == tilePropsType.cannon && this.shouldShowGuideCannonBuild()) {
+            this.completeGuideCannonBuild();
         }
+        this.refreshGuideBuildTilePosAfterCreate(tilePos);
     }
 
     /**在道具所在位置播放一次雾气动画 */
@@ -1791,27 +2043,29 @@ export class UIGame extends UIBase {
         return emptyPosArr[randomIdx];
     }
 
-    /**获取床边距离最近的房间空闲位置 */
-    private getNearestEmptyPosByBed(roomData: roomData) {
-        let bedPos = roomData?.bedPos;
-        if (!bedPos || !roomData.roomArr) {
+    /**获取离目标最近的引导空闲格，并避开另一条建造引导的提示格 */
+    private getGuideEmptyPosNearestTo(roomData: roomData, targetPos: Vec2, excludePos: Vec2 = null) {
+        if (!roomData?.roomArr || !targetPos) {
             return null;
         }
 
         let nearestPos: Vec2 = null;
-        let nearestDistance = Number.MAX_SAFE_INTEGER;
+        let nearestDistanceSqr = Number.MAX_VALUE;
         for (let i = 0; i < roomData.roomArr.length; i++) {
             let tilePos = roomData.roomArr[i];
             let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
             let tileComp = tileData?.item;
-            if (!tileData || this.isSameTilePos(tilePos, bedPos) || this.isSameTilePos(tilePos, roomData.doorPos)
+            if (!tileData || this.isSameTilePos(tilePos, roomData.bedPos) || this.isSameTilePos(tilePos, roomData.doorPos)
+                || this.isSameTilePos(tilePos, excludePos)
                 || (tileComp && tileComp.tileType != tilePropsType.none)) {
                 continue;
             }
 
-            let distance = Math.abs(tilePos.x - bedPos.x) + Math.abs(tilePos.y - bedPos.y);
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
+            let offsetX = tilePos.x - targetPos.x;
+            let offsetY = tilePos.y - targetPos.y;
+            let distanceSqr = offsetX * offsetX + offsetY * offsetY;
+            if (distanceSqr < nearestDistanceSqr) {
+                nearestDistanceSqr = distanceSqr;
                 nearestPos = tilePos;
             }
         }
@@ -2918,12 +3172,12 @@ export class UIGame extends UIBase {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });
             }
         } else {
-            let isGuideGeneratorBuild = this.shouldShowGuideGeneratorBuild();
+            let guideBuildPropsType = this.getGuideBuildPropsType(tilePos);
             uiMgr.openPage(UIPath.UIBuild, {
                 pos: this.tempUILocalPos,
                 tilePos: tilePos,
                 roomData: this.getBuildRoomData(tilePos),
-                isGuideGeneratorBuild: isGuideGeneratorBuild,
+                guideBuildPropsType: guideBuildPropsType,
                 gameComp: this,
             });
         }
@@ -3025,6 +3279,7 @@ export class UIGame extends UIBase {
             return;
         }
 
+        this.onGuidePlayerDoorAttacked(tilePos);
         let roomIdx = this.getRoomIdxByTilePos(tilePos);
         let robotComp = this.getSleepingRobotInRoom(roomIdx);
         if (roomIdx <= 0 || !robotComp) {
@@ -3301,6 +3556,7 @@ export class UIGame extends UIBase {
         this.powerLab.string = pData.gamePower.toString();
         this.refreshGuideDoorUpgradeGuide();
         this.refreshGuideBedUpgradeGuide();
+        this.refreshGuideCannonBuildGuide();
         this.refreshGuideGeneratorBuildGuide();
     }
 

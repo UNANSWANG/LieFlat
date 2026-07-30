@@ -42,12 +42,12 @@ export class UIBuild extends UIBase {
     currentPropsDataArr: any[] = [];
     /**当前房间数据 */
     roomData: any = null;
-    /**是否处于首次发电机建造引导 */
-    private isGuideGeneratorBuild = false;
+    /**当前首次建造引导指定的建筑类型 */
+    private guideBuildPropsType: tilePropsType = tilePropsType.none;
     /**游戏界面组件，用于同步引导状态与摄像机比例 */
     private gameComp: UIGame = null;
-    /**发电机购买按钮上的点击手指 */
-    private guideGeneratorBuyClickNode: Node = null;
+    /**引导建筑购买按钮上的点击手指 */
+    private guideBuildBuyClickNode: Node = null;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -63,12 +63,12 @@ export class UIBuild extends UIBase {
 
     addListener() {
         gm.Event.on(GameEvent.refreshGameMonetary, this.refreshPropsBtnState, this);
-        gm.Event.on(GameEvent.refreshGameCamera, this.refreshGuideGeneratorBuyClickScale, this);
+        gm.Event.on(GameEvent.refreshGameCamera, this.refreshGuideBuildBuyClickScale, this);
     }
 
     removeListener() {
         gm.Event.off(GameEvent.refreshGameMonetary, this.refreshPropsBtnState, this);
-        gm.Event.off(GameEvent.refreshGameCamera, this.refreshGuideGeneratorBuyClickScale, this);
+        gm.Event.off(GameEvent.refreshGameCamera, this.refreshGuideBuildBuyClickScale, this);
     }
 
     onUI_Open(data) {
@@ -76,17 +76,20 @@ export class UIBuild extends UIBase {
     }
 
     onUI_Close() {
-        this.clearGuideGeneratorBuyClickNode();
-        if (this.isGuideGeneratorBuild) {
-            this.gameComp?.onGuideGeneratorBuildUIClosed();
+        this.clearGuideBuildBuyClickNode();
+        if (this.guideBuildPropsType != tilePropsType.none) {
+            this.gameComp?.onGuideBuildUIClosed(this.guideBuildPropsType);
         }
-        this.isGuideGeneratorBuild = false;
+        this.guideBuildPropsType = tilePropsType.none;
         this.gameComp = null;
     }
 
     initData(data) {
-        this.isGuideGeneratorBuild = !!data?.isGuideGeneratorBuild;
+        this.guideBuildPropsType = data?.guideBuildPropsType || tilePropsType.none;
         this.gameComp = data?.gameComp || null;
+        if (this.guideBuildPropsType != tilePropsType.none && !this.gameComp?.shouldShowGuideBuild(this.guideBuildPropsType)) {
+            this.guideBuildPropsType = tilePropsType.none;
+        }
         if (data) {
             this.targetPos.set(data.pos);
             this.tilePos.set(data.tilePos);
@@ -95,9 +98,9 @@ export class UIBuild extends UIBase {
         if (!this.propsTypeArr || this.propsTypeArr.length == 0) {
             this.initPropsData();
         }
-        if (this.isGuideGeneratorBuild) {
-            this.gameComp?.onGuideGeneratorBuildUIOpened();
-            this.currentIdx = this.getGeneratorTabIdx();
+        if (this.guideBuildPropsType != tilePropsType.none) {
+            this.gameComp?.onGuideBuildUIOpened(this.guideBuildPropsType);
+            this.currentIdx = this.getGuideBuildTabIdx();
         }
         this.refreshPage();
     }
@@ -242,13 +245,13 @@ export class UIBuild extends UIBase {
         let posY = this.targetPos.y + (height / 2 + configData.tileSize + 15) * (this.targetPos.y < 0 ? 1 : -1);
 
         this.bg.setPosition(new Vec3(this.bg.position.x, posY, 0));
-        this.refreshGuideGeneratorBuyClickNode();
+        this.refreshGuideBuildBuyClickNode();
     }
 
-    /**获取发电机所在页签 */
-    private getGeneratorTabIdx() {
+    /**获取当前引导建筑所在页签 */
+    private getGuideBuildTabIdx() {
         for (let i = 0; i < this.propsTypeArr.length; i++) {
-            if (this.propsTypeArr[i].some((item) => item.type == tilePropsType.generator)) {
+            if (this.propsTypeArr[i].some((item) => item.type == this.guideBuildPropsType)) {
                 return i;
             }
         }
@@ -256,39 +259,40 @@ export class UIBuild extends UIBase {
         return 0;
     }
 
-    /**刷新发电机购买按钮上的点击手指 */
-    private refreshGuideGeneratorBuyClickNode() {
-        this.clearGuideGeneratorBuyClickNode();
-        if (!this.isGuideGeneratorBuild || !this.gameComp?.shouldShowGuideGeneratorBuild() || !uiMgr.gameSpineItemPrefab) {
+    /**刷新引导建筑购买按钮上的点击手指 */
+    private refreshGuideBuildBuyClickNode() {
+        this.clearGuideBuildBuyClickNode();
+        if (this.guideBuildPropsType == tilePropsType.none
+            || !this.gameComp?.shouldShowGuideBuild(this.guideBuildPropsType) || !uiMgr.gameSpineItemPrefab) {
             return;
         }
 
-        let generatorIdx = this.currentPropsDataArr.findIndex((item) => item?.propsType == tilePropsType.generator);
-        let propsItem = this.propsLayout.children[generatorIdx];
-        let buyBtn = generatorIdx >= 0 && propsItem?.active ? propsItem.getChildByName("buyBtn") : null;
+        let guidePropsIdx = this.currentPropsDataArr.findIndex((item) => item?.propsType == this.guideBuildPropsType);
+        let propsItem = this.propsLayout.children[guidePropsIdx];
+        let buyBtn = guidePropsIdx >= 0 && propsItem?.active ? propsItem.getChildByName("buyBtn") : null;
         if (!buyBtn?.active) {
             return;
         }
 
-        this.createGuideGeneratorBuyClickNode(buyBtn);
+        this.createGuideBuildBuyClickNode(buyBtn);
     }
 
-    /**在UI_2D层的发电机购买按钮上创建点击手指 */
-    private async createGuideGeneratorBuyClickNode(buyBtn: Node) {
+    /**在UI_2D层的引导建筑购买按钮上创建点击手指 */
+    private async createGuideBuildBuyClickNode(buyBtn: Node) {
         let clickNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
-        this.guideGeneratorBuyClickNode = clickNode;
-        clickNode.name = "guideGeneratorBuyClick";
+        this.guideBuildBuyClickNode = clickNode;
+        clickNode.name = "guideBuildBuyClick";
         clickNode.layer = buyBtn.layer;
         buyBtn.addChild(clickNode);
         clickNode.setPosition(60, 0, 0);
-        this.refreshGuideGeneratorBuyClickScale();
+        this.refreshGuideBuildBuyClickScale();
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
         let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
-        if (!isLoaded || clickNode != this.guideGeneratorBuyClickNode
-            || !this.isGuideGeneratorBuild || !this.gameComp?.shouldShowGuideGeneratorBuild()) {
-            if (clickNode == this.guideGeneratorBuyClickNode) {
-                this.clearGuideGeneratorBuyClickNode();
+        if (!isLoaded || clickNode != this.guideBuildBuyClickNode || this.guideBuildPropsType == tilePropsType.none
+            || !this.gameComp?.shouldShowGuideBuild(this.guideBuildPropsType)) {
+            if (clickNode == this.guideBuildBuyClickNode) {
+                this.clearGuideBuildBuyClickNode();
             }
             return;
         }
@@ -297,22 +301,22 @@ export class UIBuild extends UIBase {
     }
 
     /**按游戏摄像机与UI摄像机的视角比例缩放UI手指 */
-    private refreshGuideGeneratorBuyClickScale() {
-        if (!this.guideGeneratorBuyClickNode?.isValid) {
+    private refreshGuideBuildBuyClickScale() {
+        if (!this.guideBuildBuyClickNode?.isValid) {
             return;
         }
 
         let scale = this.gameComp?.gameToUIViewScale || 1;
-        this.guideGeneratorBuyClickNode.setScale(scale, scale, 1);
+        this.guideBuildBuyClickNode.setScale(scale, scale, 1);
     }
 
-    /**清理发电机购买按钮上的点击手指 */
-    private clearGuideGeneratorBuyClickNode() {
-        if (this.guideGeneratorBuyClickNode?.isValid) {
-            poolMgr.putGameSpineNode(this.guideGeneratorBuyClickNode);
+    /**清理引导建筑购买按钮上的点击手指 */
+    private clearGuideBuildBuyClickNode() {
+        if (this.guideBuildBuyClickNode?.isValid) {
+            poolMgr.putGameSpineNode(this.guideBuildBuyClickNode);
         }
 
-        this.guideGeneratorBuyClickNode = null;
+        this.guideBuildBuyClickNode = null;
     }
 
     /**显示建造引导期间的限制提示 */
@@ -450,7 +454,7 @@ export class UIBuild extends UIBase {
             return;
         }
 
-        if (this.isGuideGeneratorBuild) {
+        if (this.guideBuildPropsType != tilePropsType.none) {
             this.showGuideBuildLimitTips();
             return;
         }
@@ -466,7 +470,7 @@ export class UIBuild extends UIBase {
     /**点击购买按钮 */
     clickBuyBtn(idx: number) {
         let curData = this.currentPropsDataArr[idx];
-        if (this.isGuideGeneratorBuild && curData?.propsType != tilePropsType.generator) {
+        if (this.guideBuildPropsType != tilePropsType.none && curData?.propsType != this.guideBuildPropsType) {
             this.showGuideBuildLimitTips();
             return;
         }
@@ -481,8 +485,8 @@ export class UIBuild extends UIBase {
         } else if (buildPrice.power > 0 && buildPrice.power > pData.gamePower) {
             uiMgr.showTips("电能不足");
         } else {
-            if (this.isGuideGeneratorBuild && curData.propsType == tilePropsType.generator) {
-                this.gameComp?.completeGuideGeneratorBuild();
+            if (this.guideBuildPropsType != tilePropsType.none && curData.propsType == this.guideBuildPropsType) {
+                this.gameComp?.completeGuideBuild(this.guideBuildPropsType);
             }
             this.onClose();
             //扣除金币
@@ -502,7 +506,7 @@ export class UIBuild extends UIBase {
 
     /**点击广告按钮 */
     clickAdBtn(idx: number) {
-        if (this.isGuideGeneratorBuild) {
+        if (this.guideBuildPropsType != tilePropsType.none) {
             this.showGuideBuildLimitTips();
             return;
         }

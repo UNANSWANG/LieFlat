@@ -139,10 +139,20 @@ export class doorProps extends gamePropsBase {
         hasRepairAddSpeed = hasRepairAddSpeed || machineRepairSpeedAdd > 0;
         this.refreshMachineRepairEffectVisible(hasRepairAddSpeed);
 
+        let hpBefore = this.hp;
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * repairSpeed / 100 * dt);
         this.hpBar.fillRange = this.hp / this.maxHp;
+        if (this.hp > hpBefore) {
+            this.keepDoorHpVisible();
+        }
 
         this.updateRepairAddTime(dt);
+    }
+
+    /**保持房门血条显示并重置剩余时间 */
+    private keepDoorHpVisible() {
+        this.doorHpShowTimer = configData.doorHpShowTime;
+        this.hpNode.active = true;
     }
 
     /**刷新房门血条显示剩余时间 */
@@ -289,8 +299,7 @@ export class doorProps extends gamePropsBase {
 
         let isDestroyed = super.takeDamage(damage, killerEnemySkinId);
         if (!isDestroyed) {
-            this.doorHpShowTimer = configData.doorHpShowTime;
-            this.hpNode.active = true;
+            this.keepDoorHpVisible();
         }
         if (!isDestroyed) {
             coverProps.tryStartShieldByDoorHp(this.gameComp, this.roomIdx, this.hpPercent);

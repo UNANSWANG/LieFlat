@@ -75,6 +75,11 @@ export class UIProps extends UIBase {
 
     onUI_Close() {
         this.clearGuideUpgradeClickNode();
+        let propsType = this.propsComp?.tileItemComp?.tileType;
+        if (propsType == tilePropsType.door || propsType == tilePropsType.bed) {
+            let guidePropsComp = this.propsComp as doorProps | bedProps;
+            guidePropsComp.gameComp?.onGuideUpgradeUIClosed(guidePropsComp);
+        }
     }
 
     initData(data) {
@@ -83,6 +88,11 @@ export class UIProps extends UIBase {
             this.tilePos.set(data.tilePos);
             this.propsComp = data.propsComp;
             this.isGrayProps = !!data.isGrayProps;
+        }
+        let propsType = this.propsComp?.tileItemComp?.tileType;
+        if (propsType == tilePropsType.door || propsType == tilePropsType.bed) {
+            let guidePropsComp = this.propsComp as doorProps | bedProps;
+            guidePropsComp.gameComp?.onGuideUpgradeUIOpened(guidePropsComp);
         }
         this.checkPropsStatus();
 

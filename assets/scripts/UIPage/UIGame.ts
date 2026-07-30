@@ -190,12 +190,16 @@ export class UIGame extends UIBase {
     private isGuideDoorUpgradeReady = false;
     /**是否已完成首次门升级 */
     private isGuideDoorUpgradeComplete = false;
+    /**门升级引导期间是否已打开道具界面 */
+    private isGuideDoorUpgradeUIOpen = false;
     /**引导关床上的点击手指 */
     private guideBedClickNode: Node = null;
     /**是否已触发首次床升级引导 */
     private isGuideBedUpgradeReady = false;
     /**是否已完成或跳过首次床升级引导 */
     private isGuideBedUpgradeComplete = false;
+    /**床升级引导期间是否已打开道具界面 */
+    private isGuideBedUpgradeUIOpen = false;
     /**发电机建造引导所指向的空闲瓦片 */
     private guideGeneratorBuildTilePos: Vec2 = null;
     /**空闲瓦片上的发电机建造点击手指 */
@@ -467,9 +471,11 @@ export class UIGame extends UIBase {
         this.clearGuideDoorClickNode();
         this.isGuideDoorUpgradeReady = false;
         this.isGuideDoorUpgradeComplete = false;
+        this.isGuideDoorUpgradeUIOpen = false;
         this.clearGuideBedClickNode();
         this.isGuideBedUpgradeReady = false;
         this.isGuideBedUpgradeComplete = false;
+        this.isGuideBedUpgradeUIOpen = false;
         this.clearGuideGeneratorBuildClickNode();
         this.guideGeneratorBuildTilePos = null;
         this.isGuideGeneratorBuildReady = false;
@@ -848,6 +854,7 @@ export class UIGame extends UIBase {
         if (!this.isGuideDoorUpgradeComplete) {
             this.isGuideDoorUpgradeComplete = true;
             this.isGuideDoorUpgradeReady = false;
+            this.isGuideDoorUpgradeUIOpen = false;
             this.clearGuideDoorClickNode();
             this.scheduleOnce(this.refreshGuideBedUpgradeGuide, 0);
         }
@@ -880,7 +887,8 @@ export class UIGame extends UIBase {
     /**在游戏道具层创建门点击手指 */
     private async createGuideDoorClickNode(doorComp: doorProps) {
         this.clearGuideDoorClickNode();
-        if (!this.shouldShowGuideDoorUpgrade(doorComp) || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
+        if (!this.shouldShowGuideDoorUpgrade(doorComp) || this.isGuideDoorUpgradeUIOpen
+            || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
             return;
         }
 
@@ -895,7 +903,8 @@ export class UIGame extends UIBase {
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
         let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
-        if (!isLoaded || clickNode != this.guideDoorClickNode || !this.shouldShowGuideDoorUpgrade(doorComp)) {
+        if (!isLoaded || clickNode != this.guideDoorClickNode || !this.shouldShowGuideDoorUpgrade(doorComp)
+            || this.isGuideDoorUpgradeUIOpen) {
             if (clickNode == this.guideDoorClickNode) {
                 this.clearGuideDoorClickNode();
             }
@@ -940,6 +949,7 @@ export class UIGame extends UIBase {
 
         this.isGuideBedUpgradeComplete = true;
         this.isGuideBedUpgradeReady = false;
+        this.isGuideBedUpgradeUIOpen = false;
         this.clearGuideBedClickNode();
     }
 
@@ -978,7 +988,8 @@ export class UIGame extends UIBase {
     /**在游戏道具层创建床点击手指 */
     private async createGuideBedClickNode(bedComp: bedProps) {
         this.clearGuideBedClickNode();
-        if (!this.shouldShowGuideBedUpgrade(bedComp) || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
+        if (!this.shouldShowGuideBedUpgrade(bedComp) || this.isGuideBedUpgradeUIOpen
+            || !uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
             return;
         }
 
@@ -993,7 +1004,8 @@ export class UIGame extends UIBase {
 
         let skeleton = poolMgr.getGameNodeSkeleton(clickNode);
         let isLoaded = await ccTools.loadSpine(skeleton, spinePath.click);
-        if (!isLoaded || clickNode != this.guideBedClickNode || !this.shouldShowGuideBedUpgrade(bedComp)) {
+        if (!isLoaded || clickNode != this.guideBedClickNode || !this.shouldShowGuideBedUpgrade(bedComp)
+            || this.isGuideBedUpgradeUIOpen) {
             if (clickNode == this.guideBedClickNode) {
                 this.clearGuideBedClickNode();
             }
@@ -1010,6 +1022,46 @@ export class UIGame extends UIBase {
         }
 
         this.guideBedClickNode = null;
+    }
+
+    /**打开门或床升级界面时隐藏对应的场景手指 */
+    onGuideUpgradeUIOpened(propsComp: doorProps | bedProps) {
+        let propsType = propsComp?.tileItemComp?.tileType;
+        if (propsType == tilePropsType.door) {
+            let doorComp = propsComp as doorProps;
+            if (!pData.isGuide || this.isGuideDoorUpgradeComplete || !this.isPlayerGuideDoor(doorComp)) {
+                return;
+            }
+
+            this.isGuideDoorUpgradeUIOpen = true;
+            this.clearGuideDoorClickNode();
+        } else if (propsType == tilePropsType.bed) {
+            let bedComp = propsComp as bedProps;
+            if (!pData.isGuide || this.isGuideBedUpgradeComplete || !this.isPlayerGuideBed(bedComp)) {
+                return;
+            }
+
+            this.isGuideBedUpgradeUIOpen = true;
+            this.clearGuideBedClickNode();
+        }
+    }
+
+    /**未升级便关闭门或床界面时恢复对应的场景手指 */
+    onGuideUpgradeUIClosed(propsComp: doorProps | bedProps) {
+        let propsType = propsComp?.tileItemComp?.tileType;
+        if (propsType == tilePropsType.door && this.isGuideDoorUpgradeUIOpen) {
+            this.isGuideDoorUpgradeUIOpen = false;
+            let doorComp = propsComp as doorProps;
+            if (this.shouldShowGuideDoorUpgrade(doorComp)) {
+                this.createGuideDoorClickNode(doorComp);
+            }
+        } else if (propsType == tilePropsType.bed && this.isGuideBedUpgradeUIOpen) {
+            this.isGuideBedUpgradeUIOpen = false;
+            let bedComp = propsComp as bedProps;
+            if (this.shouldShowGuideBedUpgrade(bedComp)) {
+                this.createGuideBedClickNode(bedComp);
+            }
+        }
     }
 
     /**发电机建造界面是否仍处于引导状态 */

@@ -124,14 +124,15 @@ export class UIMatch extends UIBase {
         if (enemyImgNode) {
             enemyImgNode.active = true;
         }
-        let bossAnimNode = this.enemyItem.getChildByName("bossAnim");
+        let bossNode = this.enemyItem.getChildByName("bossNode");
+        let bossAnimNode = bossNode?.getChildByName("bossAnim");
         let bossAnim = bossAnimNode?.getComponent(sp.Skeleton);
         if (bossAnim) {
             ccTools.cancelAssetLoad(bossAnim);
             bossAnim.skeletonData = null;
         }
-        if (bossAnimNode) {
-            bossAnimNode.active = false;
+        if (bossNode) {
+            bossNode.active = false;
         }
         let enemyNameLab = this.enemyItem.getChildByName("nameLab")?.getComponent(Label);
         if (enemyNameLab) {
@@ -296,20 +297,23 @@ export class UIMatch extends UIBase {
     /**Boss匹配完成后隐藏图片并播放待机动画 */
     private async showBossAnim(enemyNode: Node, skinId: number) {
         let roleImgNode = enemyNode.getChildByName("roleImg");
-        let bossAnimNode = enemyNode.getChildByName("bossAnim");
+        let bossNode = enemyNode.getChildByName("bossNode");
+        let bossAnimNode = bossNode?.getChildByName("bossAnim");
         let bossAnim = bossAnimNode?.getComponent(sp.Skeleton);
         if (roleImgNode) {
             roleImgNode.active = false;
         }
-        if (!bossAnimNode || !bossAnim) {
+        if (!bossNode || !bossAnimNode || !bossAnim) {
             console.error("匹配界面没有找到bossAnim节点或Skeleton组件");
             return;
         }
 
-        bossAnimNode.active = true;
+        let bossScale = skinId == 3 ? 2.6 : 3;
+        bossNode.setScale(bossScale, bossScale, 1);
+        bossNode.active = true;
         bossAnim.skeletonData = null;
         let isLoaded = await ccTools.loadSpine(bossAnim, spinePath.boss + skinId);
-        if (!isLoaded || !bossAnimNode.activeInHierarchy) {
+        if (!isLoaded || !bossNode.activeInHierarchy) {
             return;
         }
 
@@ -375,7 +379,7 @@ export class UIMatch extends UIBase {
         this.gamePreloadVersion++;
         this.isMatching = false;
         this.isGamePreloadComplete = false;
-        let bossAnim = this.enemyItem?.getChildByName("bossAnim")?.getComponent(sp.Skeleton);
+        let bossAnim = this.enemyItem?.getChildByName("bossNode").getChildByName("bossAnim")?.getComponent(sp.Skeleton);
         if (bossAnim) {
             ccTools.cancelAssetLoad(bossAnim);
         }

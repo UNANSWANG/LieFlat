@@ -256,7 +256,7 @@ export class UIProps extends UIBase {
 
         let addOffset = 180;
 
-        let height = 131 + addOffset * propsLength;
+        let height = 131 + addOffset * propsLength + (6 * (propsLength - 1));
 
         let bgTrans = this.bg.getComponent(UITransform);
         bgTrans.setContentSize(bgTrans.width, height);

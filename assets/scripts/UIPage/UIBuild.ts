@@ -209,7 +209,7 @@ export class UIBuild extends UIBase {
 
         let addOffset = 180;
 
-        let height = 215 + addOffset * propsLength;
+        let height = 210 + addOffset * propsLength + (6 * (propsLength - 1));
 
         let bgTrans = this.bg.getComponent(UITransform);
         bgTrans.setContentSize(bgTrans.width, height);

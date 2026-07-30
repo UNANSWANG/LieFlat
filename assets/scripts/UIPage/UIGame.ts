@@ -2938,9 +2938,11 @@ export class UIGame extends UIBase {
             case KeyCode.KEY_A:
                 //增加通关次数
                 pData.fixPassCount();
+                break;
             case KeyCode.KEY_P:
                 //打开控制台
                 uiMgr.openPage(UIPath.UIConsole);
+                break;
             case KeyCode.KEY_R:
                 //重新开始游戏
                 this.restartGame();

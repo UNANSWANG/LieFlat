@@ -268,7 +268,7 @@ export class UIProps extends UIBase {
 
     /**刷新按钮状态 */
     refreshPropsBtnState() {
-        if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid) {
+        if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid || !this.propsComp.tileItemComp) {
             return;
         }
 
@@ -309,7 +309,7 @@ export class UIProps extends UIBase {
     /**升级道具 */
     clickUpgradeProps() {
         this.onClose();
-        if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid) {
+        if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid || !this.propsComp.tileItemComp) {
             return;
         }
 

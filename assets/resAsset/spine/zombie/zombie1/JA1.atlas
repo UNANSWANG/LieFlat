@@ -1,0 +1,48 @@
+
+JA1.png
+size: 151,151
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+JA1
+  rotate: true
+  xy: 2, 74
+  size: 44, 52
+  orig: 46, 54
+  offset: 1, 1
+  index: -1
+JA2
+  rotate: true
+  xy: 2, 120
+  size: 29, 73
+  orig: 29, 73
+  offset: 0, 0
+  index: -1
+JA3
+  rotate: true
+  xy: 2, 15
+  size: 47, 68
+  orig: 47, 68
+  offset: 0, 0
+  index: -1
+JA4
+  rotate: true
+  xy: 72, 8
+  size: 54, 77
+  orig: 54, 77
+  offset: 0, 0
+  index: -1
+JA5
+  rotate: true
+  xy: 56, 64
+  size: 45, 68
+  orig: 45, 68
+  offset: 0, 0
+  index: -1
+JA6
+  rotate: true
+  xy: 77, 111
+  size: 38, 64
+  orig: 38, 64
+  offset: 0, 0
+  index: -1

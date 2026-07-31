@@ -55,9 +55,15 @@ export class UIMain extends UIBase {
     zombieMoveSpeeds = [70, 90, 55];
     /**列车的x坐标数组 */
     trainXRange = [546, -560, -3643];
+    /**列车移动速度，单位为每秒的 x 坐标距离 */
+    trainMoveSpeed = 1000;
+    /**列车驶出速度，单位为每秒的 x 坐标距离 */
+    trainLeaveSpeed = 1800;
 
     /**是否展示过复访按钮 */
     isShowRevisit = false;
+    /**是否已经点击开始并等待打开匹配界面 */
+    private isOpeningMatch = false;
 
     onLoad() {
         this.bindBtn();
@@ -67,9 +73,12 @@ export class UIMain extends UIBase {
         this.addListener();
         this.initData();
         this.startZombieAnim();
+        this.playTrainAnim(this.trainXRange[0], this.trainXRange[1]);
     }
 
     onUI_Close(data?: any): void {
+        this.isOpeningMatch = false;
+        this.unscheduleAllCallbacks();
         this.stopZombieAnim();
         this.removeListener();
     }
@@ -175,6 +184,25 @@ export class UIMain extends UIBase {
         zombieNode.setScale(Math.abs(scale.x) * (direction < 0 ? -1 : 1), scale.y, scale.z);
     }
 
+    /**播放列车从起点匀速移动到目标点的动画 */
+    private playTrainAnim(startX: number, targetX: number, moveSpeed: number = this.trainMoveSpeed) {
+        if (!this.trainNode || !this.trainNode.isValid) {
+            return;
+        }
+
+        const startPosition = this.trainNode.position;
+        const startPos = new Vec3(Number(startX), startPosition.y, startPosition.z);
+        const targetPos = new Vec3(Number(targetX), startPosition.y, startPosition.z);
+        const speed = Math.max(1, Number(moveSpeed) || 1);
+        const duration = Math.max(0.01, Math.abs(targetPos.x - startPos.x) / speed);
+
+        Tween.stopAllByTarget(this.trainNode);
+        this.trainNode.setPosition(startPos);
+        tween(this.trainNode)
+            .to(duration, { position: targetPos }, { easing: "linear" })
+            .start();
+    }
+
     /**刷新红点 */
     refreshRed() {
 
@@ -201,7 +229,18 @@ export class UIMain extends UIBase {
 
     /**开始游戏 */
     cliskStartBtn() {
-        uiMgr.openPage(UIPath.UIMatch);
+        if (this.isOpeningMatch) {
+            return;
+        }
+
+        this.isOpeningMatch = true;
+        this.playTrainAnim(this.trainXRange[1], this.trainXRange[2], this.trainLeaveSpeed);
+        this.scheduleOnce(() => {
+            this.isOpeningMatch = false;
+            if (this.node.activeInHierarchy) {
+                uiMgr.openPage(UIPath.UIMatch);
+            }
+        }, 1);
     }
 
     /**点击设置 */

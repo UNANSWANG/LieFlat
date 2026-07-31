@@ -360,6 +360,8 @@ export class UIMatch extends UIBase {
     /**点击关闭 */
     clickCloseBtn() {
         this.onClose();
+        //匹配页由关闭按钮退出时回到主页并触发列车进站；进入游戏的关闭流程不会调用这里。
+        uiMgr.openPage(UIPath.UIMain);
     }
 
     /**点击准备 */

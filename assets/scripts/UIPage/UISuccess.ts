@@ -99,17 +99,23 @@ export class UISuccess extends UIBase {
             ccStorageTools.setData(SaveKey.guide, 1);
         }
 
-        //TODO 临时写数量
-        this.moneyNum = 30;
-        this.boxNum = 12;
         let survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
+        this.initRewardNum(survivalTime);
         this.timeLab.string = `存活时间：${Math.floor(survivalTime)}s`;
         this.isRewardClaimed = false;
         this.refreshRewardNum();
         this.refreshBoxNum();
 
+        this.boxRewardNode.active = this.boxNum > 0;
+
         pData.SDKReportLevelComplete();
         pData.addLevel();
+    }
+
+    /**根据存活时间初始化胜利基础奖励 */
+    private initRewardNum(survivalTime: number) {
+        this.moneyNum = Math.floor(50 + 20 * survivalTime / 60);
+        this.boxNum = ccTools.getRandomNum(1, 4);
     }
 
     /**加载胜利角色并循环播放待机动画 */

@@ -99,17 +99,23 @@ export class UIFail extends UIBase {
         let enemySkinId = Number.isInteger(data?.enemySkinId) && data.enemySkinId >= 0 ? data.enemySkinId : 0;
         this.refreshEnemySpine(enemySkinId);
 
-        //TODO 临时写数量
-        this.moneyNum = 30;
-        this.boxNum = 12;
         let survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
+        this.initRewardNum(survivalTime);
         this.timeLab.string = `存活时间：${Math.floor(survivalTime)}s`;
         this.isRewardClaimed = false;
         this.refreshRewardNum();
         this.refreshBoxNum();
 
+        this.boxRewardNode.active = this.boxNum > 0;
+
         pData.SDKReportLevelComplete();
         pData.addLevel();
+    }
+
+    /**根据存活时间初始化失败基础奖励 */
+    private initRewardNum(survivalTime: number) {
+        this.moneyNum = Math.floor(20 + 10 * survivalTime / 60);
+        this.boxNum = 0;
     }
 
     /**加载失败界面敌人并循环播放待机动画 */

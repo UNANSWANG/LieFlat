@@ -1965,6 +1965,8 @@
       "__id__": 0
     },
     "fileId": "c0abTsHMFHcodzTecMAOni",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -2151,7 +2153,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -560,
+      "x": -3643,
       "y": -388,
       "z": 0
     },
@@ -5850,6 +5852,9 @@
     },
     "zombieAnim": {
       "__id__": 20
+    },
+    "trainNode": {
+      "__id__": 90
     },
     "_id": ""
   },

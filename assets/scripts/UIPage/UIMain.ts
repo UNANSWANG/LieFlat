@@ -41,6 +41,9 @@ export class UIMain extends UIBase {
     @property(Node)
     zombieAnim: Node = null;
 
+    @property(Node)
+    trainNode: Node = null;
+
     /**僵尸1的起始和目标x坐标 */
     zombie1XRange = [-604, 682];
     /**僵尸2的起始和目标x坐标 */
@@ -50,6 +53,8 @@ export class UIMain extends UIBase {
 
     /**僵尸移动速度，单位为每秒的 x 坐标距离 */
     zombieMoveSpeeds = [70, 90, 55];
+    /**列车的x坐标数组 */
+    trainXRange = [546, -560, -3643];
 
     /**是否展示过复访按钮 */
     isShowRevisit = false;

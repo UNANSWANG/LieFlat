@@ -1,4 +1,4 @@
-import { _decorator, Component, director, Label, Node, Sprite } from 'cc';
+import { _decorator, Component, director, Label, Node, sp, Sprite } from 'cc';
 import { ccResTools } from '../extention/resTools';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -21,6 +21,9 @@ export class UILoading extends Component {
     @property(Node)
     zombie: Node = null;
 
+    @property(sp.Skeleton)
+    fengAnim: sp.Skeleton = null;
+
     /**表格加载完成 */
     tableComplete = false;
     /**界面加载完成 */
@@ -38,6 +41,10 @@ export class UILoading extends Component {
     fakeProgressTime3 = 10;
     /**假进度条已运行时间 */
     private fakeProgressElapsedTime = 0;
+    /**风动画的时间间隔（秒） */
+    private fengAnimInterval = 3;
+    /**风动画已经运行的时间 */
+    fengAnimTime = 0;
     /**是否已经准备跳转场景 */
     private isSceneLoading = false;
 
@@ -48,6 +55,13 @@ export class UILoading extends Component {
     }
 
     protected update(deltaTime: number): void {
+        this.fengAnimTime += deltaTime;
+
+        if (this.fengAnimTime >= this.fengAnimInterval) {
+            this.fengAnimTime = 0;
+            this.fengAnim.setAnimation(0, "feng2", false);
+        }
+
         if (this.currentProgressPercent >= 1) {
             return;
         }

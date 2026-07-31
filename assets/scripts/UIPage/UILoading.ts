@@ -18,6 +18,9 @@ export class UILoading extends Component {
     @property(Label)
     percentLab: Label = null;
 
+    @property(Node)
+    zombie: Node = null;
+
     /**表格加载完成 */
     tableComplete = false;
     /**界面加载完成 */
@@ -148,6 +151,8 @@ export class UILoading extends Component {
         this.isSceneLoading = true;
         this.currentProgressPercent = 1;
         this.refreshProgress();
+        //TODO 暂时不跳转
+        return;
         this.scheduleOnce(() => director.loadScene("main"), 0);
     }
 

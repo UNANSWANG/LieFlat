@@ -6,8 +6,8 @@ filter: Linear,Linear
 repeat: none
 kudou
   rotate: false
-  xy: 557, 109
-  size: 234, 149
+  xy: 557, 101
+  size: 234, 157
   orig: 234, 157
   offset: 0, 0
   index: -1

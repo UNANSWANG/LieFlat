@@ -1,55 +1,76 @@
 
 boss.png
-size: 952,952
+size: 900,900
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
-1
-  rotate: true
-  xy: 585, 469
-  size: 126, 240
-  orig: 134, 246
-  offset: 6, 6
-  index: -1
-2
+houtoufa
   rotate: false
-  xy: 409, 25
-  size: 174, 459
-  orig: 188, 466
+  xy: 2, 56
+  size: 291, 355
+  orig: 291, 362
+  offset: 0, 0
+  index: -1
+shangshen
+  rotate: false
+  xy: 661, 269
+  size: 168, 223
+  orig: 182, 237
   offset: 7, 7
   index: -1
-3
+tou
   rotate: true
-  xy: 576, 597
-  size: 353, 366
-  orig: 354, 380
-  offset: 1, 7
+  xy: 431, 82
+  size: 166, 213
+  orig: 166, 213
+  offset: 0, 0
   index: -1
-4
+xiashen
   rotate: false
-  xy: 203, 486
-  size: 371, 464
-  orig: 424, 486
-  offset: 53, 15
+  xy: 431, 250
+  size: 228, 242
+  orig: 228, 244
+  offset: 0, 0
   index: -1
-5
-  rotate: false
-  xy: 2, 474
-  size: 199, 476
-  orig: 212, 483
-  offset: 7, 7
+youshangbi
+  rotate: true
+  xy: 661, 148
+  size: 119, 143
+  orig: 119, 143
+  offset: 0, 0
   index: -1
-6
-  rotate: false
-  xy: 585, 32
-  size: 230, 435
-  orig: 240, 442
+youxiabi
+  rotate: true
+  xy: 295, 2
+  size: 78, 328
+  orig: 80, 330
+  offset: 1, 1
+  index: -1
+youxiaotui
+  rotate: true
+  xy: 292, 676
+  size: 222, 503
+  orig: 229, 510
   offset: 7, 0
   index: -1
-7
+youxiaotui+
+  rotate: false
+  xy: 2, 413
+  size: 288, 485
+  orig: 288, 485
+  offset: 0, 0
+  index: -1
+zuoshangbi
+  rotate: false
+  xy: 295, 130
+  size: 134, 362
+  orig: 134, 362
+  offset: 0, 0
+  index: -1
+zuoxiaotui
   rotate: true
-  xy: 2, 2
-  size: 470, 405
-  orig: 470, 405
+  xy: 292, 494
+  size: 180, 536
+  orig: 186, 543
   offset: 0, 0
   index: -1

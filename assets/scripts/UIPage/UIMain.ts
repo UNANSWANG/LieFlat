@@ -42,11 +42,11 @@ export class UIMain extends UIBase {
     zombieAnim: Node = null;
 
     /**僵尸1的起始和目标x坐标 */
-    zombie1XRange = [-340, 450];
+    zombie1XRange = [-604, 682];
     /**僵尸2的起始和目标x坐标 */
-    zombie2XRange = [343, -256];
+    zombie2XRange = [593, -670];
     /**僵尸3的起始和目标x坐标 */
-    zombie3XRange = [-209, 250];
+    zombie3XRange = [-671, 675];
 
     /**僵尸移动速度，单位为每秒的 x 坐标距离 */
     zombieMoveSpeeds = [70, 90, 55];

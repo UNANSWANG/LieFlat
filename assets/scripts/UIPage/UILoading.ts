@@ -10,6 +10,12 @@ import { audioMgr } from '../manager/audioManager';
 import { commonConfig } from '../json/jsonCommon';
 const { ccclass, property } = _decorator;
 
+interface BackgroundLoopData {
+    node: Node;
+    startX: number;
+    loopWidth: number;
+}
+
 @ccclass('UILoading')
 export class UILoading extends Component {
     @property(Sprite)
@@ -27,8 +33,14 @@ export class UILoading extends Component {
     @property(Node)
     city: Node = null;
 
+    @property(Node)
+    sky: Node = null;
+
     /**城市背景向右移动速度（像素/秒） */
     cityMoveSpeed = 200;
+
+    /**天空背景向右移动速度（像素/秒） */
+    skyMoveSpeed = 80;
 
     /**表格加载完成 */
     tableComplete = false;
@@ -51,42 +63,45 @@ export class UILoading extends Component {
     private fengAnimInterval = 3;
     /**风动画已经运行的时间 */
     fengAnimTime = 0;
-    /**城市背景循环起始坐标 */
-    private cityStartX = 0;
-    /**城市背景单张图片宽度 */
-    private cityLoopWidth = 0;
+    /**城市背景循环数据 */
+    private cityLoopData: BackgroundLoopData = null;
+    /**天空背景循环数据 */
+    private skyLoopData: BackgroundLoopData = null;
     /**是否已经准备跳转场景 */
     private isSceneLoading = false;
 
     start() {
         this.zombie = this.zombie || this.node.getChildByName("zombie");
-        this.initCityLoop();
+        this.cityLoopData = this.initBackgroundLoop(this.city);
+        this.skyLoopData = this.initBackgroundLoop(this.sky);
         this.refreshProgress();
         this.initData();
     }
 
-    /**初始化城市背景循环参数 */
-    private initCityLoop() {
-        let bg1 = this.city.getChildByName("bg1");
-        let bg2 = this.city.getChildByName("bg2");
-        if (!this.city || !bg1 || !bg2) {
-            this.cityLoopWidth = 0;
-            return;
+    /**初始化拼接背景循环参数 */
+    private initBackgroundLoop(node: Node): BackgroundLoopData {
+        let bg1 = node?.getChildByName("bg1");
+        let bg2 = node?.getChildByName("bg2");
+        if (!node || !bg1 || !bg2) {
+            return null;
         }
 
-        this.cityStartX = this.city.position.x;
-        this.cityLoopWidth = Math.abs(bg1.position.x - bg2.position.x);
+        return {
+            node: node,
+            startX: node.position.x,
+            loopWidth: Math.abs(bg1.position.x - bg2.position.x),
+        };
     }
 
-    /**城市背景向右无缝循环移动 */
-    private updateCityLoop(deltaTime: number) {
-        if (!this.city || this.cityLoopWidth <= 0 || this.cityMoveSpeed <= 0) {
+    /**拼接背景向右无缝循环移动 */
+    private updateBackgroundLoop(loopData: BackgroundLoopData, moveSpeed: number, deltaTime: number) {
+        if (!loopData || loopData.loopWidth <= 0 || moveSpeed <= 0) {
             return;
         }
 
-        let cityPos = this.city.position;
-        let moveOffset = (cityPos.x - this.cityStartX + this.cityMoveSpeed * deltaTime) % this.cityLoopWidth;
-        this.city.setPosition(this.cityStartX + moveOffset, cityPos.y, cityPos.z);
+        let nodePos = loopData.node.position;
+        let moveOffset = (nodePos.x - loopData.startX + moveSpeed * deltaTime) % loopData.loopWidth;
+        loopData.node.setPosition(loopData.startX + moveOffset, nodePos.y, nodePos.z);
     }
 
     protected update(deltaTime: number): void {
@@ -97,7 +112,8 @@ export class UILoading extends Component {
             this.fengAnim.setAnimation(0, "feng2", false);
         }
 
-        this.updateCityLoop(deltaTime);
+        this.updateBackgroundLoop(this.cityLoopData, this.cityMoveSpeed, deltaTime);
+        this.updateBackgroundLoop(this.skyLoopData, this.skyMoveSpeed, deltaTime);
 
         if (this.currentProgressPercent >= 1) {
             return;
@@ -209,8 +225,6 @@ export class UILoading extends Component {
         this.isSceneLoading = true;
         this.currentProgressPercent = 1;
         this.refreshProgress();
-        //TODO 暂时不跳转
-        return;
         this.scheduleOnce(() => director.loadScene("main"), 0);
     }
 

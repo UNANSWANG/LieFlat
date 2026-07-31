@@ -38,6 +38,15 @@ export class UIMain extends UIBase {
     @property(sp.Skeleton)
     roleAnim: sp.Skeleton = null;
 
+    @property(Node)
+    zombieAnim: Node = null;
+
+    /**僵尸1的起始和目标x坐标 */
+    zombie1XRange = [-340, 450];
+    /**僵尸2的起始和目标x坐标 */
+    zombie2XRange = [343, -256];
+    /**僵尸3的起始和目标x坐标 */
+    zombie3XRange = [-209, 250];
 
     /**是否展示过复访按钮 */
     isShowRevisit = false;

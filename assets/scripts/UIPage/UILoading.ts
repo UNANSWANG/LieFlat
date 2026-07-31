@@ -24,6 +24,12 @@ export class UILoading extends Component {
     @property(sp.Skeleton)
     fengAnim: sp.Skeleton = null;
 
+    @property(Node)
+    city: Node = null;
+
+    /**城市背景向右移动速度（像素/秒） */
+    cityMoveSpeed = 200;
+
     /**表格加载完成 */
     tableComplete = false;
     /**界面加载完成 */
@@ -45,13 +51,42 @@ export class UILoading extends Component {
     private fengAnimInterval = 3;
     /**风动画已经运行的时间 */
     fengAnimTime = 0;
+    /**城市背景循环起始坐标 */
+    private cityStartX = 0;
+    /**城市背景单张图片宽度 */
+    private cityLoopWidth = 0;
     /**是否已经准备跳转场景 */
     private isSceneLoading = false;
 
     start() {
         this.zombie = this.zombie || this.node.getChildByName("zombie");
+        this.initCityLoop();
         this.refreshProgress();
         this.initData();
+    }
+
+    /**初始化城市背景循环参数 */
+    private initCityLoop() {
+        let bg1 = this.city.getChildByName("bg1");
+        let bg2 = this.city.getChildByName("bg2");
+        if (!this.city || !bg1 || !bg2) {
+            this.cityLoopWidth = 0;
+            return;
+        }
+
+        this.cityStartX = this.city.position.x;
+        this.cityLoopWidth = Math.abs(bg1.position.x - bg2.position.x);
+    }
+
+    /**城市背景向右无缝循环移动 */
+    private updateCityLoop(deltaTime: number) {
+        if (!this.city || this.cityLoopWidth <= 0 || this.cityMoveSpeed <= 0) {
+            return;
+        }
+
+        let cityPos = this.city.position;
+        let moveOffset = (cityPos.x - this.cityStartX + this.cityMoveSpeed * deltaTime) % this.cityLoopWidth;
+        this.city.setPosition(this.cityStartX + moveOffset, cityPos.y, cityPos.z);
     }
 
     protected update(deltaTime: number): void {
@@ -61,6 +96,8 @@ export class UILoading extends Component {
             this.fengAnimTime = 0;
             this.fengAnim.setAnimation(0, "feng2", false);
         }
+
+        this.updateCityLoop(deltaTime);
 
         if (this.currentProgressPercent >= 1) {
             return;

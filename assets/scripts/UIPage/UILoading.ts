@@ -42,6 +42,7 @@ export class UILoading extends Component {
     private isSceneLoading = false;
 
     start() {
+        this.zombie = this.zombie || this.node.getChildByName("zombie");
         this.refreshProgress();
         this.initData();
     }
@@ -127,8 +128,14 @@ export class UILoading extends Component {
 
     /**刷新进度条 */
     refreshProgress() {
-        this.progress.fillRange = this.currentProgressPercent;
-        this.percentLab.string = `${(this.currentProgressPercent * 100).toFixed(0)}%`;
+        let progressPercent = Math.min(Math.max(this.currentProgressPercent, 0), 1);
+        this.progress.fillRange = progressPercent;
+        this.percentLab.string = `${(progressPercent * 100).toFixed(0)}%`;
+
+        if (this.zombie) {
+            let zombiePos = this.zombie.position;
+            this.zombie.setPosition(-466 + 932 * progressPercent, zombiePos.y, zombiePos.z);
+        }
     }
 
     /**加载表格 */

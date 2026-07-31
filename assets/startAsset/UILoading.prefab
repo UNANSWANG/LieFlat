@@ -1131,6 +1131,8 @@
       "__id__": 0
     },
     "fileId": "e1KbMagQhJE73LdKriRGqD",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -2826,6 +2828,9 @@
     },
     "percentLab": {
       "__id__": 71
+    },
+    "zombie": {
+      "__id__": 112
     },
     "_id": ""
   },

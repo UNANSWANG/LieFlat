@@ -225,7 +225,6 @@ export class UILoading extends Component {
         this.isSceneLoading = true;
         this.currentProgressPercent = 1;
         this.refreshProgress();
-        return
         this.scheduleOnce(() => director.loadScene("main"), 0);
     }
 

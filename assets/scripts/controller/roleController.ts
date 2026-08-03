@@ -745,7 +745,7 @@ export class roleController extends Component {
         let difficultyData = this.getRobotDifficultyData();
         let idx = Math.floor(Number(buildData.idx));
         let weights = this.parseProbabilityWeights(difficultyData?.[`probability${idx}`]);
-        console.warn("-------->执行炮台行为判定:\n",weights);
+        // console.warn("-------->执行炮台行为判定:\n",weights);
         switch (ccTools.getWeightedRandomIndex(weights)) {
             case 0:
                 this.gameComp?.buildRobotCannonOrUpgrade(this.roomIdx);

@@ -9,9 +9,16 @@ const excel = require('exceljs');
 function getCellValue(cell: any) {
     const value = cell.value;
     if (value != null && typeof value === "object" && ("formula" in value || "sharedFormula" in value)) {
+        if (value.result == null) {
+            console.warn(`公式单元格 ${cell.address} 没有缓存计算结果，请使用 Excel/WPS 重新计算并保存文件`);
+        }
         return value.result;
     }
     return value;
+}
+
+function isEmptyValue(value: any) {
+    return value == null || value === "";
 }
 
 /**
@@ -103,6 +110,15 @@ async function convert(src: string, dst: string, name: string, isClient: boolean
 
         // 生成数据（多主键）
         if (rowNumber > 5) {
+            const primaryValues = primary.map((key: string) => data[key]);
+            if (primaryValues.every(isEmptyValue)) {
+                return;
+            }
+            if (primaryValues.some(isEmptyValue)) {
+                console.warn(`第 ${rowNumber} 行主键不完整，已跳过`);
+                return;
+            }
+
             let temp: any = null;
             for (var i = 0; i < primary.length; i++) {
                 let k = primary[i];
@@ -132,16 +148,11 @@ async function convert(src: string, dst: string, name: string, isClient: boolean
     });
 
     // 写入流
-    if (r["undefined"] == null) {
-        await fs.writeFileSync(dst, JSON.stringify(r));
+    await fs.writeFileSync(dst, JSON.stringify(r));
 
-        // 生成客户端脚本
-        if (isClient) createTs(name, types_client, r, primary);
-        console.log(isClient ? "客户端数据" : "服务器数据", "生成成功", dst);
-    }
-    else {
-        console.log(isClient ? "客户端数据" : "服务器数据", "无数据", dst);
-    }
+    // 生成客户端脚本
+    if (isClient) createTs(name, types_client, r, primary);
+    console.log(isClient ? "客户端数据" : "服务器数据", "生成成功", dst);
 }
 
 export function run() {

@@ -38,6 +38,8 @@ export const configData = {
     roleDisappearTime: 0.5,
     /**人机匹配显示时间区间（秒） */
     roleMatchTime: [0.5, 1.2],
+    /**人机难度类型数量 */
+    robotDifficultyTypeCount: 4,
 }
 
 /**敌人通用配置 */
@@ -96,15 +98,6 @@ export const robotCommonConfig = {
     generatorUpgradeInterval: [30, 60],
     /**发电机最高等级 */
     generatorMaxLevel: 5,
-    /**矿脉的建造前提（发电机最高等级，实际3级时level=2，因为从0开始） */
-    veinBuildLevel: 3,
-    /**矿脉的建造间隔（秒） */
-    veinBuildInterval: [30, 60],
-    /**矿脉的最大上限（个数） */
-    veinMax: 2,
-    /**矿脉各等级建造权重 */
-    veinBuildWeight: [0.95, 0.03, 0.02, 0.01],
-
     /**被怪物攻击时检测的时间阈值（从倒计时结束后开始计时，区分前期和后期） */
     enemyAttackTimeThreshold: 40,
     /**前期升级门的次数上限 */
@@ -113,30 +106,6 @@ export const robotCommonConfig = {
     enemyAttackTimeUpgrade: 20,
     /**门掉血速率阈值，单次伤害百分比 */
     doorHpAttackPercent: 0.05,
-    /**炮台建造的距离（格数） */
-    cannonBuildDistance: 4,
-    /**炮台建造的时间阈值（用以区分炮台的前半段时间） */
-    cannonBuildTimeThreshold: [10, 100],
-    /**前半段炮台的最高等级 */
-    cannonBuildLevel: 3,
-    /**前半段炮台的升级冷却时间（秒） */
-    cannonBuildUpgradeCoolDown: 5,
-    /**炮台后半段建造的时间阈值（用以区分炮台的后半段时间） */
-    cannonBuildTimeThresholdLater: 120,
-    /**后半段炮台的最高等级 */
-    cannonBuildLevelLater: 5,
-    /**后半段炮台的升级冷却时间（秒） */
-    cannonBuildUpgradeCoolDownLater: 10,
-    /**后期门掉血速度过快时，生成道具的时间 */
-    propsBuildTimedLater: 20,
-    /**建造机床的前提时间（秒） */
-    machineBuildTimeThreshold: 180,
-    /**建造寒冰的前提时间（秒） */
-    iceBuildTimeThreshold: 240,
-    /**检测队友被攻击范围（格数） */
-    checkTeamRange: 10,
-    /**队友被攻击时可升级的最大等级炮台 */
-    maxUpgradeCannonLevel: 2,
 }
 
 /**gm配置 */

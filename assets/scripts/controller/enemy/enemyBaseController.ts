@@ -73,10 +73,10 @@ export class enemyBaseController extends Component {
     private attackingTilePos: Vec2 = null;
     /**是否正在播放攻击道具动画 */
     private isAttackingProps: boolean = false;
+    /**已通知进入攻击状态的房门坐标 */
+    private attackingDoorTilePos: Vec2 = null;
     /**当前连续攻击门期间是否已经触发过震慑 */
     private hasFearCurAttackDoor: boolean = false;
-    /**当前攻击门期间是否已经触发过队友炮台处理 */
-    private hasHandleTeamCannonCurAttackDoor: boolean = false;
     /**当前攻击的门是否已判定为继续强攻 */
     private isForceAttackingDoor: boolean = false;
     /**当前攻击门秒伤检测阶段 */
@@ -1345,13 +1345,14 @@ export class enemyBaseController extends Component {
         }
 
         if (!this.attackingTilePos || this.attackingTilePos.x != tilePos.x || this.attackingTilePos.y != tilePos.y) {
+            this.notifyDoorAttackStopped();
             this.attackingTilePos = new Vec2(tilePos.x, tilePos.y);
             this.hasFearCurAttackDoor = false;
-            this.hasHandleTeamCannonCurAttackDoor = false;
             this.isForceAttackingDoor = false;
             this.resetDoorAttackTimeCheck();
             this.thornDamageTimer = 0;
             if (propComp.propsType == tilePropsType.door) {
+                this.attackingDoorTilePos = new Vec2(tilePos.x, tilePos.y);
                 this.gameComp?.onDoorAttackStartedByEnemy(tilePos);
             }
             this.startAttackProps();
@@ -1379,14 +1380,24 @@ export class enemyBaseController extends Component {
         }
 
         this.stopCageControl();
+        this.notifyDoorAttackStopped();
         this.isAttackingProps = false;
         this.attackingTilePos = null;
         this.hasFearCurAttackDoor = false;
-        this.hasHandleTeamCannonCurAttackDoor = false;
         this.isForceAttackingDoor = false;
         this.resetDoorAttackTimeCheck();
         this.thornDamageTimer = 0;
         this.clearAttackIceEffect();
+    }
+
+    /**通知游戏层当前敌人已停止攻击原房门 */
+    private notifyDoorAttackStopped() {
+        if (!this.attackingDoorTilePos) {
+            return;
+        }
+
+        this.gameComp?.onDoorAttackStoppedByEnemy(this.attackingDoorTilePos);
+        this.attackingDoorTilePos = null;
     }
 
     /**开始攻击目标角色 */
@@ -1944,11 +1955,6 @@ export class enemyBaseController extends Component {
         let hpBeforeDamage = propComp.hp;
         let maxHpBeforeDamage = propComp.maxHp;
         let scratchWorldPos = propComp.node.worldPosition.clone();
-        if (isAttackDoor && !this.hasHandleTeamCannonCurAttackDoor) {
-            this.hasHandleTeamCannonCurAttackDoor = true;
-            this.gameComp?.handleTeamCannonByEnemyFirstDoorAttack(tilePos, this.currentPos);
-        }
-
         let isDestroyed = propComp.takeDamage(this.attackDamage, this.skinId);
         let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
         let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;

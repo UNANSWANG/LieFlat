@@ -182,6 +182,8 @@ export class UIGame extends UIBase {
     private readonly defaultMoveMatrixOffset: Vec2 = new Vec2(0, 8);
     /**等待玩家碰撞区域离开后恢复阻挡的门格 */
     private pendingDoorBlockPosMap: { [key: string]: Vec2 } = {};
+    /**每扇门当前正在攻击的敌人数量 */
+    private doorAttackerCountMap: { [key: string]: number } = {};
     /**引导路径瓦片对应的箭头节点 */
     private guideArrowNodeMap: { [key: string]: Node } = {};
     /**引导关门上的点击手指 */
@@ -467,6 +469,7 @@ export class UIGame extends UIBase {
         this.robotSuchRoomDelayTime = 0;
         this.playerLastRoomIdx = 0;
         this.pendingDoorBlockPosMap = {};
+        this.doorAttackerCountMap = {};
         this.gameStartElapsedTime = 0;
         Tween.stopAllByTarget(this.repairMask);
         this.repairMask.fillRange = 0;
@@ -2349,26 +2352,6 @@ export class UIGame extends UIBase {
         return count;
     }
 
-    /**获取房间内指定类型道具最高等级 */
-    getRoomPropsMaxLevelByType(roomIdx: number, propsType: string) {
-        let roomData: roomData = this.roomMap[roomIdx];
-        if (!roomData || !propsType) {
-            return -1;
-        }
-
-        let maxLevel = -1;
-        let roomArr = roomData.roomArr || [];
-        for (let i = 0; i < roomArr.length; i++) {
-            let tilePos = roomArr[i];
-            let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
-            if (propComp?.propsType == propsType) {
-                maxLevel = Math.max(maxLevel, propComp.level);
-            }
-        }
-
-        return maxLevel;
-    }
-
     /**获取房间内指定类型道具最低等级 */
     getRoomPropsMinLevelByType(roomIdx: number, propsType: string) {
         let roomData: roomData = this.roomMap[roomIdx];
@@ -2429,178 +2412,54 @@ export class UIGame extends UIBase {
         return true;
     }
 
-    /**房间内不存在指定道具时，在房间空位建造指定类型道具 */
-    buildRoomPropsByTypeIfAbsent(roomIdx: number, propsType: tilePropsType, level: number = 0) {
+    /**建造炮台；没有可用空闲格时尝试升级最低等级炮台 */
+    buildRobotCannonOrUpgrade(roomIdx: number) {
         let roomData: roomData = this.roomMap[roomIdx];
-        if (!roomData || !propsType || this.hasRoomPropsByType(roomData, propsType)) {
+        if (!roomData) {
             return false;
         }
 
-        return this.buildRoomPropsByType(roomIdx, propsType, level);
-    }
-
-    /**按房门范围主动建造或升级炮台，返回0无操作、1建造、2升级 */
-    buildOrUpgradeCannonByDoor(roomIdx: number, canUpgrade: boolean) {
-        let roomData: roomData = this.roomMap[roomIdx];
-        if (!roomData || !roomData.doorPos) {
-            return 0;
-        }
-
-        let buildPos = this.getCannonBuildPosByDoorRange(roomData);
-        if (buildPos) {
+        let emptyPosArr = this.getRoomEmptyBuildPosArr(roomData);
+        let keepGeneratorPosCount = this.hasRoomPropsByType(roomData, tilePropsType.generator) ? 0 : 1;
+        if (emptyPosArr.length > keepGeneratorPosCount) {
+            let buildPos = this.getRandomNearestPos(emptyPosArr, roomData.doorPos);
             this.createProps(buildPos, tilePropsType.cannon);
-            return 1;
+            return true;
         }
 
-        if (this.hasRoomIdleForCannonBuild(roomData)) {
-            return 0;
-        }
-
-        if (!canUpgrade) {
-            return 0;
-        }
-
-        let maxLevel = this.getCannonBuildMaxLevel();
-        if (maxLevel < 0) {
-            return 0;
-        }
-
-        return this.upgradeLowestRoomPropsByTypeRandom(roomData, tilePropsType.cannon, maxLevel) ? 2 : 0;
+        return this.upgradeRobotCannon(roomIdx);
     }
 
-    /**敌人首次攻击某扇门时，处理周围睡觉人机房间内的炮台 */
-    handleTeamCannonByEnemyFirstDoorAttack(doorPos: Vec2, enemyPos: Vec2) {
-        if (!doorPos || !this.isGameStartCountDownEnd || robotCommonConfig.checkTeamRange <= 0) {
-            return;
-        }
-
-        let attackRoomIdx = this.getRoomIdxByTilePos(doorPos);
-        let robotArr = this.getSleepingRobotsAroundTile(doorPos, robotCommonConfig.checkTeamRange, attackRoomIdx);
-        for (let i = 0; i < robotArr.length; i++) {
-            let robotComp = robotArr[i];
-            this.buildOrUpgradeTeamCannonByEnemyAttack(robotComp.roomIdx, enemyPos || doorPos);
-        }
+    /**随机升级房间内最低等级的未满级炮台 */
+    upgradeRobotCannon(roomIdx: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        return !!roomData && this.upgradeLowestRoomPropsByTypeRandom(roomData, tilePropsType.cannon);
     }
 
-    /**处理队友房间炮台，返回0无操作、1建造、2升级 */
-    private buildOrUpgradeTeamCannonByEnemyAttack(roomIdx: number, enemyPos: Vec2) {
+    /**随机出售房间内一个现有炮台 */
+    sellRobotCannon(roomIdx: number) {
         let roomData: roomData = this.roomMap[roomIdx];
         if (!roomData) {
-            return 0;
+            return false;
         }
 
-        if (!this.hasRoomPropsByType(roomData, tilePropsType.cannon)) {
-            let buildPos = this.getRoomEmptyPosNearestTo(roomData, enemyPos);
-            if (!buildPos) {
-                return 0;
-            }
-
-            this.createProps(buildPos, tilePropsType.cannon);
-            return 1;
-        }
-
-        return this.upgradeLowestRoomPropsByTypeRandom(roomData, tilePropsType.cannon, robotCommonConfig.maxUpgradeCannonLevel) ? 2 : 0;
-    }
-
-    /**获取指定范围内床上有睡觉人机的角色 */
-    private getSleepingRobotsAroundTile(centerPos: Vec2, range: number, excludeRoomIdx: number = 0) {
-        let result: roleController[] = [];
-        let checkRange = Math.max(0, range || 0);
-        for (let i = 0; i < this.robotArr.length; i++) {
-            let robotComp = this.robotArr[i];
-            if (!robotComp || robotComp.roleId == 0 || robotComp.roomIdx <= 0 || robotComp.state != roleState.bed) {
-                continue;
-            }
-
-            if (excludeRoomIdx > 0 && robotComp.roomIdx == excludeRoomIdx) {
-                continue;
-            }
-
-            let bedPos = this.roomMap[robotComp.roomIdx]?.bedPos;
-            if (!bedPos) {
-                continue;
-            }
-
-            if (Math.abs(bedPos.x - centerPos.x) > checkRange || Math.abs(bedPos.y - centerPos.y) > checkRange) {
-                continue;
-            }
-
-            result.push(robotComp);
-        }
-
-        return result;
-    }
-
-    /**获取房间中离目标最近的空闲格 */
-    private getRoomEmptyPosNearestTo(roomData: roomData, targetPos: Vec2) {
-        let result: Vec2 = null;
-        let minDistanceSqr = Number.MAX_VALUE;
-        let roomArr = roomData.roomArr || [];
-        for (let i = 0; i < roomArr.length; i++) {
-            let tilePos = roomArr[i];
-            let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
-            let tileComp = tileData?.item;
-            if (!tileData || this.isSameTilePos(tilePos, roomData.bedPos) || this.isSameTilePos(tilePos, roomData.doorPos) || (tileComp && tileComp.tileType != tilePropsType.none)) {
-                continue;
-            }
-
-            let offsetX = tilePos.x - targetPos.x;
-            let offsetY = tilePos.y - targetPos.y;
-            let distanceSqr = offsetX * offsetX + offsetY * offsetY;
-            if (distanceSqr < minDistanceSqr) {
-                minDistanceSqr = distanceSqr;
-                result = tilePos;
-            }
-        }
-
-        return result;
-    }
-
-    /**获取门附近可建造炮台的位置，优先离门近的位置 */
-    private getCannonBuildPosByDoorRange(roomData: roomData) {
-        let roomEmptyPosArr = this.getCannonBuildRangeEmptyPosArr(roomData);
-        if (this.needKeepGeneratorPosInCannonBuildRange(roomData) && roomEmptyPosArr.length <= 1) {
-            return null;
-        }
-
-        let doorPos = roomData.doorPos;
-        let candidates: { pos: Vec2, distance: number }[] = [];
-        for (let i = 0; i < roomEmptyPosArr.length; i++) {
-            let tilePos = roomEmptyPosArr[i];
-            let offsetX = Math.abs(tilePos.x - doorPos.x);
-            let offsetY = Math.abs(tilePos.y - doorPos.y);
-            candidates.push({
-                pos: tilePos,
-                distance: offsetX + offsetY,
-            });
-        }
-
+        let candidates = this.getRoomPropsPosArr(roomData, tilePropsType.cannon);
         if (candidates.length == 0) {
-            return null;
+            return false;
         }
 
-        candidates.sort((a, b) => a.distance - b.distance);
-        return candidates[0].pos;
+        let randomIdx = Math.floor(Math.random() * candidates.length);
+        let tilePos = candidates[randomIdx];
+        this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp?.removeProps(audioPath.buildSell);
+        return true;
     }
 
-    /**房间内是否还有炮台建造可使用的闲置格 */
-    private hasRoomIdleForCannonBuild(roomData: roomData) {
-        let roomEmptyPosArr = this.getCannonBuildRangeEmptyPosArr(roomData);
-        return roomEmptyPosArr.length > (this.needKeepGeneratorPosInCannonBuildRange(roomData) ? 1 : 0);
-    }
-
-    /**获取炮台范围内空闲可建造位置 */
-    private getCannonBuildRangeEmptyPosArr(roomData: roomData) {
+    /**获取房间内的空闲可建造格 */
+    private getRoomEmptyBuildPosArr(roomData: roomData) {
         let result: Vec2[] = [];
-        let doorPos = roomData.doorPos;
-        let buildDistance = Math.max(0, robotCommonConfig.cannonBuildDistance || 0);
         let roomArr = roomData.roomArr || [];
         for (let i = 0; i < roomArr.length; i++) {
             let tilePos = roomArr[i];
-            if (!this.isInCannonBuildRange(tilePos, doorPos, buildDistance)) {
-                continue;
-            }
-
             let tileData = this.tileMap[tilePos.x]?.[tilePos.y];
             let tileComp = tileData?.item;
             if (!tileData || this.isSameTilePos(tilePos, roomData.bedPos) || this.isSameTilePos(tilePos, roomData.doorPos) || (tileComp && tileComp.tileType != tilePropsType.none)) {
@@ -2613,36 +2472,44 @@ export class UIGame extends UIBase {
         return result;
     }
 
-    /**是否需要在炮台建造范围内预留发电机位置 */
-    private needKeepGeneratorPosInCannonBuildRange(roomData: roomData) {
-        return !this.hasRoomPropsByType(roomData, tilePropsType.generator) && this.isCannonBuildRangeCoverRoom(roomData);
-    }
+    /**从候选格中随机获取一个离目标最近的位置 */
+    private getRandomNearestPos(posArr: Vec2[], targetPos: Vec2) {
+        if (!posArr?.length || !targetPos) {
+            return null;
+        }
 
-    /**炮台建造范围是否覆盖整个房间 */
-    private isCannonBuildRangeCoverRoom(roomData: roomData) {
-        let doorPos = roomData.doorPos;
-        let buildDistance = Math.max(0, robotCommonConfig.cannonBuildDistance || 0);
-        let roomArr = roomData.roomArr || [];
-        for (let i = 0; i < roomArr.length; i++) {
-            let tilePos = roomArr[i];
-            if (this.isSameTilePos(tilePos, roomData.bedPos) || this.isSameTilePos(tilePos, roomData.doorPos)) {
-                continue;
-            }
-
-            if (!this.isInCannonBuildRange(tilePos, doorPos, buildDistance)) {
-                return false;
+        let minDistanceSqr = Number.MAX_VALUE;
+        let nearestPosArr: Vec2[] = [];
+        for (let i = 0; i < posArr.length; i++) {
+            let tilePos = posArr[i];
+            let offsetX = tilePos.x - targetPos.x;
+            let offsetY = tilePos.y - targetPos.y;
+            let distanceSqr = offsetX * offsetX + offsetY * offsetY;
+            if (distanceSqr < minDistanceSqr) {
+                minDistanceSqr = distanceSqr;
+                nearestPosArr = [tilePos];
+            } else if (distanceSqr == minDistanceSqr) {
+                nearestPosArr.push(tilePos);
             }
         }
 
-        return true;
+        let randomIdx = Math.floor(Math.random() * nearestPosArr.length);
+        return nearestPosArr[randomIdx];
     }
 
-    /**指定格子是否在炮台建造范围内 */
-    private isInCannonBuildRange(tilePos: Vec2, doorPos: Vec2, buildDistance: number) {
-        return !!tilePos
-            && !!doorPos
-            && Math.abs(tilePos.x - doorPos.x) <= buildDistance
-            && Math.abs(tilePos.y - doorPos.y) <= buildDistance;
+    /**获取房间内指定类型建筑的坐标 */
+    private getRoomPropsPosArr(roomData: roomData, propsType: tilePropsType) {
+        let result: Vec2[] = [];
+        let roomArr = roomData.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp?.propsType == propsType) {
+                result.push(tilePos);
+            }
+        }
+
+        return result;
     }
 
     /**房间内是否存在指定类型道具 */
@@ -2659,37 +2526,15 @@ export class UIGame extends UIBase {
         return false;
     }
 
-    /**获取当前时间段炮台主动升级最大等级 */
-    private getCannonBuildMaxLevel() {
-        let threshold = robotCommonConfig.cannonBuildTimeThreshold || [];
-        let timeMin = Number(threshold[0]) || 0;
-        let timeMax = Number(threshold[1]) || timeMin;
-        if (timeMax < timeMin) {
-            let temp = timeMin;
-            timeMin = timeMax;
-            timeMax = temp;
-        }
-
-        if (this.gameStartElapsedTime >= timeMin && this.gameStartElapsedTime <= timeMax) {
-            return robotCommonConfig.cannonBuildLevel;
-        }
-
-        if (this.gameStartElapsedTime > robotCommonConfig.cannonBuildTimeThresholdLater) {
-            return robotCommonConfig.cannonBuildLevelLater;
-        }
-
-        return -1;
-    }
-
     /**随机升级房间内最低等级的指定类型道具 */
-    private upgradeLowestRoomPropsByTypeRandom(roomData: roomData, propsType: tilePropsType, maxLevel: number) {
+    private upgradeLowestRoomPropsByTypeRandom(roomData: roomData, propsType: tilePropsType) {
         let minLevel = Number.MAX_SAFE_INTEGER;
         let candidates: Vec2[] = [];
         let roomArr = roomData.roomArr || [];
         for (let i = 0; i < roomArr.length; i++) {
             let tilePos = roomArr[i];
             let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
-            if (!propComp || propComp.propsType != propsType || propComp.isMaxLevel || propComp.level >= maxLevel) {
+            if (!propComp || propComp.propsType != propsType || propComp.isMaxLevel) {
                 continue;
             }
 
@@ -3381,7 +3226,7 @@ export class UIGame extends UIBase {
         }
 
         if (this.gameStartElapsedTime > robotCommonConfig.enemyAttackTimeThreshold) {
-            robotComp.tryHandleDoorAttackLater(damagePercent, this.gameStartElapsedTime);
+            robotComp.tryHandleDoorAttackLater(damagePercent);
             return;
         }
 
@@ -3394,6 +3239,13 @@ export class UIGame extends UIBase {
             return;
         }
 
+        let attackKey = this.getTilePosKey(tilePos);
+        let attackerCount = this.doorAttackerCountMap[attackKey] || 0;
+        this.doorAttackerCountMap[attackKey] = attackerCount + 1;
+        if (attackerCount > 0) {
+            return;
+        }
+
         let roomIdx = this.getRoomIdxByTilePos(tilePos);
         let robotComp = this.getSleepingRobotInRoom(roomIdx);
         if (roomIdx <= 0 || !robotComp) {
@@ -3401,6 +3253,27 @@ export class UIGame extends UIBase {
         }
 
         robotComp.onDoorAttackStart();
+    }
+
+    /**敌人停止攻击房门 */
+    onDoorAttackStoppedByEnemy(tilePos: Vec2) {
+        if (!tilePos) {
+            return;
+        }
+
+        let attackKey = this.getTilePosKey(tilePos);
+        let attackerCount = this.doorAttackerCountMap[attackKey] || 0;
+        if (attackerCount <= 0) {
+            return;
+        }
+        if (attackerCount > 1) {
+            this.doorAttackerCountMap[attackKey] = attackerCount - 1;
+            return;
+        }
+
+        delete this.doorAttackerCountMap[attackKey];
+        let roomIdx = this.getRoomIdxByTilePos(tilePos);
+        this.getSleepingRobotInRoom(roomIdx)?.onDoorAttackEnd();
     }
 
     /**修改地图内的行走区域 */

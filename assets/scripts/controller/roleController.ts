@@ -11,6 +11,10 @@ import { spinePath, UIPath } from '../manager/pathConfig';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 import { tilePropsType } from './tileItemController';
 import { poolMgr } from '../manager/poolManager';
+import { cannonBuildConfig } from '../json/jsonCannonBuild';
+import type { JsonCannonBuildData } from '../json/jsonCannonBuild';
+import { robotDifficultyConfig } from '../json/jsonRobotDifficulty';
+import type { JsonRobotDifficultyData } from '../json/jsonRobotDifficulty';
 const { ccclass, property } = _decorator;
 
 export enum roleState {
@@ -71,26 +75,22 @@ export class roleController extends Component {
     private generatorUpgradeTimer: number = 0;
     /**机器人发电机升级所需时间 */
     private generatorUpgradeTime: number = 0;
-    /**机器人矿脉建造计时 */
-    private veinBuildTimer: number = 0;
-    /**机器人矿脉建造所需时间 */
-    private veinBuildTime: number = 0;
     /**房门受攻击后升级次数 */
     private doorAttackUpgradeCount: number = 0;
     /**房门受攻击后升级冷却 */
     private doorAttackUpgradeCoolDown: number = 0;
-    /**房间主动建造炮台升级冷却 */
-    private cannonBuildUpgradeCoolDown: number = 0;
     /**后期高伤房门升级是否已使用 */
     private laterHighDamageDoorUpgradeUsed: boolean = false;
-    /**后期高伤机床建造是否已触发 */
-    private laterHighDamageMachineBuildUsed: boolean = false;
-    /**后期高伤寒冰建造是否已触发 */
-    private laterHighDamageIceBuildUsed: boolean = false;
     /**当前是否有敌人正在连续攻击房门 */
     private isDoorAttackSessionActive: boolean = false;
-    /**当前敌人连续攻击房门时间 */
-    private doorAttackSessionElapsedTime: number = 0;
+    /**机器人难度类型 */
+    private robotDifficultyType: number = -1;
+    /**机器人在当前难度类型数组中的配置索引 */
+    private robotDifficultyDataIdx: number = -1;
+    /**当前等待判定的炮台建造配置 */
+    private pendingCannonBuildData: JsonCannonBuildData = null;
+    /**炮台行为判定计时 */
+    private cannonBuildDecisionTimer: number = 0;
     /**本局建造道具次数 */
     private gamePropsBuildCountMap: { [key: string]: number } = {};
     /**当前播放的角色动画名称 */
@@ -203,6 +203,7 @@ export class roleController extends Component {
         this.state = roleState.normal;
         this.stopRobotUpgrade();
         this.resetDoorAttackUpgradeData();
+        this.initRobotDifficulty();
         this.gamePropsBuildCountMap = {};
         this.clearTargetBedReservation();
         this.clearTargetRandomPropsReservation();
@@ -414,8 +415,7 @@ export class roleController extends Component {
         }
         this.refreshRobotUpgrade(dt);
         this.refreshDoorAttackUpgradeCoolDown(dt);
-        this.refreshCannonBuildUpgradeCoolDown(dt);
-        this.refreshDoorAttackSessionTime(dt);
+        this.refreshCannonBuildDecision(dt);
     }
 
     /**获取未被玩家或机器人占用的床 */
@@ -609,8 +609,6 @@ export class roleController extends Component {
         this.generatorBuildTime = 0;
         this.generatorUpgradeTimer = 0;
         this.generatorUpgradeTime = 0;
-        this.veinBuildTimer = 0;
-        this.veinBuildTime = 0;
         this.isRobotUpgrading = true;
         this.resetDoorAttackUpgradeData();
         this.setNextRobotUpgradeTime();
@@ -626,8 +624,6 @@ export class roleController extends Component {
         this.generatorBuildTime = 0;
         this.generatorUpgradeTimer = 0;
         this.generatorUpgradeTime = 0;
-        this.veinBuildTimer = 0;
-        this.veinBuildTime = 0;
         this.resetDoorAttackUpgradeData();
     }
 
@@ -635,12 +631,9 @@ export class roleController extends Component {
     private resetDoorAttackUpgradeData() {
         this.doorAttackUpgradeCount = 0;
         this.doorAttackUpgradeCoolDown = 0;
-        this.cannonBuildUpgradeCoolDown = 0;
         this.laterHighDamageDoorUpgradeUsed = false;
-        this.laterHighDamageMachineBuildUsed = false;
-        this.laterHighDamageIceBuildUsed = false;
         this.isDoorAttackSessionActive = false;
-        this.doorAttackSessionElapsedTime = 0;
+        this.cancelCannonBuildDecision();
     }
 
     /**刷新房门受攻击升级冷却 */
@@ -650,24 +643,6 @@ export class roleController extends Component {
         }
 
         this.doorAttackUpgradeCoolDown = Math.max(0, this.doorAttackUpgradeCoolDown - dt);
-    }
-
-    /**刷新房间主动建造炮台升级冷却 */
-    private refreshCannonBuildUpgradeCoolDown(dt: number) {
-        if (this.cannonBuildUpgradeCoolDown <= 0) {
-            return;
-        }
-
-        this.cannonBuildUpgradeCoolDown = Math.max(0, this.cannonBuildUpgradeCoolDown - dt);
-    }
-
-    /**刷新当前敌人连续攻击房门时间 */
-    private refreshDoorAttackSessionTime(dt: number) {
-        if (!this.isDoorAttackSessionActive) {
-            return;
-        }
-
-        this.doorAttackSessionElapsedTime += dt;
     }
 
     /**门受到敌人攻击时尝试升级房门 */
@@ -694,85 +669,166 @@ export class roleController extends Component {
 
     /**敌人开始攻击房门 */
     onDoorAttackStart() {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            return;
+        }
+
         this.isDoorAttackSessionActive = true;
-        this.doorAttackSessionElapsedTime = 0;
+        this.startNextCannonBuildDecision(true);
     }
 
-    /**后期门受到敌人攻击 */
-    tryHandleDoorAttackLater(damagePercent: number, gameStartElapsedTime: number) {
-        if (damagePercent > robotCommonConfig.doorHpAttackPercent) {
-            this.tryHandleLaterHighDamageDoorAttack(gameStartElapsedTime);
+    /**按当前炮台数量开始下一轮行为判定 */
+    private startNextCannonBuildDecision(executeImmediately: boolean = false) {
+        if (!this.isDoorAttackSessionActive || this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            this.cancelCannonBuildDecision();
             return;
         }
 
-        if (damagePercent < robotCommonConfig.doorHpAttackPercent) {
-            this.tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime);
+        let cannonCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.cannon) || 0;
+        this.pendingCannonBuildData = cannonBuildConfig.getDataByCannonCount(cannonCount);
+        this.cannonBuildDecisionTimer = 0;
+        if (executeImmediately && this.pendingCannonBuildData && (Number(this.pendingCannonBuildData.time) || 0) <= 0) {
+            this.executeCannonBuildDecision();
         }
     }
 
-    /**门受到敌人低伤攻击时尝试建造或升级炮台 */
-    private tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime: number) {
+    /**敌人停止攻击当前房门 */
+    onDoorAttackEnd() {
+        this.isDoorAttackSessionActive = false;
+        this.cancelCannonBuildDecision();
+    }
+
+    /**后期门受到敌人高伤攻击时保留原有的一次房门升级 */
+    tryHandleDoorAttackLater(damagePercent: number) {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed
+            || damagePercent <= robotCommonConfig.doorHpAttackPercent || this.laterHighDamageDoorUpgradeUsed) {
+            return;
+        }
+
+        this.laterHighDamageDoorUpgradeUsed = true;
+        this.gameComp?.upgradeRoomPropsByType(this.roomIdx, tilePropsType.door);
+    }
+
+    /**刷新炮台行为的延迟判定 */
+    private refreshCannonBuildDecision(dt: number) {
+        if (!this.isDoorAttackSessionActive || !this.pendingCannonBuildData) {
+            return;
+        }
+
         if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            this.onDoorAttackEnd();
             return;
         }
 
-        let result = this.gameComp?.buildOrUpgradeCannonByDoor(this.roomIdx, this.cannonBuildUpgradeCoolDown <= 0) || 0;
-        if (result != 2) {
-            return;
-        }
-
-        this.cannonBuildUpgradeCoolDown = this.getCannonBuildUpgradeCoolDown(gameStartElapsedTime);
-    }
-
-    /**后期门受到敌人高伤攻击 */
-    private tryHandleLaterHighDamageDoorAttack(gameStartElapsedTime: number) {
-        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
-            return;
-        }
-
-        if (!this.laterHighDamageDoorUpgradeUsed) {
-            this.laterHighDamageDoorUpgradeUsed = true;
-            this.gameComp?.upgradeRoomPropsByType(this.roomIdx, tilePropsType.door);
-            return;
-        }
-
-        if (!this.canBuildCannonByLaterHighDamage()) {
-            return;
-        }
-
-        this.tryBuildLaterHighDamageProps(gameStartElapsedTime);
-        this.tryBuildOrUpgradeCannonByEnemyAttack(gameStartElapsedTime);
-    }
-
-    /**后期高伤时间窗内尝试补充防守道具 */
-    private tryBuildLaterHighDamageProps(gameStartElapsedTime: number) {
-        if (!this.laterHighDamageMachineBuildUsed && gameStartElapsedTime >= robotCommonConfig.machineBuildTimeThreshold) {
-            this.laterHighDamageMachineBuildUsed = true;
-            this.gameComp?.buildRoomPropsByTypeIfAbsent(this.roomIdx, tilePropsType.machine);
-        }
-
-        if (!this.laterHighDamageIceBuildUsed && gameStartElapsedTime >= robotCommonConfig.iceBuildTimeThreshold) {
-            this.laterHighDamageIceBuildUsed = true;
-            this.gameComp?.buildRoomPropsByTypeIfAbsent(this.roomIdx, tilePropsType.ice);
+        this.cannonBuildDecisionTimer += dt;
+        if (this.cannonBuildDecisionTimer >= Math.max(0, Number(this.pendingCannonBuildData.time) || 0)) {
+            this.executeCannonBuildDecision();
         }
     }
 
-    /**后期高伤是否允许生成炮台 */
-    private canBuildCannonByLaterHighDamage() {
-        if (!this.isDoorAttackSessionActive) {
-            return false;
+    /**根据难度权重执行炮台行为，完成后按最新数量开始下一轮判定 */
+    private executeCannonBuildDecision() {
+        let buildData = this.pendingCannonBuildData;
+        this.cancelCannonBuildDecision();
+        console.warn
+        if (!this.isDoorAttackSessionActive || !buildData) {
+            return;
         }
 
-        return this.doorAttackSessionElapsedTime <= robotCommonConfig.propsBuildTimedLater;
+        let difficultyData = this.getRobotDifficultyData();
+        let idx = Math.floor(Number(buildData.idx));
+        let weights = this.parseProbabilityWeights(difficultyData?.[`probability${idx}`]);
+        console.warn("-------->执行炮台行为判定:\n",weights);
+        switch (this.getWeightedRandomIndex(weights)) {
+            case 0:
+                this.gameComp?.buildRobotCannonOrUpgrade(this.roomIdx);
+                break;
+            case 1:
+                this.gameComp?.upgradeRobotCannon(this.roomIdx);
+                break;
+            case 3:
+                this.gameComp?.sellRobotCannon(this.roomIdx);
+                break;
+        }
+
+        this.startNextCannonBuildDecision();
     }
 
-    /**获取当前时间段炮台主动升级冷却 */
-    private getCannonBuildUpgradeCoolDown(gameStartElapsedTime: number) {
-        if (gameStartElapsedTime > robotCommonConfig.cannonBuildTimeThresholdLater) {
-            return robotCommonConfig.cannonBuildUpgradeCoolDownLater;
+    /**初始化并记录本局机器人难度配置位置 */
+    private initRobotDifficulty() {
+        this.robotDifficultyType = -1;
+        this.robotDifficultyDataIdx = -1;
+        if (this.roleId == 0) {
+            return;
         }
 
-        return robotCommonConfig.cannonBuildUpgradeCoolDown;
+        let typeCount = Math.min(configData.robotDifficultyTypeCount, robotDifficultyConfig.typeArr.length);
+        if (typeCount <= 0) {
+            return;
+        }
+
+        this.robotDifficultyType = Math.floor(Math.random() * typeCount) + 1;
+        let typeDataArr = robotDifficultyConfig.typeArr[this.robotDifficultyType - 1] || [];
+        if (typeDataArr.length > 0) {
+            this.robotDifficultyDataIdx = Math.floor(Math.random() * typeDataArr.length);
+        }
+    }
+
+    /**获取机器人初始化时选中的难度配置 */
+    private getRobotDifficultyData(): JsonRobotDifficultyData {
+        if (this.robotDifficultyType <= 0 || this.robotDifficultyDataIdx < 0) {
+            return null;
+        }
+
+        return robotDifficultyConfig.typeArr[this.robotDifficultyType - 1]?.[this.robotDifficultyDataIdx] || null;
+    }
+
+    /**解析表中的行为权重数组 */
+    private parseProbabilityWeights(value: string | number[]): number[] {
+        if (Array.isArray(value)) {
+            return value;
+        }
+
+        if (typeof value != "string") {
+            return [];
+        }
+
+        try {
+            let weights = JSON.parse(value);
+            return Array.isArray(weights) ? weights : [];
+        } catch (error) {
+            console.warn("机器人炮台行为权重配置无效:", value);
+            return [];
+        }
+    }
+
+    /**按非负权重随机行为索引 */
+    private getWeightedRandomIndex(weights: number[]) {
+        let totalWeight = 0;
+        for (let i = 0; i < weights.length; i++) {
+            totalWeight += Math.max(0, Number(weights[i]) || 0);
+        }
+        if (totalWeight <= 0) {
+            return -1;
+        }
+
+        let randomValue = Math.random() * totalWeight;
+        for (let i = 0; i < weights.length; i++) {
+            randomValue -= Math.max(0, Number(weights[i]) || 0);
+            if (randomValue < 0) {
+                console.warn("机器人炮台行为:", i);
+                return i;
+            }
+        }
+
+        console.warn("机器人炮台行为:", weights.length - 1);
+        return weights.length - 1;
+    }
+
+    /**取消本次尚未执行的炮台行为判定 */
+    private cancelCannonBuildDecision() {
+        this.pendingCannonBuildData = null;
+        this.cannonBuildDecisionTimer = 0;
     }
 
     /**刷新机器人升级计时 */
@@ -784,7 +840,6 @@ export class roleController extends Component {
         this.refreshRobotNormalUpgrade(dt);
         this.refreshRobotGeneratorBuild(dt);
         this.refreshRobotGeneratorUpgrade(dt);
-        this.refreshRobotPrinterBuild(dt);
     }
 
     /**刷新机器人常规升级计时 */
@@ -872,38 +927,6 @@ export class roleController extends Component {
         this.generatorUpgradeTime = 0;
     }
 
-    /**刷新机器人矿脉建造计时 */
-    private refreshRobotPrinterBuild(dt: number) {
-        let generatorMaxLevel = this.gameComp?.getRoomPropsMaxLevelByType(this.roomIdx, tilePropsType.generator) ?? -1;
-        if ((generatorMaxLevel + 1) < robotCommonConfig.veinBuildLevel) {
-            this.veinBuildTimer = 0;
-            this.veinBuildTime = 0;
-            return;
-        }
-
-        let veinCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.vein) || 0;
-        if (veinCount >= robotCommonConfig.veinMax) {
-            this.veinBuildTimer = 0;
-            this.veinBuildTime = 0;
-            return;
-        }
-
-        if (this.veinBuildTime <= 0) {
-            this.veinBuildTime = this.getRandomInterval(robotCommonConfig.veinBuildInterval);
-            this.veinBuildTimer = 0;
-            return;
-        }
-
-        this.veinBuildTimer += dt;
-        if (this.veinBuildTimer < this.veinBuildTime) {
-            return;
-        }
-
-        this.gameComp?.buildRoomPropsByType(this.roomIdx, tilePropsType.vein, this.getRandomVeinLevel());
-        this.veinBuildTimer = 0;
-        this.veinBuildTime = 0;
-    }
-
     /**设置下一次机器人升级所需时间 */
     private setNextRobotUpgradeTime() {
         if (this.robotUpgradeIdx >= robotUpgradeConfig.dataLength) {
@@ -942,29 +965,6 @@ export class roleController extends Component {
         }
 
         return timeMin + Math.random() * (timeMax - timeMin);
-    }
-
-    /**按配置权重随机矿脉建造等级 */
-    private getRandomVeinLevel() {
-        let weights = robotCommonConfig.veinBuildWeight || [];
-        let totalWeight = 0;
-        for (let i = 0; i < weights.length; i++) {
-            totalWeight += Math.max(0, Number(weights[i]) || 0);
-        }
-
-        if (totalWeight <= 0) {
-            return 0;
-        }
-
-        let randomValue = Math.random() * totalWeight;
-        for (let i = 0; i < weights.length; i++) {
-            randomValue -= Math.max(0, Number(weights[i]) || 0);
-            if (randomValue <= 0) {
-                return i;
-            }
-        }
-
-        return 0;
     }
 
     /**刷新人机身上携带道具的位置和缩放 */

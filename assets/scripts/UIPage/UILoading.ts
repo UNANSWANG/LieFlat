@@ -269,27 +269,10 @@ export class UILoading extends Component {
         robotCommonConfig.generatorBuildInterval = JSON.parse(commonConfig.getValue("generatorBuildInterval"));
         robotCommonConfig.generatorUpgradeInterval = JSON.parse(commonConfig.getValue("generatorUpgradeInterval"));
         robotCommonConfig.generatorMaxLevel = commonConfig.getValueNumber("generatorMaxLevel");
-        robotCommonConfig.veinBuildLevel = commonConfig.getValueNumber("veinBuildLevel");
-        robotCommonConfig.veinBuildInterval = JSON.parse(commonConfig.getValue("veinBuildInterval"));
-        robotCommonConfig.veinMax = commonConfig.getValueNumber("veinMax");
-        robotCommonConfig.veinBuildWeight = JSON.parse(commonConfig.getValue("veinBuildWeight"));
-
         robotCommonConfig.enemyAttackTimeThreshold = commonConfig.getValueNumber("enemyAttackTimeThreshold");
         robotCommonConfig.enemyUpgradeDoorMax = commonConfig.getValueNumber("enemyUpgradeDoorMax");
         robotCommonConfig.enemyAttackTimeUpgrade = commonConfig.getValueNumber("enemyAttackTimeUpgrade");
         robotCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("doorHpAttackPercent") / 100;
-        robotCommonConfig.cannonBuildDistance = commonConfig.getValueNumber("cannonBuildDistance");
-        robotCommonConfig.cannonBuildTimeThreshold = JSON.parse(commonConfig.getValue("cannonBuildTimeThreshold"));
-        robotCommonConfig.cannonBuildLevel = commonConfig.getValueNumber("cannonBuildLevel");
-        robotCommonConfig.cannonBuildUpgradeCoolDown = commonConfig.getValueNumber("cannonBuildUpgradeCoolDown");
-        robotCommonConfig.cannonBuildTimeThresholdLater = commonConfig.getValueNumber("cannonBuildTimeThresholdLater");
-        robotCommonConfig.cannonBuildLevelLater = commonConfig.getValueNumber("cannonBuildLevelLater");
-        robotCommonConfig.cannonBuildUpgradeCoolDownLater = commonConfig.getValueNumber("cannonBuildUpgradeCoolDownLater");
-        robotCommonConfig.propsBuildTimedLater = commonConfig.getValueNumber("propsBuildTimedLater");
-        robotCommonConfig.machineBuildTimeThreshold = commonConfig.getValueNumber("machineBuildTimeThreshold");
-        robotCommonConfig.iceBuildTimeThreshold = commonConfig.getValueNumber("iceBuildTimeThreshold");
-        robotCommonConfig.checkTeamRange = commonConfig.getValueNumber("checkTeamRange");
-        robotCommonConfig.maxUpgradeCannonLevel = commonConfig.getValueNumber("maxUpgradeCannonLevel");
 
         console.log("------------>公共配置表数据同步完毕");
     }

@@ -12,7 +12,7 @@ export class jsonRobotDifficulty extends jsonBase {
     protected tableUrl1: string = "";
     protected tableUrl2: string = "";
 
-    typeArr: any[][] = [];
+    typeArr: JsonRobotDifficultyData[][] = [];
 
     /**表格处理 */
     protected processTableData() {
@@ -29,9 +29,11 @@ export class jsonRobotDifficulty extends jsonBase {
 }
 export let robotDifficultyConfig = new jsonRobotDifficulty();
 
-interface JsonRobotDifficultyData {
+export interface JsonRobotDifficultyData {
     /**难度类型 */
     type: number;
+    /**炮台行为权重 */
+    [key: `probability${number}`]: string | number[];
 }
 
 

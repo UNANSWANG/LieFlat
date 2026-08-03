@@ -15,18 +15,37 @@ export class jsonCannonBuild extends jsonBase {
     /**表格处理 */
     protected processTableData() {
         super.processTableData();
-        
+    }
+
+    /**按当前炮台数量获取对应的建造配置 */
+    getDataByCannonCount(cannonCount: number): JsonCannonBuildData {
+        if (!Array.isArray(this.data)) {
+            return null;
+        }
+
+        let count = Math.max(0, Math.floor(Number(cannonCount) || 0));
+        for (let i = 0; i < this.data.length; i++) {
+            let data = this.data[i] as JsonCannonBuildData;
+            let minNum = Math.max(0, Math.floor(Number(data?.minNum) || 0));
+            let hasMaxNum = data?.maxNum !== undefined && data?.maxNum !== null && data?.maxNum !== "";
+            let maxNum = hasMaxNum ? Math.floor(Number(data.maxNum)) : Number.MAX_SAFE_INTEGER;
+            if (count >= minNum && count <= maxNum) {
+                return data;
+            }
+        }
+
+        return null;
     }
 }
 export let cannonBuildConfig = new jsonCannonBuild();
 
-interface JsonCannonBuildData {
+export interface JsonCannonBuildData {
     /**索引 */
     idx: number;
     /**最小数量 */
     minNum: number;
     /**最大数量 */
-    maxNum: number;
+    maxNum?: number | string;
     /**判定时间 */
     time: number;
 }

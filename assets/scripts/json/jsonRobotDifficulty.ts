@@ -1,7 +1,5 @@
 import { _decorator, Component, Node } from 'cc';
 import { jsonBase } from './jsonBase';
-import { GameEvent } from '../manager/configData';
-import { gm } from '../manager/gm';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonRobotDifficulty')

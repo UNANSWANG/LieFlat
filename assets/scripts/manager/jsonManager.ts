@@ -9,6 +9,7 @@ import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { nicknameConfig } from '../json/jsonNickname';
 import { cannonBuildConfig } from '../json/jsonCannonBuild';
 import { robotDifficultyConfig } from '../json/jsonRobotDifficulty';
+import { veinBuildConfig } from '../json/jsonVeinBuild';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonManager')
@@ -32,6 +33,7 @@ export class jsonManager  {
         roleSkinConfig.initTable();
         robotDifficultyConfig.initTable();
         cannonBuildConfig.initTable();
+        veinBuildConfig.initTable();
     }
 
     loadCall(name: string){

@@ -106,6 +106,14 @@ export const robotCommonConfig = {
     enemyAttackTimeUpgrade: 20,
     /**门掉血速率阈值，单次伤害百分比 */
     doorHpAttackPercent: 0.05,
+    /**敌人攻击时道具建造间隔（秒） */
+    enemyAttackPropsInterval: 30,
+    /**敌人攻击时，建造权重 */
+    enemyAttackPropsWeight: [0, 2, 2, 0, 6],
+    /**敌人不攻击时道具建造间隔（秒） */
+    enemyNotAttackPropsInterval: 30,
+    /**敌人不攻击时，建造权重 */
+    enemyNotAttackPropsWeight: [20, 10, 5, 20, 45],
 }
 
 /**gm配置 */

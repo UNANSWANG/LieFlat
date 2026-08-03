@@ -273,6 +273,10 @@ export class UILoading extends Component {
         robotCommonConfig.enemyUpgradeDoorMax = commonConfig.getValueNumber("enemyUpgradeDoorMax");
         robotCommonConfig.enemyAttackTimeUpgrade = commonConfig.getValueNumber("enemyAttackTimeUpgrade");
         robotCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("doorHpAttackPercent") / 100;
+        robotCommonConfig.enemyAttackPropsInterval = commonConfig.getValueNumber("enemyAttackPropsInterval");
+        robotCommonConfig.enemyAttackPropsWeight = JSON.parse(commonConfig.getValue("enemyAttackPropsWeight"));
+        robotCommonConfig.enemyNotAttackPropsInterval = commonConfig.getValueNumber("enemyNotAttackPropsInterval");
+        robotCommonConfig.enemyNotAttackPropsWeight = JSON.parse(commonConfig.getValue("enemyNotAttackPropsWeight"));
 
         console.log("------------>公共配置表数据同步完毕");
     }

@@ -15,6 +15,8 @@ export class jsonProps extends jsonBase {
     private randomPropsData: JsonPropsData[] = [];
     /**神秘商店道具数据 */
     private storePropsData: JsonPropsData[][] = [];
+    /**按建筑类型分组的一级道具数据 */
+    private buildTypePropsData: { [key: number]: JsonPropsData[] } = {};
 
     /**表格处理 */
     protected processTableData() {
@@ -22,12 +24,19 @@ export class jsonProps extends jsonBase {
         this.propsData = [];
         this.randomPropsData = [];
         this.storePropsData = [];
+        this.buildTypePropsData = {};
         for (let i = 0; i < this.data.length; i++) {
             let data: JsonPropsData = this.data[i];
             if (typeof data.desc == "string") {
                 data.desc = data.desc.replace(/\\r\\n|\\n|\/n/g, "\n");
             }
             data.level -= 1;
+            if (data.level == 0 && data.buildType > 0) {
+                if (!this.buildTypePropsData[data.buildType]) {
+                    this.buildTypePropsData[data.buildType] = [];
+                }
+                this.buildTypePropsData[data.buildType].push(data);
+            }
             if (this.propsData.hasOwnProperty(data.propsType)) {
                 this.propsData[data.propsType].push(data);
             } else {
@@ -80,6 +89,11 @@ export class jsonProps extends jsonBase {
     /**获取神秘商店分类型道具数据 */
     getStorePropsData(): JsonPropsData[][] {
         return this.storePropsData || [];
+    }
+
+    /**获取指定建筑类型的一级道具数据 */
+    getBuildTypePropsData(buildType: number): JsonPropsData[] {
+        return this.buildTypePropsData[buildType] || [];
     }
 }
 export let propsConfig = new jsonProps();

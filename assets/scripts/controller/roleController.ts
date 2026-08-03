@@ -15,6 +15,7 @@ import { cannonBuildConfig } from '../json/jsonCannonBuild';
 import type { JsonCannonBuildData } from '../json/jsonCannonBuild';
 import { robotDifficultyConfig } from '../json/jsonRobotDifficulty';
 import type { JsonRobotDifficultyData } from '../json/jsonRobotDifficulty';
+import { veinBuildConfig } from '../json/jsonVeinBuild';
 const { ccclass, property } = _decorator;
 
 export enum roleState {
@@ -91,6 +92,8 @@ export class roleController extends Component {
     private pendingCannonBuildData: JsonCannonBuildData = null;
     /**炮台行为判定计时 */
     private cannonBuildDecisionTimer: number = 0;
+    /**机器人其他道具建造计时 */
+    private robotPropsBuildTimer: number = 0;
     /**本局建造道具次数 */
     private gamePropsBuildCountMap: { [key: string]: number } = {};
     /**当前播放的角色动画名称 */
@@ -416,6 +419,7 @@ export class roleController extends Component {
         this.refreshRobotUpgrade(dt);
         this.refreshDoorAttackUpgradeCoolDown(dt);
         this.refreshCannonBuildDecision(dt);
+        this.refreshRobotPropsBuild(dt);
     }
 
     /**获取未被玩家或机器人占用的床 */
@@ -633,6 +637,7 @@ export class roleController extends Component {
         this.doorAttackUpgradeCoolDown = 0;
         this.laterHighDamageDoorUpgradeUsed = false;
         this.isDoorAttackSessionActive = false;
+        this.robotPropsBuildTimer = 0;
         this.cancelCannonBuildDecision();
     }
 
@@ -674,6 +679,7 @@ export class roleController extends Component {
         }
 
         this.isDoorAttackSessionActive = true;
+        this.robotPropsBuildTimer = 0;
         this.startNextCannonBuildDecision(true);
     }
 
@@ -695,6 +701,7 @@ export class roleController extends Component {
     /**敌人停止攻击当前房门 */
     onDoorAttackEnd() {
         this.isDoorAttackSessionActive = false;
+        this.robotPropsBuildTimer = 0;
         this.cancelCannonBuildDecision();
     }
 
@@ -797,7 +804,7 @@ export class roleController extends Component {
             let weights = JSON.parse(value);
             return Array.isArray(weights) ? weights : [];
         } catch (error) {
-            console.warn("机器人炮台行为权重配置无效:", value);
+            console.warn("机器人行为权重配置无效:", value);
             return [];
         }
     }
@@ -806,6 +813,62 @@ export class roleController extends Component {
     private cancelCannonBuildDecision() {
         this.pendingCannonBuildData = null;
         this.cannonBuildDecisionTimer = 0;
+    }
+
+    /**根据房门是否正在受攻击，按对应间隔尝试建造其他道具 */
+    private refreshRobotPropsBuild(dt: number) {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+            return;
+        }
+
+        let generatorCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.generator) || 0;
+        if (generatorCount <= 0) {
+            this.robotPropsBuildTimer = 0;
+            return;
+        }
+
+        let interval = Math.max(0, Number(this.isDoorAttackSessionActive
+            ? robotCommonConfig.enemyAttackPropsInterval
+            : robotCommonConfig.enemyNotAttackPropsInterval) || 0);
+        this.robotPropsBuildTimer += dt;
+        if (this.robotPropsBuildTimer < interval) {
+            return;
+        }
+
+        this.robotPropsBuildTimer = interval > 0 ? this.robotPropsBuildTimer % interval : 0;
+        let weights = this.isDoorAttackSessionActive
+            ? robotCommonConfig.enemyAttackPropsWeight
+            : robotCommonConfig.enemyNotAttackPropsWeight;
+        this.executeRobotPropsBuild(weights);
+    }
+
+    /**按公共配置权重执行一次其他道具建造判定 */
+    private executeRobotPropsBuild(weights: number[]) {
+        let behaviorIdx = ccTools.getWeightedRandomIndex(weights);
+        if (behaviorIdx == 0) {
+            this.executeRobotVeinBuild();
+            return;
+        }
+
+        if (behaviorIdx >= 1 && behaviorIdx <= 3) {
+            this.gameComp?.buildRobotRandomPropsByBuildType(this.roomIdx, behaviorIdx + 2);
+        }
+    }
+
+    /**根据当前矿脉数量配置决定建造一级矿脉或升级现有矿脉 */
+    private executeRobotVeinBuild() {
+        let veinCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.vein) || 0;
+        let buildData = veinBuildConfig.getDataByVeinCount(veinCount);
+        if (!buildData) {
+            return;
+        }
+
+        let behaviorIdx = ccTools.getWeightedRandomIndex(this.parseProbabilityWeights(buildData.probability));
+        if (behaviorIdx == 0) {
+            this.gameComp?.buildRobotVein(this.roomIdx);
+        } else if (behaviorIdx == 1) {
+            this.gameComp?.upgradeRobotVein(this.roomIdx);
+        }
     }
 
     /**刷新机器人升级计时 */

@@ -293,6 +293,8 @@ export class doorProps extends gamePropsBase {
 
     /**受到伤害 */
     takeDamage(damage: number, killerEnemySkinId?: number) {
+        //TODO 门无敌
+        // return false;
         if (coverProps.tryBlockDoorDamage(this.gameComp, this.roomIdx, this.hpPercent)) {
             return false;
         }

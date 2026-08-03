@@ -370,12 +370,12 @@ export class generalTools {
         for (let i = 0; i < weights.length; i++) {
             randomValue -= Math.max(0, Number(weights[i]) || 0);
             if (randomValue < 0) {
-                console.warn("获得权重索引:", i);
+                // console.warn("获得权重索引:", i);
                 return i;
             }
         }
 
-        console.warn("获得权重索引:", weights.length - 1);
+        // console.warn("获得权重索引:", weights.length - 1);
         return weights.length - 1;
     }
 }

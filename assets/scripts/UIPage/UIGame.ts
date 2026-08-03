@@ -2412,6 +2412,59 @@ export class UIGame extends UIBase {
         return true;
     }
 
+    /**在最靠近床的空位建造一级矿脉 */
+    buildRobotVein(roomIdx: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData) {
+            return false;
+        }
+
+        let emptyPosArr = this.getRoomEmptyBuildPosArr(roomData);
+        let buildPos = this.getRandomNearestPos(emptyPosArr, roomData.bedPos);
+        if (!buildPos) {
+            return false;
+        }
+
+        this.createProps(buildPos, tilePropsType.vein);
+        return true;
+    }
+
+    /**随机升级房间内最低等级的矿脉 */
+    upgradeRobotVein(roomIdx: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        return !!roomData && this.upgradeLowestRoomPropsByTypeRandom(roomData, tilePropsType.vein);
+    }
+
+    /**从指定建筑类型中随机选择一个可建造道具，并放到随机空位 */
+    buildRobotRandomPropsByBuildType(roomIdx: number, buildType: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        if (!roomData) {
+            return false;
+        }
+
+        let emptyPosArr = this.getRoomEmptyBuildPosArr(roomData);
+        if (emptyPosArr.length == 0) {
+            return false;
+        }
+
+        let typePropsData = propsConfig.getBuildTypePropsData(buildType);
+        let candidates: JsonPropsData[] = [];
+        for (let i = 0; i < typePropsData.length; i++) {
+            if (!this.isRoomBuildNumLimit(roomIdx, typePropsData[i])) {
+                candidates.push(typePropsData[i]);
+            }
+        }
+
+        if (candidates.length == 0) {
+            return false;
+        }
+
+        let propsData = candidates[Math.floor(Math.random() * candidates.length)];
+        let buildPos = emptyPosArr[Math.floor(Math.random() * emptyPosArr.length)];
+        this.createProps(buildPos, propsData.propsType as tilePropsType, propsData.level);
+        return true;
+    }
+
     /**建造炮台；没有可用空闲格时尝试升级最低等级炮台 */
     buildRobotCannonOrUpgrade(roomIdx: number) {
         let roomData: roomData = this.roomMap[roomIdx];

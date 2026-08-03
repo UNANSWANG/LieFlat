@@ -7,6 +7,8 @@ import { enemyConfig } from '../json/jsonEnemy';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { nicknameConfig } from '../json/jsonNickname';
+import { cannonBuildConfig } from '../json/jsonCannonBuild';
+import { robotDifficultyConfig } from '../json/jsonRobotDifficulty';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonManager')
@@ -28,6 +30,8 @@ export class jsonManager  {
         enemyConfig.initTable();
         robotUpgradeConfig.initTable();
         roleSkinConfig.initTable();
+        robotDifficultyConfig.initTable();
+        cannonBuildConfig.initTable();
     }
 
     loadCall(name: string){

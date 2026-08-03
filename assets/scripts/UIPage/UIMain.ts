@@ -35,6 +35,9 @@ export class UIMain extends UIBase {
     @property(Node)
     revisitBtn: Node = null;
 
+    @property(Node)
+    addMoneyBtn: Node = null;
+
     @property(sp.Skeleton)
     roleAnim: sp.Skeleton = null;
 
@@ -97,6 +100,7 @@ export class UIMain extends UIBase {
         this.revisitBtn.addComponent(zoomButton).onClick = this.clickRevisitBtn.bind(this);
         this.storeBtn.addComponent(zoomButton).onClick = this.clickStoreBtn.bind(this);
         this.skinStoreBtn.addComponent(zoomButton).onClick = this.clickSkinStoreBtn.bind(this);
+        this.addMoneyBtn.addComponent(zoomButton).onClick = this.clickAddMoneyBtn.bind(this);
     }
 
     /**添加监听 */
@@ -288,6 +292,11 @@ export class UIMain extends UIBase {
                 getUserInfo();
             }
         }
+    }
+
+    /**点击添加金币 */
+    clickAddMoneyBtn() {
+        uiMgr.showTips("添加金币");
     }
 
     /**点击商店 */

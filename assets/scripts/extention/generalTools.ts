@@ -355,5 +355,28 @@ export class generalTools {
         }
         return false;
     }
+
+    /**按非负权重随机行为索引 */
+    getWeightedRandomIndex(weights: number[]) {
+        let totalWeight = 0;
+        for (let i = 0; i < weights.length; i++) {
+            totalWeight += Math.max(0, Number(weights[i]) || 0);
+        }
+        if (totalWeight <= 0) {
+            return -1;
+        }
+
+        let randomValue = Math.random() * totalWeight;
+        for (let i = 0; i < weights.length; i++) {
+            randomValue -= Math.max(0, Number(weights[i]) || 0);
+            if (randomValue < 0) {
+                console.warn("获得权重索引:", i);
+                return i;
+            }
+        }
+
+        console.warn("获得权重索引:", weights.length - 1);
+        return weights.length - 1;
+    }
 }
 export let ccTools = new generalTools();

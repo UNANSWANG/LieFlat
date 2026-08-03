@@ -739,7 +739,7 @@ export class roleController extends Component {
         let idx = Math.floor(Number(buildData.idx));
         let weights = this.parseProbabilityWeights(difficultyData?.[`probability${idx}`]);
         console.warn("-------->执行炮台行为判定:\n",weights);
-        switch (this.getWeightedRandomIndex(weights)) {
+        switch (ccTools.getWeightedRandomIndex(weights)) {
             case 0:
                 this.gameComp?.buildRobotCannonOrUpgrade(this.roomIdx);
                 break;
@@ -800,29 +800,6 @@ export class roleController extends Component {
             console.warn("机器人炮台行为权重配置无效:", value);
             return [];
         }
-    }
-
-    /**按非负权重随机行为索引 */
-    private getWeightedRandomIndex(weights: number[]) {
-        let totalWeight = 0;
-        for (let i = 0; i < weights.length; i++) {
-            totalWeight += Math.max(0, Number(weights[i]) || 0);
-        }
-        if (totalWeight <= 0) {
-            return -1;
-        }
-
-        let randomValue = Math.random() * totalWeight;
-        for (let i = 0; i < weights.length; i++) {
-            randomValue -= Math.max(0, Number(weights[i]) || 0);
-            if (randomValue < 0) {
-                console.warn("机器人炮台行为:", i);
-                return i;
-            }
-        }
-
-        console.warn("机器人炮台行为:", weights.length - 1);
-        return weights.length - 1;
     }
 
     /**取消本次尚未执行的炮台行为判定 */

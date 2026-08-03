@@ -848,6 +848,7 @@ export class UIGame extends UIBase {
         return pData.isGuide
             && this.isGuideDoorUpgradeReady
             && !this.isGuideDoorUpgradeComplete
+            && this.canAffordGuideUpgrade(doorComp)
             && this.isPlayerGuideDoor(doorComp);
     }
 
@@ -862,15 +863,15 @@ export class UIGame extends UIBase {
             this.isGuideDoorUpgradeReady = false;
             this.isGuideDoorUpgradeUIOpen = false;
             this.clearGuideDoorClickNode();
-            this.scheduleOnce(this.refreshGuideBedUpgradeGuide, 0);
+            this.scheduleOnce(this.refreshGuideUpgradeGuide, 0);
         }
 
         this.scheduleOnce(this.refreshGuideGeneratorBuildGuide, 0);
     }
 
-    /**金币首次足够升级门时，在玩家房门上显示点击手指 */
+    /**金币足够升级门时，在玩家房门上显示点击手指 */
     private refreshGuideDoorUpgradeGuide() {
-        if (!pData.isGuide || this.isGuideDoorUpgradeReady || this.isGuideDoorUpgradeComplete
+        if (!pData.isGuide || this.isGuideDoorUpgradeComplete
             || playerMgr.playerComp?.state != roleState.bed) {
             return;
         }
@@ -883,6 +884,12 @@ export class UIGame extends UIBase {
         let doorComp = this.getDoorByRoom(roomIdx);
         let nextPropsData = doorComp?.propsDatas?.[doorComp.level + 1];
         if (!doorComp || !nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
+            this.isGuideDoorUpgradeReady = false;
+            this.clearGuideDoorClickNode();
+            return;
+        }
+
+        if (this.isGuideDoorUpgradeReady) {
             return;
         }
 
@@ -944,6 +951,7 @@ export class UIGame extends UIBase {
             && this.isGuideDoorUpgradeComplete
             && this.isGuideBedUpgradeReady
             && !this.isGuideBedUpgradeComplete
+            && this.canAffordGuideUpgrade(bedComp)
             && this.isPlayerGuideBed(bedComp);
     }
 
@@ -959,9 +967,9 @@ export class UIGame extends UIBase {
         this.clearGuideBedClickNode();
     }
 
-    /**门升级完成后，金币首次足够升级床时显示点击手指 */
+    /**门升级完成后，金币足够升级床时显示点击手指 */
     private refreshGuideBedUpgradeGuide() {
-        if (!pData.isGuide || !this.isGuideDoorUpgradeComplete || this.isGuideBedUpgradeReady
+        if (!pData.isGuide || !this.isGuideDoorUpgradeComplete
             || this.isGuideBedUpgradeComplete || playerMgr.playerComp?.state != roleState.bed) {
             return;
         }
@@ -984,6 +992,12 @@ export class UIGame extends UIBase {
 
         let nextPropsData = bedComp.propsDatas?.[bedComp.level + 1];
         if (!nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
+            this.isGuideBedUpgradeReady = false;
+            this.clearGuideBedClickNode();
+            return;
+        }
+
+        if (this.isGuideBedUpgradeReady) {
             return;
         }
 
@@ -1028,6 +1042,28 @@ export class UIGame extends UIBase {
         }
 
         this.guideBedClickNode = null;
+    }
+
+    /**当前金币和电能是否足够升级指定的门或床 */
+    private canAffordGuideUpgrade(propsComp: doorProps | bedProps) {
+        let nextPropsData = propsComp?.propsDatas?.[propsComp.level + 1];
+        return !!nextPropsData && ccTools.checkCanBuy(nextPropsData);
+    }
+
+    /**按门、床顺序刷新当前升级引导阶段 */
+    private refreshGuideUpgradeGuide() {
+        if (!pData.isGuide) {
+            return;
+        }
+
+        if (!this.isGuideDoorUpgradeComplete) {
+            this.refreshGuideDoorUpgradeGuide();
+            return;
+        }
+
+        if (!this.isGuideBedUpgradeComplete) {
+            this.refreshGuideBedUpgradeGuide();
+        }
     }
 
     /**打开门或床升级界面时隐藏对应的场景手指 */
@@ -3612,8 +3648,7 @@ export class UIGame extends UIBase {
     refreshMonetaryLab() {
         this.coinLab.string = pData.gameCoin.toString();
         this.powerLab.string = pData.gamePower.toString();
-        this.refreshGuideDoorUpgradeGuide();
-        this.refreshGuideBedUpgradeGuide();
+        this.refreshGuideUpgradeGuide();
         this.refreshGuideCannonBuildGuide();
         this.refreshGuideGeneratorBuildGuide();
     }

@@ -104,6 +104,8 @@ export class roleController extends Component {
     private killerEnemySkinId = 0;
     /**主角死亡时的本局经过时间 */
     private failSurvivalTime = 0;
+    /**当前限制角色移动的来源 */
+    private moveLockOwners: Set<object> = new Set();
 
     /**角色状态 */
     private _state: roleState = roleState.normal;
@@ -123,6 +125,30 @@ export class roleController extends Component {
             this.stopRobotUpgrade();
         }
         this._state = value;
+    }
+
+    /**角色当前是否被限制移动 */
+    get isMoveLocked() {
+        return this.moveLockOwners.size > 0;
+    }
+
+    /**增加移动限制，同一来源不会重复增加 */
+    addMoveLock(owner: object) {
+        if (!owner) {
+            return;
+        }
+
+        this.moveLockOwners.add(owner);
+        this.playRoleAnim(roleAnimName.idle, true);
+    }
+
+    /**移除指定来源的移动限制 */
+    removeMoveLock(owner: object) {
+        if (!owner) {
+            return;
+        }
+
+        this.moveLockOwners.delete(owner);
     }
 
     /**主角立即死亡并弹失败 */
@@ -198,6 +224,7 @@ export class roleController extends Component {
     }
 
     init(comp: UIGame, id: number, skinId: number, nickname = "") {
+        this.moveLockOwners.clear();
         this.gameComp = comp;
         this.roleId = id;
         this.skinId = skinId;
@@ -413,7 +440,7 @@ export class roleController extends Component {
             return;
         }
 
-        if (this.roleId != 0) {
+        if (this.roleId != 0 && this.state == roleState.normal && !this.isMoveLocked) {
             this.moveByPath(dt);
         }
         this.refreshRobotUpgrade(dt);

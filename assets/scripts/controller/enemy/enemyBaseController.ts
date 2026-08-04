@@ -103,6 +103,8 @@ export class enemyBaseController extends Component {
     private normalRoleAnimColor: Color = new Color("#FFFFFF");
     /**是否正在播放攻击角色动画 */
     private isAttackingPlayer: boolean = false;
+    /**当前被本敌人限制移动的角色 */
+    private moveLockedTargetPlayer: roleController = null;
     /**是否正在返回出生点回血 */
     private isRepairingHp: boolean = false;
     /**当前回血目标出生点 */
@@ -181,6 +183,10 @@ export class enemyBaseController extends Component {
         this.roleAnim.setEventListener(this.onRoleAnimEvent.bind(this));
         this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
         this.effectNode = this.node.getChildByName("effectNode");
+    }
+
+    protected onDestroy(): void {
+        this.unlockTargetPlayerMove();
     }
 
     /**初始化 */
@@ -716,6 +722,7 @@ export class enemyBaseController extends Component {
         }
 
         this.isPlayingDeathDisappear = true;
+        this.stopAttackPlayer();
         this.survivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
         this.clearFireBurn();
         this.clearAttackIceEffect();
@@ -1444,6 +1451,7 @@ export class enemyBaseController extends Component {
     private startAttackPlayer() {
         this.clearMovePath();
         this.isAttackingPlayer = true;
+        this.lockOutsideRoomTargetMove();
         this.refreshRoleAnimDirectionByNode(this.targetPlayer?.node);
         this.attackAnimDurationScale = this.getRandomAttackAnimDurationScale();
         let isAlreadyAttack = this.curRoleAnimName == enemyAnim.attack;
@@ -1455,8 +1463,31 @@ export class enemyBaseController extends Component {
 
     /**停止攻击角色状态 */
     private stopAttackPlayer() {
+        this.unlockTargetPlayerMove();
         this.stopCageControl();
         this.isAttackingPlayer = false;
+    }
+
+    /**攻击房外角色期间限制目标移动 */
+    private lockOutsideRoomTargetMove() {
+        let targetPlayer = this.targetPlayer;
+        if (this.moveLockedTargetPlayer == targetPlayer) {
+            return;
+        }
+
+        this.unlockTargetPlayerMove();
+        if (!this.isRoleOutsideRoom(targetPlayer)) {
+            return;
+        }
+
+        targetPlayer.addMoveLock(this);
+        this.moveLockedTargetPlayer = targetPlayer;
+    }
+
+    /**释放本敌人添加的角色移动限制 */
+    private unlockTargetPlayerMove() {
+        this.moveLockedTargetPlayer?.removeMoveLock(this);
+        this.moveLockedTargetPlayer = null;
     }
 
     /**检测是否需要回出生点回血 */

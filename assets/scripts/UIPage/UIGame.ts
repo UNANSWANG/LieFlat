@@ -3248,7 +3248,7 @@ export class UIGame extends UIBase {
         this.refreshRoleBtnAttackState();
 
         // 移动玩家（不使用vec3计算）
-        if (this.isMoving) {
+        if (this.isMoving && playerMgr.playerComp?.state == roleState.normal && !playerMgr.playerComp.isMoveLocked) {
             let speed = this.isEnemyCanMove ? configData.moveSpeedGame : configData.moveSpeed;
             playerMgr.playerComp?.playRoleAnim(roleAnimName.move, true);
             //玩家移动

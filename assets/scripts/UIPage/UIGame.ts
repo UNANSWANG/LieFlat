@@ -2670,7 +2670,9 @@ export class UIGame extends UIBase {
         }
 
         this.gameStartCountDownTime--;
-        audioMgr.playEffect(audioPath.daojishi);
+        if(this.gameStartCountDownTime < 10){
+            audioMgr.playEffect(audioPath.daojishi);
+        }
         if (this.gameStartCountDownTime <= 0) {
             this.countDownEnd();
             return;

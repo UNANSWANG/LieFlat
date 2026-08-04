@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, sp, Sprite, tween, Tween, UITransform, UIOpacity, Vec2, Vec3 } from 'cc';
+import { _decorator, Color, Component, Label, Node, sp, Sprite, tween, Tween, UITransform, UIOpacity, Vec2, Vec3 } from 'cc';
 import { ccTools } from '../../extention/generalTools';
 import { configData, enemyCommonConfig, gmConfig } from '../../manager/configData';
 import { pData } from '../../manager/playerData';
@@ -97,6 +97,10 @@ export class enemyBaseController extends Component {
     private fireBurnDamagePercent: number = 0;
     /**火焰锻造台灼烧刷新后的保留时间 */
     private fireBurnKeepTime: number = 1.2;
+    /**火焰锻造台灼烧时的动画颜色 */
+    private fireBurnRoleAnimColor: Color = new Color("#D65454");
+    /**非灼烧状态下的动画颜色 */
+    private normalRoleAnimColor: Color = new Color("#FFFFFF");
     /**是否正在播放攻击角色动画 */
     private isAttackingPlayer: boolean = false;
     /**是否正在返回出生点回血 */
@@ -490,6 +494,7 @@ export class enemyBaseController extends Component {
         }
         this.fireBurnTimer = this.fireBurnKeepTime;
         this.fireBurnDamagePercent = Math.max(this.fireBurnDamagePercent, damagePercent);
+        this.refreshFireBurnRoleAnimColor(true);
         if (Number.isInteger(killerSkinId) && killerSkinId >= 0) {
             this.fireKillerSkinId = killerSkinId;
         }
@@ -651,6 +656,16 @@ export class enemyBaseController extends Component {
         this.fireBurnDamageTimer = 0;
         this.fireBurnDamagePercent = 0;
         this.fireKillerSkinId = pData.skinId;
+        this.refreshFireBurnRoleAnimColor(false);
+    }
+
+    /**刷新火焰锻造台灼烧时的敌人动画颜色 */
+    private refreshFireBurnRoleAnimColor(isBurning: boolean) {
+        if (!this.roleAnim || !this.roleAnim.isValid) {
+            return;
+        }
+
+        this.roleAnim.color = isBurning ? this.fireBurnRoleAnimColor : this.normalRoleAnimColor;
     }
 
     /**刷新升级计时 */
@@ -689,6 +704,7 @@ export class enemyBaseController extends Component {
 
         this.isPlayingDeathDisappear = true;
         this.survivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
+        this.clearFireBurn();
         this.clearAttackIceEffect();
         this.clearRepairBloodEffect();
         enemyMgr.removeEnemy(this.roleId);

@@ -236,8 +236,8 @@ export class UIGame extends UIBase {
     private repairCoolDownTime = 0;
     /**修复按钮冷却遮罩 */
     private repairMask: Sprite = null;
-    /**机器人开始找房间剩余时间 */
-    private robotSuchRoomDelayTime = 0;
+    /**各机器人开始找房间剩余时间 */
+    private robotSuchRoomDelayMap: Map<roleController, number> = new Map();
     /**玩家上一帧所在房间 */
     private playerLastRoomIdx = 0;
     /**倒计时结束后的游戏经过时间 */
@@ -449,8 +449,8 @@ export class UIGame extends UIBase {
         //TODO 暂时关闭倒计时
         this.startGameCountDown();
 
-        //等待一段时间后，机器人开始房间寻找
-        this.robotSuchRoomDelayTime = 2;
+        //等待随机时间后，机器人开始房间寻找
+        this.startRobotSuchRoomDelays();
     }
 
     clearData() {
@@ -466,7 +466,7 @@ export class UIGame extends UIBase {
         this.isGamePause = false;
         this.repairCoolDownTime = 0;
         this.isRoleDisappearPlaying = false;
-        this.robotSuchRoomDelayTime = 0;
+        this.robotSuchRoomDelayMap.clear();
         this.playerLastRoomIdx = 0;
         this.pendingDoorBlockPosMap = {};
         this.doorAttackerCountMap = {};
@@ -2622,6 +2622,31 @@ export class UIGame extends UIBase {
         }
     }
 
+    /**为各机器人设置独立的寻找房间延迟 */
+    private startRobotSuchRoomDelays() {
+        this.robotSuchRoomDelayMap.clear();
+        let startTimeRange = configData.robotStartTime;
+        let startTimeMin = Number(startTimeRange?.[0]);
+        let startTimeMax = Number(startTimeRange?.[1]);
+        if (!Number.isFinite(startTimeMin) || !Number.isFinite(startTimeMax)
+            || startTimeMin < 0 || startTimeMax < startTimeMin) {
+            console.error("人机开始时间配置异常，将立即开始移动", startTimeRange);
+            this.robotSuchRoom();
+            return;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            let robotComp = this.robotArr[i];
+            let delayTime = startTimeMin + Math.random() * (startTimeMax - startTimeMin);
+            if (delayTime <= 0) {
+                robotComp.suchRoom();
+                continue;
+            }
+
+            this.robotSuchRoomDelayMap.set(robotComp, delayTime);
+        }
+    }
+
     /**倒计时结束 */
     countDownEnd() {
         if (this.isGameStartCountDownEnd) {
@@ -3255,13 +3280,24 @@ export class UIGame extends UIBase {
 
     /**刷新机器人寻找房间延迟 */
     private refreshRobotSuchRoomDelay(dt: number) {
-        if (this.robotSuchRoomDelayTime <= 0) {
+        if (this.robotSuchRoomDelayMap.size == 0) {
             return;
         }
 
-        this.robotSuchRoomDelayTime = Math.max(0, this.robotSuchRoomDelayTime - dt);
-        if (this.robotSuchRoomDelayTime <= 0) {
-            this.robotSuchRoom();
+        for (let [robotComp, delayTime] of this.robotSuchRoomDelayMap) {
+            if (!robotComp?.node?.isValid) {
+                this.robotSuchRoomDelayMap.delete(robotComp);
+                continue;
+            }
+
+            delayTime = Math.max(0, delayTime - dt);
+            if (delayTime <= 0) {
+                this.robotSuchRoomDelayMap.delete(robotComp);
+                robotComp.suchRoom();
+                continue;
+            }
+
+            this.robotSuchRoomDelayMap.set(robotComp, delayTime);
         }
     }
 

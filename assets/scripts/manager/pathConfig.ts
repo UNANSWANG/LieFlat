@@ -36,6 +36,10 @@ export enum UIPath {
     UIStore = "prefabs/UIPage/UIStore",
     /**匹配页面 */
     UIMatch = "prefabs/UIPage/UIMatch",
+    /**公告页面 */
+    UIAnnouncement = "prefabs/UIPage/UIAnnouncement",
+    /**金币页面 */
+    UIMoney = "prefabs/UIPage/UIMoney",
 }
 
 /**物品路径 */

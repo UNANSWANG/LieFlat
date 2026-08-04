@@ -20,6 +20,7 @@ import { thornProps } from '../props/thornProps';
 import { netProps } from '../props/netProps';
 import { alarmProps } from '../props/alarmProps';
 import { poolMgr } from '../../manager/poolManager';
+import { doorProps } from '../props/doorProps';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -1064,22 +1065,26 @@ export class enemyBaseController extends Component {
         return result;
     }
 
-    /**房间是否没有在床上的角色 */
+    /**房间内和床上是否都没有角色 */
     private isRoomEmpty(roomIdx: number) {
         let playerComp = playerMgr.playerComp;
-        if (this.isRoleSleepingInRoom(playerComp, roomIdx)) {
+        if (this.isRoleInRoom(playerComp, roomIdx)) {
             return false;
         }
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {
             let robotComp = robotArr[i];
-            if (this.isRoleSleepingInRoom(robotComp, roomIdx)) {
+            if (this.isRoleInRoom(robotComp, roomIdx)) {
                 return false;
             }
         }
 
-        return true;
+        let bedPos: Vec2 = this.gameComp?.roomMap?.[roomIdx]?.bedPos;
+        let bedComp = bedPos
+            ? this.gameComp?.tileMap?.[bedPos.x]?.[bedPos.y]?.item?.propsComp as bedProps
+            : null;
+        return !bedComp?.isOccupied && !bedComp?.isRobotOccupied;
     }
 
     /**设置当前目标 */
@@ -1131,11 +1136,18 @@ export class enemyBaseController extends Component {
         return !!roleComp && roleComp.roomIdx <= 0;
     }
 
-    /**角色是否正在指定房间的床上 */
-    private isRoleSleepingInRoom(roleComp: roleController, roomIdx: number) {
-        return this.isRoleTargetValid(roleComp)
-            && roleComp.state == roleState.bed
-            && roleComp.roomIdx == roomIdx;
+    /**角色是否位于指定房间或该房间床上 */
+    private isRoleInRoom(roleComp: roleController, roomIdx: number) {
+        if (!this.isRoleTargetValid(roleComp) || roomIdx <= 0) {
+            return false;
+        }
+
+        if (roleComp.roomIdx == roomIdx) {
+            return true;
+        }
+
+        let rolePos = roleComp.currentPos;
+        return this.gameComp?.tileMap?.[rolePos.x]?.[rolePos.y]?.roomIdx == roomIdx;
     }
 
     /**角色是否在本次需要排除的房间 */
@@ -1219,7 +1231,7 @@ export class enemyBaseController extends Component {
         // 复用单个坐标对象兼容后续门与房间判断，避免每个邻居都创建Vec2
         tilePos.set(tileX, tileY);
 
-        if (this.isIgnoredRoomDoor(tilePos, ignoreDoorRoomIdx) || this.isEmptyRoomDoor(tilePos)) {
+        if (this.canPassRoomDoorWithoutAttack(tilePos)) {
             return true;
         }
 
@@ -1237,17 +1249,25 @@ export class enemyBaseController extends Component {
         return !!doorPos && doorPos.x == tilePos.x && doorPos.y == tilePos.y;
     }
 
-    /**是否是空房间的门 */
-    private isEmptyRoomDoor(tilePos: Vec2) {
-        let roomMap = this.gameComp.roomMap || {};
-        for (let roomKey in roomMap) {
-            let roomIdx = Number(roomKey);
-            if (this.isIgnoredRoomDoor(tilePos, roomIdx)) {
-                return this.isRoomEmpty(roomIdx);
-            }
+    /**房门是否可以不攻击直接通过：开门，或关门但房间无人 */
+    private canPassRoomDoorWithoutAttack(tilePos: Vec2) {
+        if (!tilePos) {
+            return false;
         }
 
-        return false;
+        let tileData = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y];
+        let tileItem = tileData?.item;
+        if (!tileItem || tileItem.tileType != tilePropsType.door) {
+            return false;
+        }
+
+        let roomIdx = tileData.roomIdx || tileItem.roomIdx || 0;
+        let doorComp = tileItem.propsComp as doorProps;
+        if (roomIdx <= 0 || !doorComp) {
+            return false;
+        }
+
+        return !doorComp.isClose || this.isRoomEmpty(roomIdx);
     }
 
     /**被铡刀处决 */
@@ -1311,9 +1331,7 @@ export class enemyBaseController extends Component {
         this.refreshRoleAnimDirectionByTilePos(nextTilePos);
         if (this.isRepairingHp) {
             this.stopAttackProps();
-        } else if (this.isEmptyRoomDoor(nextTilePos)) {
-            this.stopAttackProps();
-        } else if (this.isTargetIgnoredDoorTile(nextTilePos)) {
+        } else if (this.canPassRoomDoorWithoutAttack(nextTilePos)) {
             this.stopAttackProps();
         } else if (this.isTargetPlayerTile(nextTilePos)) {
             this.stopAttackProps();
@@ -1914,9 +1932,9 @@ export class enemyBaseController extends Component {
         this.chooseTargetAndFindPath();
     }
 
-    /**清除角色所在房间的床道具 */
+    /**角色在床上被击杀时清除对应床道具 */
     private clearBedPropsByRole(roleComp: roleController) {
-        if (!roleComp || roleComp.roomIdx <= 0) {
+        if (!roleComp || roleComp.state != roleState.bed || roleComp.roomIdx <= 0) {
             return;
         }
 
@@ -2212,11 +2230,6 @@ export class enemyBaseController extends Component {
     /**指定瓦片是否是目标空床所在瓦片 */
     private isTargetEmptyBedTile(tilePos: Vec2) {
         return this.isEmptyBedTargetValid(this.targetEmptyBedPos) && this.isTileSame(tilePos, this.targetEmptyBedPos);
-    }
-
-    /**指定瓦片是否是空床目标可忽略的门 */
-    private isTargetIgnoredDoorTile(tilePos: Vec2) {
-        return this.moveIgnoreDoorRoomIdx > 0 && this.isIgnoredRoomDoor(tilePos, this.moveIgnoreDoorRoomIdx);
     }
 
     /**两个瓦片坐标是否相同 */

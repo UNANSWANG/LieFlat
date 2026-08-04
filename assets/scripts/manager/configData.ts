@@ -40,6 +40,8 @@ export const configData = {
     roleMatchTime: [0.5, 1.2],
     /**人机难度类型数量 */
     robotDifficultyTypeCount: 4,
+    /**人机开始时间区间（秒） */
+    robotStartTime: [2, 6],
 }
 
 /**敌人通用配置 */

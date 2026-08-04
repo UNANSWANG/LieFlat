@@ -242,6 +242,8 @@ export class UILoading extends Component {
         configData.randomPropsNum = JSON.parse(commonConfig.getValue("randomPropsNum"));
         configData.doorHpShowTime = commonConfig.getValueNumber("doorHpShowTime");
         configData.roleMatchTime = JSON.parse(commonConfig.getValue("roleMatchTime"));
+        configData.robotStartTime = JSON.parse(commonConfig.getValue("robotStartTime"));
+
         //敌人
         enemyCommonConfig.enemyMoveSpeed = commonConfig.getValueNumber("enemyMoveSpeed");
         enemyCommonConfig.enemyHpRepairSpeed = commonConfig.getValueNumber("enemyHpRepairSpeed");

@@ -171,7 +171,7 @@ export class coverProps extends gamePropsBase {
     }
 
     /** 指定房间护盾是否生效 */
-    private static isRoomShieldActive(roomIdx: number) {
+    static isRoomShieldActive(roomIdx: number) {
         return roomIdx > 0 && coverProps.shieldTimers[roomIdx] > 0;
     }
 

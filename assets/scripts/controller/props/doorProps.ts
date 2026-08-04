@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Node, sp, tween, Tween, UITransform, Vec2, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { configData } from '../../manager/configData';
 import { propsConfig } from '../../json/jsonProps';
@@ -10,7 +10,7 @@ import { coverProps } from './coverProps';
 import { uiMgr } from '../../manager/UIManager';
 import { poolMgr } from '../../manager/poolManager';
 import { ccTools } from '../../extention/generalTools';
-import { imgPath } from '../../manager/pathConfig';
+import { imgPath, spinePath } from '../../manager/pathConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('doorProps')
@@ -31,6 +31,10 @@ export class doorProps extends gamePropsBase {
     private machineRepairEffectSwingDuration: number = 0.2;
     /**房门血条剩余显示时间 */
     private doorHpShowTimer: number = 0;
+    /**金钟罩生效时挂在门上的光罩动画节点 */
+    private coverShieldEffectNode: Node = null;
+    /**金钟罩动画向下偏移 */
+    private coverShieldEffectOffsetY: number = -20;
 
     /**道具开始生效 */
     startProps() {
@@ -44,6 +48,12 @@ export class doorProps extends gamePropsBase {
         this.doorHpShowTimer = 0;
         Tween.stopAllByTarget(this.img1.node);
         this.clearMachineRepairEffect();
+        this.clearCoverShieldEffect();
+    }
+
+    protected onDisable(): void {
+        super.onDisable();
+        this.clearCoverShieldEffect();
     }
 
     /**初始化门 */
@@ -111,8 +121,67 @@ export class doorProps extends gamePropsBase {
         }
 
         coverProps.updateRoomShieldTimer(this.roomIdx, dt);
+        this.refreshCoverShieldEffect();
         this.repairDoor(dt);
         this.updateDoorHpShowTimer(dt);
+    }
+
+    /**刷新金钟罩生效期间挂在门上的光罩动画 */
+    private refreshCoverShieldEffect() {
+        if (!coverProps.isRoomShieldActive(this.roomIdx) || !this.effectNode || !uiMgr.gameSpineItemPrefab) {
+            this.clearCoverShieldEffect();
+            return;
+        }
+
+        if (this.coverShieldEffectNode && this.coverShieldEffectNode.isValid && this.coverShieldEffectNode.parent == this.effectNode) {
+            this.refreshCoverShieldEffectPosition();
+            return;
+        }
+
+        this.clearCoverShieldEffect();
+        this.coverShieldEffectNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.coverShieldEffectNode.name = "coverDoorShieldEffect";
+        this.coverShieldEffectNode.setScale(new Vec3(1, 1, 1));
+        this.effectNode.addChild(this.coverShieldEffectNode);
+        this.refreshCoverShieldEffectPosition();
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.coverShieldEffectNode);
+        if (skeleton) {
+            this.playCoverShieldEffectAnim(skeleton, this.coverShieldEffectNode);
+        }
+    }
+
+    /**刷新金钟罩动画位置 */
+    private refreshCoverShieldEffectPosition() {
+        if (!this.coverShieldEffectNode || !this.img1?.node) {
+            return;
+        }
+
+        let doorPosition = this.img1.node.position;
+        this.coverShieldEffectNode.setPosition(
+            doorPosition.x,
+            doorPosition.y + this.coverShieldEffectOffsetY,
+            doorPosition.z,
+        );
+    }
+
+    /**播放金钟罩光罩循环动画 */
+    private async playCoverShieldEffectAnim(skeleton: sp.Skeleton, effectNode: Node) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.light);
+        if (!isLoaded || !skeleton || !skeleton.isValid || this.coverShieldEffectNode != effectNode) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**清理门上的金钟罩光罩动画 */
+    private clearCoverShieldEffect() {
+        if (this.coverShieldEffectNode && this.coverShieldEffectNode.isValid) {
+            poolMgr.putGameSpineNode(this.coverShieldEffectNode);
+        }
+
+        this.coverShieldEffectNode = null;
     }
 
     /**开启加速修复 */
@@ -296,6 +365,7 @@ export class doorProps extends gamePropsBase {
         //TODO 门无敌
         // return false;
         if (coverProps.tryBlockDoorDamage(this.gameComp, this.roomIdx, this.hpPercent)) {
+            this.refreshCoverShieldEffect();
             return false;
         }
 
@@ -304,7 +374,9 @@ export class doorProps extends gamePropsBase {
             this.keepDoorHpVisible();
         }
         if (!isDestroyed) {
-            coverProps.tryStartShieldByDoorHp(this.gameComp, this.roomIdx, this.hpPercent);
+            if (coverProps.tryStartShieldByDoorHp(this.gameComp, this.roomIdx, this.hpPercent)) {
+                this.refreshCoverShieldEffect();
+            }
         }
 
         return isDestroyed;

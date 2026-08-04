@@ -29,6 +29,10 @@ export class UIManager {
     private effectNode: Node = null;
 
     private uiMap: Map<string, Node> = new Map();
+    /**等待依次打开的界面队列 */
+    private queuePageArr: queuePageData[] = [];
+    /**当前通过队列打开的界面 */
+    private currentQueuePage: queuePageData = null;
     /**游戏资源预加载任务，防止匹配页重复打开时并发加载 */
     private gamePreloadPromise: Promise<void> = null;
     /**游戏资源是否已全部预加载 */
@@ -230,16 +234,54 @@ export class UIManager {
         uiComp.onUI_Open(data);
     }
 
+    /**将界面加入队列，关闭当前队列界面后依次打开 */
+    openQueuePage(pagePath: string, data?: any) {
+        if (!this.resBundle || !pagePath) {
+            return;
+        }
+
+        this.queuePageArr.push({ pagePath: pagePath, data: data });
+        this.openNextQueuePage();
+    }
+
+    /**打开下一个排队界面 */
+    private async openNextQueuePage() {
+        if (this.currentQueuePage || this.queuePageArr.length == 0) {
+            return;
+        }
+
+        let queuePage = this.queuePageArr.shift();
+        this.currentQueuePage = queuePage;
+        try {
+            await this.openPage(queuePage.pagePath, queuePage.data);
+        } catch (error) {
+            console.error(`打开排队界面失败: ${queuePage.pagePath}`, error);
+            if (this.currentQueuePage == queuePage) {
+                this.currentQueuePage = null;
+                this.openNextQueuePage();
+            }
+        }
+    }
+
     /**关闭界面 */
     closePage(pagePath: string) {
         let keyName = this.getUIName(pagePath);
+        let isCurrentQueuePage = this.currentQueuePage
+            && this.getUIName(this.currentQueuePage.pagePath) == keyName;
+        let hasClosedPage = false;
         if (this.uiMap.has(keyName)) {
             let pageNode = this.uiMap.get(keyName);;
+            hasClosedPage = pageNode.active;
             let uiComp = pageNode.getComponent(UIBase);
             uiComp.onUI_Close();
             pageNode.active = false;
             //将自己移出父节点但不删除节点
             pageNode.removeFromParent();
+        }
+
+        if (isCurrentQueuePage && hasClosedPage) {
+            this.currentQueuePage = null;
+            this.openNextQueuePage();
         }
     }
 
@@ -386,4 +428,10 @@ export class UIManager {
         }
     }
 }
+
+interface queuePageData {
+    pagePath: string;
+    data?: any;
+}
+
 export let uiMgr = new UIManager();

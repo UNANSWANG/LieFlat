@@ -296,7 +296,7 @@ export class UIMain extends UIBase {
 
     /**点击添加金币 */
     clickAddMoneyBtn() {
-        uiMgr.showTips("添加金币");
+        uiMgr.openPage(UIPath.UIMoney);
     }
 
     /**点击商店 */

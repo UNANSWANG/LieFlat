@@ -42,6 +42,8 @@ export const configData = {
     robotDifficultyTypeCount: 4,
     /**人机开始时间区间（秒） */
     robotStartTime: [2, 6],
+    /**感染币获取数量 */
+    addMoneyNum: 100,
 }
 
 /**敌人通用配置 */

@@ -19,9 +19,15 @@ export class preloadManager extends Component {
 
         uiMgr.openPage(UIPath.UIMain);
 
+        //TODO 测试
+        uiMgr.openQueuePage(UIPath.UIWarm);
+        uiMgr.openQueuePage(UIPath.UIAnnouncement);
+
         let isShowWarm = Number(ccStorageTools.getLimitTimeData(SaveKey.isShowWarm)) == 0;
         if (isShowWarm) {
-            uiMgr.openPage(UIPath.UIWarm);
+            uiMgr.openQueuePage(UIPath.UIWarm);
+            uiMgr.openQueuePage(UIPath.UIAnnouncement);
+
             ccStorageTools.setLimitTimeData(SaveKey.isShowWarm, 1);
         }
 

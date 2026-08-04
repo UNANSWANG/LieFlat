@@ -243,6 +243,7 @@ export class UILoading extends Component {
         configData.doorHpShowTime = commonConfig.getValueNumber("doorHpShowTime");
         configData.roleMatchTime = JSON.parse(commonConfig.getValue("roleMatchTime"));
         configData.robotStartTime = JSON.parse(commonConfig.getValue("robotStartTime"));
+        configData.addMoneyNum = commonConfig.getValueNumber("addMoneyNum");
 
         //敌人
         enemyCommonConfig.enemyMoveSpeed = commonConfig.getValueNumber("enemyMoveSpeed");

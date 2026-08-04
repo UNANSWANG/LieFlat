@@ -2344,7 +2344,7 @@ export class UIGame extends UIBase {
         for (let i = 0; i < roomArr.length; i++) {
             let tilePos = roomArr[i];
             let propComp = this.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
-            if (propComp?.propsType == propsType && propComp.isPropsActive) {
+            if (propComp?.propsType == propsType) {
                 count++;
             }
         }

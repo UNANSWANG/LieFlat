@@ -748,7 +748,7 @@ export class roleController extends Component {
         // console.warn("-------->执行炮台行为判定:\n",weights);
         switch (ccTools.getWeightedRandomIndex(weights)) {
             case 0:
-                this.gameComp?.buildRobotCannonOrUpgrade(this.roomIdx);
+                this.gameComp?.buildRobotCannon(this.roomIdx);
                 break;
             case 1:
                 this.gameComp?.upgradeRobotCannon(this.roomIdx);

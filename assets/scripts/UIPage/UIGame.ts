@@ -2465,8 +2465,8 @@ export class UIGame extends UIBase {
         return true;
     }
 
-    /**建造炮台；没有可用空闲格时尝试升级最低等级炮台 */
-    buildRobotCannonOrUpgrade(roomIdx: number) {
+    /**建造炮台；没有可用空闲格时不执行 */
+    buildRobotCannon(roomIdx: number) {
         let roomData: roomData = this.roomMap[roomIdx];
         if (!roomData) {
             return false;
@@ -2480,7 +2480,7 @@ export class UIGame extends UIBase {
             return true;
         }
 
-        return this.upgradeRobotCannon(roomIdx);
+        return false;
     }
 
     /**随机升级房间内最低等级的未满级炮台 */

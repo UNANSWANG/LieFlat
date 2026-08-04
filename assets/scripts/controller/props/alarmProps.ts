@@ -1,4 +1,4 @@
-import { _decorator, Node, sp } from 'cc';
+import { _decorator, Node, sp, tween, Tween, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import { tilePropsType } from '../tileItemController';
@@ -69,7 +69,7 @@ export class alarmProps extends gamePropsBase {
 
         this.alarmNode = null;
     }
-    
+
     /**道具开始生效 */
     startProps() {
         this.hasTriggered = false;
@@ -90,9 +90,35 @@ export class alarmProps extends gamePropsBase {
         }
 
         alarmComp.hasTriggered = true;
-        alarmComp.playDisappearAnim();
+        alarmComp.playUseAnim();
         target.forceChooseTargetExcludeRoom(roomIdx);
         return true;
+    }
+
+    /**播放警示铃使用动画：1秒内放大两倍，后0.5秒淡出 */
+    private playUseAnim() {
+        if (!this.scaleNode || !this.uiOpacity || !this.tileItemComp) {
+            this.tileItemComp?.removeProps();
+            return;
+        }
+
+        let startScale = this.scaleNode.scale.clone();
+        let targetScale = new Vec3(startScale.x * 2, startScale.y * 2, startScale.z);
+        this.uiOpacity.opacity = 255;
+        Tween.stopAllByTarget(this.scaleNode);
+        Tween.stopAllByTarget(this.uiOpacity);
+
+        tween(this.scaleNode)
+            .to(1, { scale: targetScale })
+            .start();
+        tween(this.uiOpacity)
+            .delay(1)
+            .to(1, { opacity: 0 })
+            .call(() => {
+                this.onDisappear();
+                this.tileItemComp?.removeProps();
+            })
+            .start();
     }
 
     /**获取指定房间内正在生效的警示铃 */

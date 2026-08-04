@@ -204,6 +204,8 @@ export enum SaveKey {
     props = "props",
     /**今日是否领取过侧边栏奖励 */
     isGetRevisit = "isGetRevisit",
+    /**今日是否通过分享领取过感染币 */
+    isGetMoneyShare = "isGetMoneyShare",
     /**用户头像 */
     avatarUrl = "avatarUrl",
     /**今日是否弹出过温馨提示 */

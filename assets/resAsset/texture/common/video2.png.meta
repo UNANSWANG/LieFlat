@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "57984526-74de-42f4-8728-e8f4b85ca890",
+  "uuid": "edfd4a49-35a9-4f3d-92cf-4532f2645efe",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "57984526-74de-42f4-8728-e8f4b85ca890@6c48a",
-      "displayName": "获取感染币",
+      "uuid": "edfd4a49-35a9-4f3d-92cf-4532f2645efe@6c48a",
+      "displayName": "video2",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "57984526-74de-42f4-8728-e8f4b85ca890",
+        "imageUuidOrDatabaseUri": "edfd4a49-35a9-4f3d-92cf-4532f2645efe",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "57984526-74de-42f4-8728-e8f4b85ca890@f9941",
-      "displayName": "获取感染币",
+      "uuid": "edfd4a49-35a9-4f3d-92cf-4532f2645efe@f9941",
+      "displayName": "video2",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 1080,
-        "height": 1920,
-        "rawWidth": 1080,
-        "rawHeight": 1920,
+        "width": 118,
+        "height": 92,
+        "rawWidth": 118,
+        "rawHeight": 92,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -540,
-            -960,
+            -59,
+            -46,
             0,
-            540,
-            -960,
+            59,
+            -46,
             0,
-            -540,
-            960,
+            -59,
+            46,
             0,
-            540,
-            960,
+            59,
+            46,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            1920,
-            1080,
-            1920,
+            92,
+            118,
+            92,
             0,
             0,
-            1080,
+            118,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -540,
-            -960,
+            -59,
+            -46,
             0
           ],
           "maxPos": [
-            540,
-            960,
+            59,
+            46,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "57984526-74de-42f4-8728-e8f4b85ca890@6c48a",
+        "imageUuidOrDatabaseUri": "edfd4a49-35a9-4f3d-92cf-4532f2645efe@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -128,7 +128,7 @@
   "userData": {
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
-    "hasAlpha": false,
-    "redirect": "57984526-74de-42f4-8728-e8f4b85ca890@6c48a"
+    "hasAlpha": true,
+    "redirect": "edfd4a49-35a9-4f3d-92cf-4532f2645efe@6c48a"
   }
 }

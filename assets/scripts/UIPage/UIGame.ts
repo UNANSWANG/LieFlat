@@ -2740,7 +2740,7 @@ export class UIGame extends UIBase {
 
         this.repairMask.node.active = true;
         this.repairCoolDownTime = Math.max(0, this.repairCoolDownTime - dt);
-        this.repairMask.fillRange = -this.repairCoolDownTime / configData.repairCoolDown;
+        this.repairMask.fillRange = this.repairCoolDownTime / configData.repairCoolDown;
     }
 
     /**摇杆归位 */
@@ -3909,7 +3909,7 @@ export class UIGame extends UIBase {
         doorTile.startRepairAdd(configData.repairTime);
         this.repairCoolDownTime = configData.repairCoolDown;
         this.repairMask.node.active = true;
-        this.repairMask.fillRange = -1;
+        this.repairMask.fillRange = 1;
     }
 }
 

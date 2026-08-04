@@ -11,6 +11,9 @@ export class UIAnnouncement extends UIBase {
     @property(Node)
     closeBtn: Node;
 
+    @property(Node)
+    understandBtn: Node;
+
     protected onLoad(): void {
         this.bindBtn();
     }
@@ -27,6 +30,7 @@ export class UIAnnouncement extends UIBase {
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
+        this.understandBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
     }
 
     ///

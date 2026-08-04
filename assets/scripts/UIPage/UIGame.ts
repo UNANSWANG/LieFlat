@@ -446,7 +446,6 @@ export class UIGame extends UIBase {
 
         this.initEnemy();
 
-        //TODO 暂时关闭倒计时
         this.startGameCountDown();
 
         //等待随机时间后，机器人开始房间寻找
@@ -503,7 +502,6 @@ export class UIGame extends UIBase {
         ccTools.destroyAllChild(this.roleNode);
         ccTools.destroyAllChild(this.roleBtnLayout);
 
-        //TODO 后续加入对象池管理
         playerMgr.player = null;
         enemyMgr.enemyArr = [];
         enemyMgr.enemyId = 0;

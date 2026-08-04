@@ -1007,7 +1007,6 @@ export class enemyBaseController extends Component {
             targetCandidates.push(playerCandidate);
         }
 
-        //TODO 暂时只让抓玩家一个人
         if(gmConfig.onlyAttackSelf){
             return outsideRoomRoleCandidates.length > 0 ? outsideRoomRoleCandidates : result;
         }

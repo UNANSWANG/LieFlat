@@ -984,30 +984,35 @@ export class enemyBaseController extends Component {
 
     /**获取敌人目标候选，包含角色和空房间床 */
     private getTargetCandidates(excludeRoomIdx: number = 0): enemyTargetCandidate[] {
+        let outsideRoomRoleCandidates: enemyTargetCandidate[] = [];
         let result: enemyTargetCandidate[] = [];
         let playerComp = playerMgr.playerComp;
         if (this.isRoleTargetValid(playerComp) && !this.isRoleInExcludedRoom(playerComp, excludeRoomIdx)) {
-            result.push({
+            let playerCandidate: enemyTargetCandidate = {
                 type: "player",
                 targetPos: new Vec2(playerComp.currentPos.x, playerComp.currentPos.y),
                 playerComp: playerComp,
-            });
+            };
+            let targetCandidates = this.isRoleOutsideRoom(playerComp) ? outsideRoomRoleCandidates : result;
+            targetCandidates.push(playerCandidate);
         }
 
         //TODO 暂时只让抓玩家一个人
         if(gmConfig.onlyAttackSelf){
-            return result;
+            return outsideRoomRoleCandidates.length > 0 ? outsideRoomRoleCandidates : result;
         }
 
         let robotArr = this.gameComp?.robotArr || [];
         for (let i = 0; i < robotArr.length; i++) {
             let robotComp = robotArr[i];
             if (this.isRoleTargetValid(robotComp) && !this.isRoleInExcludedRoom(robotComp, excludeRoomIdx)) {
-                result.push({
+                let robotCandidate: enemyTargetCandidate = {
                     type: "player",
                     targetPos: new Vec2(robotComp.currentPos.x, robotComp.currentPos.y),
                     playerComp: robotComp,
-                });
+                };
+                let targetCandidates = this.isRoleOutsideRoom(robotComp) ? outsideRoomRoleCandidates : result;
+                targetCandidates.push(robotCandidate);
             }
         }
 
@@ -1016,8 +1021,9 @@ export class enemyBaseController extends Component {
             result.push(emptyBedCandidates[i]);
         }
 
+        ccTools.shuffleArray(outsideRoomRoleCandidates);
         ccTools.shuffleArray(result);
-        return result;
+        return outsideRoomRoleCandidates.concat(result);
     }
 
     /**获取空房间床候选 */
@@ -1111,6 +1117,11 @@ export class enemyBaseController extends Component {
             && roleComp.node.isValid
             && roleComp.state != roleState.dead
             && !!roleComp.currentPos;
+    }
+
+    /**角色是否尚未进入房间 */
+    private isRoleOutsideRoom(roleComp: roleController) {
+        return !!roleComp && roleComp.roomIdx <= 0;
     }
 
     /**角色是否正在指定房间的床上 */

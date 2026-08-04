@@ -15,7 +15,7 @@ const { ccclass, property } = _decorator;
 @ccclass('jsonManager')
 export class jsonManager  {
     /**表格数量 */
-    tableNum = 8;
+    tableNum = 9;
     /**已加载的表格数量 */
     tableLoadNum = 0;
 

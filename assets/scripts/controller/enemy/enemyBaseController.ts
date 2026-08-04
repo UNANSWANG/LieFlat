@@ -670,7 +670,8 @@ export class enemyBaseController extends Component {
 
     /**刷新升级计时 */
     private updateUpgradeTimer(dt: number) {
-        if (this.gameComp?.isRoleDisappearPlaying || this.isMaxLevel || this.upgradeTime <= 0) {
+        if (this.gameComp?.isRoleDisappearPlaying || this.isMaxLevel
+            || !Number.isFinite(this.upgradeTime) || this.upgradeTime <= 0) {
             return;
         }
 
@@ -693,7 +694,19 @@ export class enemyBaseController extends Component {
             return 0;
         }
 
-        return enemyData.upgradeTimeMin + Math.random() * (enemyData.upgradeTimeMax - enemyData.upgradeTimeMin);
+        let upgradeTimeMin = Number(enemyData.upgradeTimeMin);
+        let upgradeTimeMax = Number(enemyData.upgradeTimeMax);
+        if (!Number.isFinite(upgradeTimeMin) || !Number.isFinite(upgradeTimeMax)
+            || upgradeTimeMin <= 0 || upgradeTimeMax < upgradeTimeMin) {
+            console.error("敌人升级时间配置异常，已停止自动升级", {
+                level: this.level + 1,
+                upgradeTimeMin: enemyData.upgradeTimeMin,
+                upgradeTimeMax: enemyData.upgradeTimeMax,
+            });
+            return 0;
+        }
+
+        return upgradeTimeMin + Math.random() * (upgradeTimeMax - upgradeTimeMin);
     }
 
     /**死亡 */

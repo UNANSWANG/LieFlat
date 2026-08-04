@@ -2659,6 +2659,7 @@ export class UIGame extends UIBase {
         this.refreshRepairBtnVisible();
 
         uiMgr.showTips("感染者开始行动");
+        audioMgr.playEffect(audioPath.shangshikaichang);
         enemyMgr.enemyArr[0]?.chooseTargetAndFindPath();
     }
 
@@ -2669,6 +2670,7 @@ export class UIGame extends UIBase {
         }
 
         this.gameStartCountDownTime--;
+        audioMgr.playEffect(audioPath.daojishi);
         if (this.gameStartCountDownTime <= 0) {
             this.countDownEnd();
             return;

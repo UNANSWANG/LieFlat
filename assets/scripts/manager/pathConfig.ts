@@ -106,6 +106,12 @@ export enum audioPath {
     bossSkill = "audio/jineng",
     /**点击准备音效 */
     clickPrepare = "audio/zhunbei",
+    /**游戏开场倒计时，每秒读一次 */
+    daojishi = "audio/daojishi",
+    /**进入房间关门发出的声音 */
+    guanmen = "audio/guanmen",
+    /**倒计时结束感染者行动时发出的叫声 */
+    shangshikaichang = "audio/shangshikaichang",
 }
 
 /**图片路径 */

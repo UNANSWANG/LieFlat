@@ -10,7 +10,7 @@ import { coverProps } from './coverProps';
 import { uiMgr } from '../../manager/UIManager';
 import { poolMgr } from '../../manager/poolManager';
 import { ccTools } from '../../extention/generalTools';
-import { imgPath, spinePath } from '../../manager/pathConfig';
+import { audioPath, imgPath, spinePath } from '../../manager/pathConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('doorProps')
@@ -112,6 +112,9 @@ export class doorProps extends gamePropsBase {
             .start();
 
         this.isClose = !this.isClose;
+        if (this.isClose) {
+            this.gameComp?.playSceneEffect(audioPath.guanmen, this.node.worldPosition);
+        }
         return this.isClose;
     }
 

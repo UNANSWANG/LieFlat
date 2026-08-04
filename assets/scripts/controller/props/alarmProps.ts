@@ -7,12 +7,13 @@ import { uiMgr } from '../../manager/UIManager';
 import { poolMgr } from '../../manager/poolManager';
 import { ccTools } from '../../extention/generalTools';
 import { spinePath } from '../../manager/pathConfig';
+import { doorProps } from './doorProps';
 const { ccclass } = _decorator;
 
 @ccclass('alarmProps')
 export class alarmProps extends gamePropsBase {
-    /**触发生命阈值 */
-    alarmThresholdHealth: number = 0.5;
+    /**触发时的房门血量比例阈值 */
+    alarmDoorHpThreshold: number = 0.5;
     /**是否已经触发 */
     private hasTriggered: boolean = false;
     /**警示铃spine节点 */
@@ -31,7 +32,7 @@ export class alarmProps extends gamePropsBase {
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.alarmThresholdHealth = commonConfig.getValueNumber("alarmThresholdHealth") / 100;
+        this.alarmDoorHpThreshold = commonConfig.getValueNumber("alarmThresholdHealth") / 100;
     }
 
     /**创建警示铃spine节点 */
@@ -85,13 +86,19 @@ export class alarmProps extends gamePropsBase {
     /**尝试触发指定房间内的警示铃 */
     static tryTriggerRoomAlarm(gameComp: any, roomIdx: number, target: enemyBaseController) {
         let alarmComp = alarmProps.getRoomAlarmComp(gameComp, roomIdx);
-        if (!alarmComp || alarmComp.hasTriggered || !target || !target.node || !target.node.isValid || target.hpPercent >= alarmComp.alarmThresholdHealth) {
+        let doorComp = alarmProps.getRoomDoorComp(gameComp, roomIdx);
+        if (!alarmComp || alarmComp.hasTriggered || !doorComp
+            || !target || !target.node || !target.node.isValid
+            || doorComp.hpPercent >= alarmComp.alarmDoorHpThreshold) {
+            return false;
+        }
+
+        if (!target.forceChooseTargetExcludeRoom(roomIdx)) {
             return false;
         }
 
         alarmComp.hasTriggered = true;
         alarmComp.playUseAnim();
-        target.forceChooseTargetExcludeRoom(roomIdx);
         return true;
     }
 
@@ -138,6 +145,21 @@ export class alarmProps extends gamePropsBase {
         }
 
         return null;
+    }
+
+    /**获取指定房间当前的房门 */
+    private static getRoomDoorComp(gameComp: any, roomIdx: number) {
+        let doorPos = gameComp?.roomMap?.[roomIdx]?.doorPos;
+        if (!doorPos || roomIdx <= 0) {
+            return null;
+        }
+
+        let tileItem = gameComp?.tileMap?.[doorPos.x]?.[doorPos.y]?.item;
+        if (!tileItem || tileItem.tileType != tilePropsType.door) {
+            return null;
+        }
+
+        return tileItem.propsComp as doorProps;
     }
 
 }

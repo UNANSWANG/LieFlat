@@ -803,10 +803,6 @@ export class enemyBaseController extends Component {
             return true;
         }
 
-        if (this.tryTriggerAttackRoomAlarm()) {
-            return false;
-        }
-
         if (this.tryHandleDoorAttackHpThreshold(hpPercentBeforeDamage)) {
             return false;
         }
@@ -880,14 +876,19 @@ export class enemyBaseController extends Component {
     /**敌人强制离开当前攻击房间，重新选择其他房间目标 */
     forceChooseTargetExcludeRoom(excludeRoomIdx: number) {
         if (excludeRoomIdx <= 0 || this.getCurAttackRoomIdx() != excludeRoomIdx) {
-            return;
+            return false;
         }
 
         this.clearTarget();
         this.emptyRoomIgnoreDoorRoomIdx = 0;
         this.clearMovePath();
         this.playRoleAnim(enemyAnim.move, true);
-        this.chooseTargetAndFindPath(excludeRoomIdx);
+        if (this.chooseTargetAndFindPath(excludeRoomIdx)) {
+            return true;
+        }
+
+        this.startRepairHp(true);
+        return this.isRepairingHp;
     }
 
     /**尝试触发当前攻击房间内的警示铃 */
@@ -938,16 +939,16 @@ export class enemyBaseController extends Component {
     /**随机选择一个可到达的玩家，并移动到该玩家身边 */
     chooseTargetAndFindPath(excludeRoomIdx: number = 0) {
         if (gm.isGamePause) {
-            return;
+            return false;
         }
 
         if (!this.gameComp?.isEnemyCanMove) {
             this.stopByGamePause();
-            return;
+            return false;
         }
 
         if (this.isRepairingHp) {
-            return;
+            return false;
         }
 
         this.syncCurrentPosByNode();
@@ -959,7 +960,7 @@ export class enemyBaseController extends Component {
             this.clearTarget();
             this.clearMovePath();
             this.playRoleAnim(enemyAnim.idle, true);
-            return;
+            return false;
         }
 
         for (let i = 0; i < candidates.length; i++) {
@@ -982,12 +983,13 @@ export class enemyBaseController extends Component {
             } else {
                 this.playRoleAnim(enemyAnim.move, true);
             }
-            return;
+            return true;
         }
 
         this.clearTarget();
         this.clearMovePath();
         this.playRoleAnim(enemyAnim.idle, true);
+        return false;
     }
 
     /**获取敌人目标候选，包含角色和空房间床 */
@@ -1152,7 +1154,7 @@ export class enemyBaseController extends Component {
 
     /**角色是否在本次需要排除的房间 */
     private isRoleInExcludedRoom(roleComp: roleController, excludeRoomIdx: number) {
-        return excludeRoomIdx > 0 && roleComp?.roomIdx == excludeRoomIdx;
+        return excludeRoomIdx > 0 && this.isRoleInRoom(roleComp, excludeRoomIdx);
     }
 
     /**空床目标是否有效 */
@@ -2055,6 +2057,9 @@ export class enemyBaseController extends Component {
             if (actualDamage > 0) {
                 this.recordDoorAttackTimeDamage(actualDamage);
                 this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
+                if (!isDestroyed && this.tryTriggerAttackRoomAlarm()) {
+                    return;
+                }
             }
         }
         if (!isDestroyed) {

@@ -40,6 +40,8 @@ export enum UIPath {
     UIAnnouncement = "prefabs/UIPage/UIAnnouncement",
     /**金币页面 */
     UIMoney = "prefabs/UIPage/UIMoney",
+    /**boss模式页面 */
+    UIBossMode = "prefabs/UIPage/UIBossMode",
 }
 
 /**物品路径 */

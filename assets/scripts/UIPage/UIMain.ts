@@ -319,6 +319,7 @@ export class UIMain extends UIBase {
             uiMgr.showTips(`通关${configData.bossModeLevel}次后开启，当前通关${pData.level}次`);
             return;
         }
+        uiMgr.openPage(UIPath.UIBossMode);
     }
 }
 

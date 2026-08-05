@@ -20,6 +20,9 @@ export class UISetting extends UIBase {
     homeBtn: Node;
 
     @property(Node)
+    continueBtn: Node;
+
+    @property(Node)
     consoleBtn: Node;
 
     @property(Node)
@@ -83,6 +86,7 @@ export class UISetting extends UIBase {
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
         this.homeBtn.addComponent(zoomButton).onClick = this.clickHomeBtn.bind(this);
+        this.continueBtn.addComponent(zoomButton).onClick = this.clickContinueBtn.bind(this);
         this.consoleBtn.addComponent(zoomButton).onClick = this.clickConsoleBtn.bind(this);
         this.vibratToggle.node.on(Toggle.EventType.TOGGLE, this.clickVibratBtn, this);
         this.musicSlider.node.on(SliderEventSlide, this.changeMusicVolume, this);
@@ -95,9 +99,11 @@ export class UISetting extends UIBase {
         if (this.mode == 1) {
             bgTrans.height = 775;
             this.homeBtn.active = true;
+            this.continueBtn.active = true;
         } else {
             bgTrans.height = 635;
             this.homeBtn.active = false;
+            this.continueBtn.active = false;
         }
 
         this.bg.getChildByName("topNode").getComponent(Widget).updateAlignment();
@@ -158,6 +164,11 @@ export class UISetting extends UIBase {
             this.consoleClickCount = 0;
             uiMgr.openPage(UIPath.UIConsole);
         }
+    }
+
+    /**点击继续游戏 */
+    clickContinueBtn() {
+        this.onClose();
     }
 
     /**点击关闭 */

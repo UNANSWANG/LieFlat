@@ -32,6 +32,14 @@ const { ccclass, property } = _decorator;
 const GUIDE_MAP_NAME = "map05";
 const GUIDE_ROOM_IDX = 8;
 
+enum guideTaskType {
+    none,
+    doorUpgrade,
+    bedUpgrade,
+    cannonBuild,
+    generatorBuild,
+}
+
 @ccclass('UIGame')
 export class UIGame extends UIBase {
     @property(Node)
@@ -186,6 +194,10 @@ export class UIGame extends UIBase {
     private doorAttackerCountMap: { [key: string]: number } = {};
     /**引导路径瓦片对应的箭头节点 */
     private guideArrowNodeMap: { [key: string]: Node } = {};
+    /**当前唯一允许显示的操作引导 */
+    private currentGuideTask: guideTaskType = guideTaskType.none;
+    /**已达成条件但仍在等待显示的操作引导 */
+    private pendingGuideTaskQueue: guideTaskType[] = [];
     /**引导关门上的点击手指 */
     private guideDoorClickNode: Node = null;
     /**是否已触发首次门升级引导 */
@@ -476,6 +488,8 @@ export class UIGame extends UIBase {
 
         this.stopGameCountDown();
 
+        this.currentGuideTask = guideTaskType.none;
+        this.pendingGuideTaskQueue = [];
         this.clearGuideDoorClickNode();
         this.isGuideDoorUpgradeReady = false;
         this.isGuideDoorUpgradeComplete = false;
@@ -836,6 +850,81 @@ export class UIGame extends UIBase {
         this.guideArrowNodeMap = {};
     }
 
+    /**条件首次达成时入队；没有其他引导时立即显示 */
+    private enqueueGuideTask(taskType: guideTaskType) {
+        if (!pData.isGuide || taskType == guideTaskType.none || this.isGuideTaskComplete(taskType)
+            || this.currentGuideTask == taskType || this.pendingGuideTaskQueue.indexOf(taskType) >= 0) {
+            return;
+        }
+
+        if (this.currentGuideTask == guideTaskType.none) {
+            this.currentGuideTask = taskType;
+            this.showCurrentGuideTask();
+            return;
+        }
+
+        this.pendingGuideTaskQueue.push(taskType);
+    }
+
+    /**完成或跳过指定引导，并按入队顺序显示下一项 */
+    private finishGuideTask(taskType: guideTaskType) {
+        let queueIdx = this.pendingGuideTaskQueue.indexOf(taskType);
+        if (queueIdx >= 0) {
+            this.pendingGuideTaskQueue.splice(queueIdx, 1);
+        }
+
+        if (this.currentGuideTask != taskType) {
+            return;
+        }
+
+        this.currentGuideTask = guideTaskType.none;
+        while (this.pendingGuideTaskQueue.length > 0) {
+            let nextTaskType = this.pendingGuideTaskQueue.shift();
+            if (this.isGuideTaskComplete(nextTaskType)) {
+                continue;
+            }
+
+            this.currentGuideTask = nextTaskType;
+            this.showCurrentGuideTask();
+            break;
+        }
+    }
+
+    /**创建当前队首引导的场景点击手指 */
+    private showCurrentGuideTask() {
+        if (this.currentGuideTask == guideTaskType.doorUpgrade) {
+            let roomIdx = playerMgr.playerComp?.roomIdx || 0;
+            this.createGuideDoorClickNode(this.getDoorByRoom(roomIdx));
+        } else if (this.currentGuideTask == guideTaskType.bedUpgrade) {
+            let roomIdx = playerMgr.playerComp?.roomIdx || 0;
+            let bedPos = this.roomMap[roomIdx]?.bedPos;
+            let bedComp = this.tileMap[bedPos?.x]?.[bedPos?.y]?.item?.propsComp as bedProps;
+            this.createGuideBedClickNode(bedComp);
+        } else if (this.currentGuideTask == guideTaskType.cannonBuild) {
+            this.createGuideCannonBuildClickNode();
+        } else if (this.currentGuideTask == guideTaskType.generatorBuild) {
+            this.createGuideGeneratorBuildClickNode();
+        }
+    }
+
+    /**指定引导是否已完成或被跳过 */
+    private isGuideTaskComplete(taskType: guideTaskType) {
+        if (taskType == guideTaskType.doorUpgrade) {
+            return this.isGuideDoorUpgradeComplete;
+        }
+        if (taskType == guideTaskType.bedUpgrade) {
+            return this.isGuideBedUpgradeComplete;
+        }
+        if (taskType == guideTaskType.cannonBuild) {
+            return this.isGuideCannonBuildComplete;
+        }
+        if (taskType == guideTaskType.generatorBuild) {
+            return this.isGuideGeneratorBuildComplete;
+        }
+
+        return true;
+    }
+
     /**当前道具是否为引导关玩家房间的门 */
     private isPlayerGuideDoor(doorComp: doorProps) {
         let roomIdx = playerMgr.playerComp?.roomIdx || 0;
@@ -847,6 +936,7 @@ export class UIGame extends UIBase {
     /**门升级界面是否需要显示首次升级点击引导 */
     shouldShowGuideDoorUpgrade(doorComp: doorProps) {
         return pData.isGuide
+            && this.currentGuideTask == guideTaskType.doorUpgrade
             && this.isGuideDoorUpgradeReady
             && !this.isGuideDoorUpgradeComplete
             && this.canAffordGuideUpgrade(doorComp)
@@ -864,6 +954,7 @@ export class UIGame extends UIBase {
             this.isGuideDoorUpgradeReady = false;
             this.isGuideDoorUpgradeUIOpen = false;
             this.clearGuideDoorClickNode();
+            this.finishGuideTask(guideTaskType.doorUpgrade);
             this.scheduleOnce(this.refreshGuideUpgradeGuide, 0);
         }
 
@@ -885,17 +976,22 @@ export class UIGame extends UIBase {
         let doorComp = this.getDoorByRoom(roomIdx);
         let nextPropsData = doorComp?.propsDatas?.[doorComp.level + 1];
         if (!doorComp || !nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
-            this.isGuideDoorUpgradeReady = false;
-            this.clearGuideDoorClickNode();
+            if (this.currentGuideTask == guideTaskType.doorUpgrade) {
+                this.clearGuideDoorClickNode();
+            }
             return;
         }
 
         if (this.isGuideDoorUpgradeReady) {
+            if (this.currentGuideTask == guideTaskType.doorUpgrade && !this.isGuideDoorUpgradeUIOpen
+                && !this.guideDoorClickNode?.isValid) {
+                this.createGuideDoorClickNode(doorComp);
+            }
             return;
         }
 
         this.isGuideDoorUpgradeReady = true;
-        this.createGuideDoorClickNode(doorComp);
+        this.enqueueGuideTask(guideTaskType.doorUpgrade);
     }
 
     /**在游戏道具层创建门点击手指 */
@@ -949,6 +1045,7 @@ export class UIGame extends UIBase {
     /**床升级界面是否需要显示首次升级点击引导 */
     shouldShowGuideBedUpgrade(bedComp: bedProps) {
         return pData.isGuide
+            && this.currentGuideTask == guideTaskType.bedUpgrade
             && this.isGuideDoorUpgradeComplete
             && this.isGuideBedUpgradeReady
             && !this.isGuideBedUpgradeComplete
@@ -966,6 +1063,7 @@ export class UIGame extends UIBase {
         this.isGuideBedUpgradeReady = false;
         this.isGuideBedUpgradeUIOpen = false;
         this.clearGuideBedClickNode();
+        this.finishGuideTask(guideTaskType.bedUpgrade);
     }
 
     /**门升级完成后，金币足够升级床时显示点击手指 */
@@ -988,22 +1086,28 @@ export class UIGame extends UIBase {
 
         if (bedComp.level > 0) {
             this.isGuideBedUpgradeComplete = true;
+            this.finishGuideTask(guideTaskType.bedUpgrade);
             return;
         }
 
         let nextPropsData = bedComp.propsDatas?.[bedComp.level + 1];
         if (!nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
-            this.isGuideBedUpgradeReady = false;
-            this.clearGuideBedClickNode();
+            if (this.currentGuideTask == guideTaskType.bedUpgrade) {
+                this.clearGuideBedClickNode();
+            }
             return;
         }
 
         if (this.isGuideBedUpgradeReady) {
+            if (this.currentGuideTask == guideTaskType.bedUpgrade && !this.isGuideBedUpgradeUIOpen
+                && !this.guideBedClickNode?.isValid) {
+                this.createGuideBedClickNode(bedComp);
+            }
             return;
         }
 
         this.isGuideBedUpgradeReady = true;
-        this.createGuideBedClickNode(bedComp);
+        this.enqueueGuideTask(guideTaskType.bedUpgrade);
     }
 
     /**在游戏道具层创建床点击手指 */
@@ -1072,7 +1176,7 @@ export class UIGame extends UIBase {
         let propsType = propsComp?.tileItemComp?.tileType;
         if (propsType == tilePropsType.door) {
             let doorComp = propsComp as doorProps;
-            if (!pData.isGuide || this.isGuideDoorUpgradeComplete || !this.isPlayerGuideDoor(doorComp)) {
+            if (!this.shouldShowGuideDoorUpgrade(doorComp)) {
                 return;
             }
 
@@ -1080,7 +1184,7 @@ export class UIGame extends UIBase {
             this.clearGuideDoorClickNode();
         } else if (propsType == tilePropsType.bed) {
             let bedComp = propsComp as bedProps;
-            if (!pData.isGuide || this.isGuideBedUpgradeComplete || !this.isPlayerGuideBed(bedComp)) {
+            if (!this.shouldShowGuideBedUpgrade(bedComp)) {
                 return;
             }
 
@@ -1110,6 +1214,7 @@ export class UIGame extends UIBase {
     /**发电机建造界面是否仍处于引导状态 */
     shouldShowGuideGeneratorBuild() {
         return pData.isGuide
+            && this.currentGuideTask == guideTaskType.generatorBuild
             && this.isGuideGeneratorBuildReady
             && !this.isGuideGeneratorBuildComplete;
     }
@@ -1138,7 +1243,7 @@ export class UIGame extends UIBase {
 
     /**成功购买首个引导发电机后结束本阶段引导 */
     completeGuideGeneratorBuild() {
-        if (!this.shouldShowGuideGeneratorBuild()) {
+        if (!pData.isGuide || !this.isGuideGeneratorBuildReady || this.isGuideGeneratorBuildComplete) {
             return;
         }
 
@@ -1147,6 +1252,7 @@ export class UIGame extends UIBase {
         this.isGuideGeneratorBuildUIOpen = false;
         this.guideGeneratorBuildTilePos = null;
         this.clearGuideGeneratorBuildClickNode();
+        this.finishGuideTask(guideTaskType.generatorBuild);
     }
 
     /**门达到7级且金币达到200时，引导在床边空闲格建造发电机 */
@@ -1169,6 +1275,7 @@ export class UIGame extends UIBase {
         let roomData: roomData = this.roomMap[roomIdx];
         if (this.hasRoomPropsByType(roomData, tilePropsType.generator)) {
             this.isGuideGeneratorBuildComplete = true;
+            this.finishGuideTask(guideTaskType.generatorBuild);
             return;
         }
 
@@ -1179,7 +1286,7 @@ export class UIGame extends UIBase {
 
         this.guideGeneratorBuildTilePos = new Vec2(emptyPos.x, emptyPos.y);
         this.isGuideGeneratorBuildReady = true;
-        this.createGuideGeneratorBuildClickNode();
+        this.enqueueGuideTask(guideTaskType.generatorBuild);
     }
 
     /**在床边最近空闲格中心创建发电机建造点击手指 */
@@ -1314,6 +1421,7 @@ export class UIGame extends UIBase {
     /**炮台建造界面是否仍处于引导状态 */
     private shouldShowGuideCannonBuild() {
         return pData.isGuide
+            && this.currentGuideTask == guideTaskType.cannonBuild
             && this.isGuideCannonBuildReady
             && !this.isGuideCannonBuildComplete;
     }
@@ -1342,7 +1450,7 @@ export class UIGame extends UIBase {
 
     /**成功购买首个引导炮台后结束本阶段引导 */
     private completeGuideCannonBuild() {
-        if (!this.shouldShowGuideCannonBuild()) {
+        if (!pData.isGuide || !this.isGuideCannonBuildReady || this.isGuideCannonBuildComplete) {
             return;
         }
 
@@ -1351,6 +1459,7 @@ export class UIGame extends UIBase {
         this.isGuideCannonBuildUIOpen = false;
         this.guideCannonBuildTilePos = null;
         this.clearGuideCannonBuildClickNode();
+        this.finishGuideTask(guideTaskType.cannonBuild);
     }
 
     /**记录玩家引导房门首次受到Boss实际伤害 */
@@ -1385,6 +1494,7 @@ export class UIGame extends UIBase {
         let roomData: roomData = this.roomMap[roomIdx];
         if (this.hasRoomPropsByType(roomData, tilePropsType.cannon)) {
             this.isGuideCannonBuildComplete = true;
+            this.finishGuideTask(guideTaskType.cannonBuild);
             return;
         }
 
@@ -1395,7 +1505,7 @@ export class UIGame extends UIBase {
 
         this.guideCannonBuildTilePos = new Vec2(emptyPos.x, emptyPos.y);
         this.isGuideCannonBuildReady = true;
-        this.createGuideCannonBuildClickNode();
+        this.enqueueGuideTask(guideTaskType.cannonBuild);
     }
 
     /**在离门最近的空闲格中心创建炮台建造点击手指 */
@@ -1440,20 +1550,22 @@ export class UIGame extends UIBase {
             return;
         }
 
-        if (this.shouldShowGuideCannonBuild() && this.isSameTilePos(occupiedPos, this.guideCannonBuildTilePos)) {
+        if (this.isGuideCannonBuildReady && !this.isGuideCannonBuildComplete
+            && this.isSameTilePos(occupiedPos, this.guideCannonBuildTilePos)) {
             this.clearGuideCannonBuildClickNode();
             let emptyPos = this.getGuideEmptyPosNearestTo(roomData, roomData.doorPos, this.guideGeneratorBuildTilePos);
             this.guideCannonBuildTilePos = emptyPos ? new Vec2(emptyPos.x, emptyPos.y) : null;
-            if (this.guideCannonBuildTilePos && !this.isGuideCannonBuildUIOpen) {
+            if (this.shouldShowGuideCannonBuild() && this.guideCannonBuildTilePos && !this.isGuideCannonBuildUIOpen) {
                 this.createGuideCannonBuildClickNode();
             }
         }
 
-        if (this.shouldShowGuideGeneratorBuild() && this.isSameTilePos(occupiedPos, this.guideGeneratorBuildTilePos)) {
+        if (this.isGuideGeneratorBuildReady && !this.isGuideGeneratorBuildComplete
+            && this.isSameTilePos(occupiedPos, this.guideGeneratorBuildTilePos)) {
             this.clearGuideGeneratorBuildClickNode();
             let emptyPos = this.getGuideEmptyPosNearestTo(roomData, roomData.bedPos, this.guideCannonBuildTilePos);
             this.guideGeneratorBuildTilePos = emptyPos ? new Vec2(emptyPos.x, emptyPos.y) : null;
-            if (this.guideGeneratorBuildTilePos && !this.isGuideGeneratorBuildUIOpen) {
+            if (this.shouldShowGuideGeneratorBuild() && this.guideGeneratorBuildTilePos && !this.isGuideGeneratorBuildUIOpen) {
                 this.createGuideGeneratorBuildClickNode();
             }
         }
@@ -1725,9 +1837,11 @@ export class UIGame extends UIBase {
         tileComp.addProps(propsType, level);
         let buildRole = this.getBuildRoleByRoomIdx(tileData.roomIdx);
         buildRole?.addGamePropsBuildCount(propsType);
-        if (propsType == tilePropsType.generator && this.shouldShowGuideGeneratorBuild()) {
+        let isPlayerGuideRoom = this.isGuideRoom(tileData.roomIdx)
+            && tileData.roomIdx == playerMgr.playerComp?.roomIdx;
+        if (isPlayerGuideRoom && propsType == tilePropsType.generator && this.isGuideGeneratorBuildReady) {
             this.completeGuideGeneratorBuild();
-        } else if (propsType == tilePropsType.cannon && this.shouldShowGuideCannonBuild()) {
+        } else if (isPlayerGuideRoom && propsType == tilePropsType.cannon && this.isGuideCannonBuildReady) {
             this.completeGuideCannonBuild();
         }
         this.refreshGuideBuildTilePosAfterCreate(tilePos);

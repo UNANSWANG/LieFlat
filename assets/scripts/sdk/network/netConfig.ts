@@ -23,4 +23,6 @@ export enum urlConfig {
     reportUser = "/client/reportUser",
     /**用户数据 */
     userInfo = "/client/userInfo",
+    /**游戏数据上报 */
+    reportGame = "/client/reportGame",
 }

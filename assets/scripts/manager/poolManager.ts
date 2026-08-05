@@ -76,7 +76,12 @@ export class poolManager extends Component {
 
     /**获取游戏Spine节点 */
     getGameSpineNode(prefab: Prefab) {
-        return this.getNode(this.gameSpineNodePool, prefab);
+        let node = this.getNode(this.gameSpineNodePool, prefab);
+        // UI引导会临时修改共享Spine节点的层级，复用时恢复预制体默认层级。
+        if (prefab?.data) {
+            node.layer = prefab.data.layer;
+        }
+        return node;
     }
 
     /**回收游戏Spine节点 */

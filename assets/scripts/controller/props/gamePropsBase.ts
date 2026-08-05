@@ -222,6 +222,7 @@ export class gamePropsBase extends Component {
         }
 
         img.node.setScale(1, 1, 1);
+        spineNode.layer = img.node.layer;
         img.node.addChild(spineNode);
     }
 

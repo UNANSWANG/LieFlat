@@ -591,6 +591,7 @@ export class UIGame extends UIBase {
             return false;
         }
 
+        node.layer = this.gameBottomUINode.layer;
         this.gameBottomUINode.addChild(node);
         let localPos = this.gameBottomUINode.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
         node.setPosition(localPos);

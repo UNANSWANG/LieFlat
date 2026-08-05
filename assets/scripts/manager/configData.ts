@@ -212,8 +212,6 @@ export enum SaveKey {
     avatarUrl = "avatarUrl",
     /**今日是否弹出过温馨提示 */
     isShowWarm = "isShowWarm",
-    /**通关次数 */
-    passCount = "passCount",
     /**已解锁角色皮肤 */
     unlockedRoleSkin = "unlockedRoleSkin",
     /**当前穿戴皮肤 */

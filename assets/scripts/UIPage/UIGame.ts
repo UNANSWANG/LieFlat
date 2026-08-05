@@ -3933,7 +3933,7 @@ export class UIGame extends UIBase {
                 break;
             case KeyCode.KEY_A:
                 //增加通关次数
-                pData.fixPassCount();
+                pData.addLevel();
                 break;
             case KeyCode.KEY_P:
                 //打开控制台

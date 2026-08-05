@@ -236,7 +236,7 @@ export class UISkinStore extends UIBase {
         }
 
         if (skinData.limitType == 3) {
-            if (!isUnlocked && pData.passCount >= skinData.levelNum) {
+            if (!isUnlocked && pData.level >= skinData.levelNum) {
                 this.unlockSkin(this.selectId);
                 return;
             }
@@ -245,7 +245,7 @@ export class UISkinStore extends UIBase {
                 return;
             }
             if (this.tipsNode) this.tipsNode.active = true;
-            this.refreshTipsNodeSize(`游戏${pData.passCount}/${skinData.levelNum}局获得`);
+            this.refreshTipsNodeSize(`游戏${pData.level}/${skinData.levelNum}局获得`);
         }
     }
 

@@ -44,6 +44,8 @@ export const configData = {
     robotStartTime: [2, 6],
     /**感染币获取数量 */
     addMoneyNum: 100,
+    /**boss模式开启关卡数 */
+    bossModeLevel: 10,
 }
 
 /**敌人通用配置 */

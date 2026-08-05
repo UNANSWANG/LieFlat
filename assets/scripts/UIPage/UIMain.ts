@@ -4,7 +4,7 @@ import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
 import { zoomButton } from '../extention/zoomButton';
 import { pData } from '../manager/playerData';
-import { GameEvent, SaveKey } from '../manager/configData';
+import { configData, GameEvent, SaveKey } from '../manager/configData';
 import { gm, PlatType } from '../manager/gm';
 import { ccStorageTools } from '../extention/storageTools';
 import { TTManager } from '../sdk/plat/tt/TTManager';
@@ -37,6 +37,9 @@ export class UIMain extends UIBase {
 
     @property(Node)
     addMoneyBtn: Node = null;
+
+    @property(Node)
+    bossModeBtn: Node = null;
 
     @property(sp.Skeleton)
     roleAnim: sp.Skeleton = null;
@@ -101,6 +104,7 @@ export class UIMain extends UIBase {
         this.storeBtn.addComponent(zoomButton).onClick = this.clickStoreBtn.bind(this);
         this.skinStoreBtn.addComponent(zoomButton).onClick = this.clickSkinStoreBtn.bind(this);
         this.addMoneyBtn.addComponent(zoomButton).onClick = this.clickAddMoneyBtn.bind(this);
+        this.bossModeBtn.addComponent(zoomButton).onClick = this.clickBossModeBtn.bind(this);
     }
 
     /**添加监听 */
@@ -307,6 +311,14 @@ export class UIMain extends UIBase {
     /**点击皮肤商店 */
     clickSkinStoreBtn() {
         uiMgr.openPage(UIPath.UISkinStore);
+    }
+
+    /**点击boss模式按钮 */
+    clickBossModeBtn() {
+        if (pData.level < configData.bossModeLevel) {
+            uiMgr.showTips(`通关${configData.bossModeLevel}次后开启，当前通关${pData.level}次`);
+            return;
+        }
     }
 }
 

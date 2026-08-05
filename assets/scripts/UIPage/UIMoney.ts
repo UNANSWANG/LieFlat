@@ -62,6 +62,7 @@ export class UIMoney extends UIBase {
     /**领取感染币奖励 */
     private getMoneyReward() {
         uiMgr.playMoneyAnim(this.numLab?.node?.parent, configData.addMoneyNum);
+        this.onClose();
     }
 
     ///

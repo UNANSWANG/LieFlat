@@ -9,9 +9,11 @@ export class sawController extends Component {
     /**斩杀目标 */
     private target: enemyBaseController = null;
     /**生成在敌人头顶的偏移 */
-    private startOffsetY: number = 220;
+    private startOffsetY: number = 440;
+    /**铡刀动画节点缩放 */
+    private sawScale: number = 2;
     /**下落目标相对敌人的偏移 */
-    private landedOffsetY: number = 25;
+    private landedOffsetY: number = 75;
     /**空中悬停时长 */
     private hoverDuration: number = 1.5;
     /**下落时长 */
@@ -27,6 +29,7 @@ export class sawController extends Component {
     init(target: enemyBaseController, imgPath: string, killerSkinId: number) {
         this.target = target;
         this.killerSkinId = killerSkinId;
+        this.node.setScale(this.sawScale, this.sawScale, 1);
 
         let img = poolMgr.getGameNodeSprite(this.node);
         if (img) {

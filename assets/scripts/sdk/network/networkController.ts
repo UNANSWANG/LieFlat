@@ -97,7 +97,7 @@ export class networkController {
 
                         try {
                             let response = JSON.parse(xhr.responseText);
-                            // console.warn("--------->后端返回数据>>>>", url, "\n", response);
+                            console.warn("--------->后端返回数据>>>>", url, "\n", response);
                             resolve(response.data);
                         } catch (e) {
                             console.error("Post失败status：", xhr.status, "数据：", xhr.responseText);

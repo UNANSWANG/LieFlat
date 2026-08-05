@@ -90,7 +90,6 @@ export class playerData {
 
     /**上报关卡给后端 */
     reportLevel(isPass) {
-        return;
         let progress = 0;
         //已经通关进度就是100%
         if (isPass) {
@@ -265,14 +264,9 @@ export class playerData {
     initData() {
         this.money = ccStorageTools.getNumberData(SaveKey.money);
         this.initPropsNum();
-        pData.level = ccStorageTools.getNumberData(SaveKey.level);
+
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
         gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
-
-        //TODO 测试用，后续注释掉
-        if (gm.platType == PlatType.h5) {
-            // pData.level = 3;
-        }
     }
 
     /**初始化道具集合 */

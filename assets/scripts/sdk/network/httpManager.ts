@@ -25,7 +25,7 @@ export class httpManager {
             sendData = data;
         }
 
-        // console.warn("--------->请求url:", url, "请求参数:\n", sendData);
+        console.warn("--------->请求url:", url, "请求参数:\n", sendData);
         try {
             let res = await networkCtrl.post(url, sendData);
             success?.(res);

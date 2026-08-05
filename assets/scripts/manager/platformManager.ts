@@ -60,14 +60,11 @@ export class platformManager extends Component {
             //测试用
             tempType = "lingtao168";
             userMgr.code = "123";
-            //TODO:防止测试时登录不上服务器
-            gm.isLogin = true;
-            return;
         }
 
         //TODO 暂时不需要登录
-        gm.isLogin = true;
-        return;
+        // gm.isLogin = true;
+        // return;
 
         httpMgr.post(urlConfig.login, { type: tempType, code: userMgr.code }, (data) => {
             gm.isLogin = true;
@@ -75,6 +72,7 @@ export class platformManager extends Component {
             userMgr.params.openId = data.openid;
             userMgr.params.token = data.token;
             userMgr.params.uid = +data.uid || 0;
+            pData.level = +data.level || 0;
 
             console.log("------------->登录成功用户数据:\n", userMgr.params);
             gm.Event.emit(GameEvent.checkLoginLoad);

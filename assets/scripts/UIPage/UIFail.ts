@@ -108,8 +108,8 @@ export class UIFail extends UIBase {
 
         this.boxRewardNode.active = this.boxNum > 0;
 
-        pData.SDKReportLevelComplete();
-        pData.addLevel();
+        pData.SDKReportLevelFail();
+        pData.reportLevel(false);
     }
 
     /**根据存活时间初始化失败基础奖励 */

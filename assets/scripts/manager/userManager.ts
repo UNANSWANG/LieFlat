@@ -6,12 +6,12 @@ export class userManager {
     /**微信插屏广告id */
     Ad_interstitialAd_wx: string = "";
     /**微信激励视频广告id */
-    Ad_video_wx: string = "";
+    Ad_video_wx: string = "adunit-cf38c23824867e27";
 
     /**抖音插屏广告id */
     Ad_interstitialAd_tt: string = "";
     /**抖音激励视频广告id */
-    Ad_video_tt: string = "";
+    Ad_video_tt: string = "35fpg95go4oppq4q8q";
 
     /**用户昵称 */
     nickName: string = "";
@@ -24,8 +24,8 @@ export class userManager {
 
     /**接口公告参数 */
     params = {
-        /**后台游戏id*/
-        game_id: 2,
+        /**后台游戏id 躺平（抖音）：9，躺平（微信）：8*/
+        game_id: 8,
         /**后台账号ID*/
         uid: 0,
         /**用户openId */

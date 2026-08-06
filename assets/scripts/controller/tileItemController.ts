@@ -6,7 +6,6 @@ import { UIGame } from '../UIPage/UIGame';
 import { cannonProps } from './props/cannonProps';
 import { generatorProps } from './props/generatorProps';
 import { veinProps } from './props/veinProps';
-import { ccTools } from '../extention/generalTools';
 import { playerMgr } from '../manager/playerManager';
 import { GameEvent } from '../manager/configData';
 import { gm } from '../manager/gm';
@@ -204,6 +203,7 @@ export class tileItemController extends Component {
         propComp.init(this, level, isSpecialSellProps, isAutoStartProps);
 
         this.checkUpgrade();
+        this.gameComp?.refreshRoomPropsUpgradeState(this.roomIdx);
     }
 
     /**获取道具类型对应的运行脚本，用于分类对象池复用 */
@@ -320,11 +320,7 @@ export class tileItemController extends Component {
 
         let canBuy = false;
         if (this.propsComp && this.propsComp.isValid) {
-            let nextLevel = this.propsComp.level + 1;
-            //非满级才需要显示可升级
-            if (nextLevel < this.propsComp.propsDatas.length) {
-                canBuy = ccTools.checkCanBuy(this.propsComp.propsDatas[nextLevel]);
-            }
+            canBuy = this.propsComp.checkCanUpgrade();
         }
 
         this.outLine.getComponent(Sprite).color = canBuy ? this.upgradeColor : this.normalColor;

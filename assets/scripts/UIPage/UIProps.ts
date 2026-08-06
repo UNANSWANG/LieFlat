@@ -11,7 +11,6 @@ import { ccTools } from '../extention/generalTools';
 import { gm } from '../manager/gm';
 import { pData } from '../manager/playerData';
 import { produceType } from './tips/produceTips';
-import { playerMgr } from '../manager/playerManager';
 import { videoMgr } from '../manager/videoManager';
 import { doorProps } from '../controller/props/doorProps';
 import { poolMgr } from '../manager/poolManager';
@@ -401,7 +400,7 @@ export class UIProps extends UIBase {
         let grayBg = buyBg.getChildByName("gray");
         let normalBg = buyBg.getChildByName("normal");
         let adBg = buyBg.getChildByName("ad");
-        let canBuy = ccTools.checkCanBuy(propsData);
+        let canBuy = this.propsComp?.checkCanUpgrade(propsData) || false;
         grayBg.active = !canBuy;
         normalBg.active = canBuy;
         adBg.active = false;
@@ -426,18 +425,10 @@ export class UIProps extends UIBase {
         let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
         let nextPropsData = propsConfig.getPropsData(this.propsComp.propsType)[level];
 
-        if (nextPropsData.preConditions) {
-            let conditionData = JSON.parse(nextPropsData.preConditions);
-            for (let condition of conditionData) {
-                let level = Number(condition[1] - 1);
-                let conditionPropsData = propsConfig.getPropsData(condition[0])[level];
-                let type = conditionPropsData.propsType;
-                if (!this.hasRoomPropsByTypeAndLevel(type, level)) {
-                    let propsName = conditionPropsData.name || "前置建筑";
-                    uiMgr.showTips(`需要${propsName}`);
-                    return;
-                }
-            }
+        let unmetPreCondition = this.propsComp.getUnmetUpgradePreCondition(nextPropsData);
+        if (unmetPreCondition) {
+            uiMgr.showTips(`需要${unmetPreCondition.name || "前置建筑"}`);
+            return;
         }
 
         if (nextPropsData.coin > 0 && nextPropsData.coin > pData.gameCoin) {
@@ -457,27 +448,6 @@ export class UIProps extends UIBase {
                 pData.fixGamePower(-nextPropsData.power);
             }
         }
-    }
-
-    /**检测玩家房间内是否有指定类型和等级的道具 */
-    private hasRoomPropsByTypeAndLevel(propsType: string, level: number) {
-        let roomIdx = playerMgr.playerComp?.roomIdx || 0;
-        if (roomIdx <= 0) {
-            return false;
-        }
-
-        let roomData = this.propsComp.gameComp.roomMap[roomIdx];
-        let roomArr: Vec2[] = roomData?.roomArr || [];
-        for (let i = 0; i < roomArr.length; i++) {
-            let tilePos = roomArr[i];
-            let tileComp = this.propsComp.gameComp.tileMap[tilePos.x]?.[tilePos.y]?.item;
-            let propComp = tileComp?.propsComp;
-            if (propComp && propComp.propsType == propsType && propComp.level >= level) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     ///

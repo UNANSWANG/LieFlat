@@ -976,7 +976,7 @@ export class UIGame extends UIBase {
 
         let doorComp = this.getDoorByRoom(roomIdx);
         let nextPropsData = doorComp?.propsDatas?.[doorComp.level + 1];
-        if (!doorComp || !nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
+        if (!doorComp || !nextPropsData || !doorComp.checkCanUpgrade(nextPropsData)) {
             if (this.currentGuideTask == guideTaskType.doorUpgrade) {
                 this.clearGuideDoorClickNode();
             }
@@ -1092,7 +1092,7 @@ export class UIGame extends UIBase {
         }
 
         let nextPropsData = bedComp.propsDatas?.[bedComp.level + 1];
-        if (!nextPropsData || !ccTools.checkCanBuy(nextPropsData)) {
+        if (!nextPropsData || !bedComp.checkCanUpgrade(nextPropsData)) {
             if (this.currentGuideTask == guideTaskType.bedUpgrade) {
                 this.clearGuideBedClickNode();
             }
@@ -1150,10 +1150,10 @@ export class UIGame extends UIBase {
         this.guideBedClickNode = null;
     }
 
-    /**当前金币和电能是否足够升级指定的门或床 */
+    /**当前是否满足指定门或床的全部升级条件 */
     private canAffordGuideUpgrade(propsComp: doorProps | bedProps) {
         let nextPropsData = propsComp?.propsDatas?.[propsComp.level + 1];
-        return !!nextPropsData && ccTools.checkCanBuy(nextPropsData);
+        return !!nextPropsData && propsComp.checkCanUpgrade(nextPropsData);
     }
 
     /**按门、床顺序刷新当前升级引导阶段 */
@@ -2463,6 +2463,16 @@ export class UIGame extends UIBase {
         }
 
         return count;
+    }
+
+    /**刷新指定房间内全部建筑的可升级状态 */
+    refreshRoomPropsUpgradeState(roomIdx: number) {
+        let roomData: roomData = this.roomMap[roomIdx];
+        let roomArr = roomData?.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            this.tileMap[tilePos.x]?.[tilePos.y]?.item?.checkUpgrade();
+        }
     }
 
     /**获取房间内指定类型道具最低等级 */

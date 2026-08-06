@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, sp, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
+import { _decorator, Component, Node, sp, Sprite, Tween, tween, UIOpacity, Vec2, Vec3 } from 'cc';
 import { tileItemController, tilePropsType } from '../tileItemController';
 import { ccTools } from '../../extention/generalTools';
 import { audioPath, imgPath } from '../../manager/pathConfig';
@@ -145,6 +145,62 @@ export class gamePropsBase extends Component {
         return propsConfig.getPropsData(this.propsType);
     }
 
+    /**当前建筑是否满足全部升级条件 */
+    checkCanUpgrade(propsData: any = null) {
+        let upgradePropsData = propsData || this.propsDatas?.[this.level + 1];
+        return !this.isMaxLevel && !!upgradePropsData
+            && ccTools.checkCanBuy(upgradePropsData)
+            && !this.getUnmetUpgradePreCondition(upgradePropsData);
+    }
+
+    /**获取首个未满足的升级前置条件 */
+    getUnmetUpgradePreCondition(propsData: any) {
+        if (!propsData?.preConditions) {
+            return null;
+        }
+
+        let conditionData = null;
+        try {
+            conditionData = JSON.parse(propsData.preConditions);
+        } catch (error) {
+            console.error("升级前置条件配置解析失败", propsData.preConditions, error);
+            return { name: "前置建筑" };
+        }
+
+        if (!Array.isArray(conditionData)) {
+            return { name: "前置建筑" };
+        }
+
+        for (let condition of conditionData) {
+            let conditionType = condition?.[0];
+            let conditionLevel = Number(condition?.[1]) - 1;
+            if (!conditionType || !Number.isInteger(conditionLevel) || conditionLevel < 0) {
+                return { name: "前置建筑" };
+            }
+            let conditionPropsData = propsConfig.getPropsData(conditionType)?.[conditionLevel];
+            if (!conditionPropsData || !this.hasRoomPropsByTypeAndLevel(conditionPropsData.propsType, conditionLevel)) {
+                return conditionPropsData || { name: "前置建筑" };
+            }
+        }
+
+        return null;
+    }
+
+    /**当前房间内是否存在指定类型和等级的建筑 */
+    private hasRoomPropsByTypeAndLevel(propsType: string, level: number) {
+        let roomData = this.gameComp?.roomMap?.[this.roomIdx];
+        let roomArr: Vec2[] = roomData?.roomArr || [];
+        for (let i = 0; i < roomArr.length; i++) {
+            let tilePos = roomArr[i];
+            let propComp = this.gameComp.tileMap[tilePos.x]?.[tilePos.y]?.item?.propsComp;
+            if (propComp && propComp.propsType == propsType && propComp.level >= level) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**初始化最大等级 */
     initMaxLevel() {
         this.maxLevel = this.propsDatas.length;
@@ -240,6 +296,7 @@ export class gamePropsBase extends Component {
         this.isSpecialSellProps = false;
         this.gameComp?.playPropsFog(this.tileItemComp?.node.worldPosition, audioPath.build);
         this.initPropsImg();
+        this.gameComp?.refreshRoomPropsUpgradeState(this.roomIdx);
     }
 
     /**生产物品 */
@@ -290,9 +347,11 @@ export class gamePropsBase extends Component {
     /**移除道具 */
     removeProps(audioName: string = "") {
         let tileItemComp = this.tileItemComp;
-        this.gameComp?.playPropsFog(tileItemComp?.node.worldPosition, audioName);
+        let gameComp = this.gameComp;
+        let roomIdx = this.roomIdx;
+        gameComp?.playPropsFog(tileItemComp?.node.worldPosition, audioName);
         tileItemComp?.removeProps();
-        tileItemComp?.checkUpgrade();
+        gameComp?.refreshRoomPropsUpgradeState(roomIdx);
     }
 
     /**受到伤害 */

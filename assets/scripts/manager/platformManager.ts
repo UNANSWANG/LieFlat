@@ -6,9 +6,8 @@ import { WXManager } from '../sdk/plat/wx/WXManager';
 import { BasePlat } from '../sdk/plat/BasePlat';
 import { httpMgr } from '../sdk/network/httpManager';
 import { netConfig, urlConfig } from '../sdk/network/netConfig';
-import { GameEvent, SaveKey } from './configData';
+import { GameEvent } from './configData';
 import { pData } from './playerData';
-import { ccStorageTools } from '../extention/storageTools';
 const { ccclass, property } = _decorator;
 
 @ccclass('platformManager')
@@ -73,6 +72,7 @@ export class platformManager extends Component {
             userMgr.params.token = data.token;
             userMgr.params.uid = +data.uid || 0;
             pData.level = +data.level || 0;
+            pData.initGameData(data.gold, data.ext);
 
             console.log("------------->登录成功用户数据:\n", userMgr.params);
             gm.Event.emit(GameEvent.checkLoginLoad);

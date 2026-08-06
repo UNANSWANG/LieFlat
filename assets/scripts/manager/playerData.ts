@@ -30,8 +30,20 @@ export class playerData {
     adNum = 0;
     /**当前皮肤id */
     skinId = 0;
+    /**已解锁角色皮肤 */
+    unlockedRoleSkin: { [key: string]: boolean } = {};
     /**是否为引导关 */
     isGuide = false;
+    /**角色默认皮肤id，角色皮肤表加载后赋值 */
+    private defaultSkinId: number = null;
+    /**是否已经收到登录接口下发的游戏数据 */
+    private isGameDataLoaded = false;
+    /**游戏数据上报状态，避免连续修改产生乱序覆盖 */
+    private isReportingGame = false;
+    /**是否存在尚未上报的游戏数据修改 */
+    private isGameReportDirty = false;
+    /**是否已安排微任务上报，用于合并同一轮同步操作产生的多次修改 */
+    private isGameReportScheduled = false;
 
     levelInit() {
         pData.adNum = 0;
@@ -159,7 +171,7 @@ export class playerData {
             num = 0;
         }
         this.propsNums[propsName] = num;
-        ccStorageTools.setData(SaveKey.props, this.propsNums);
+        this.reportGame();
         gm.Event.emit(GameEvent.refreshProps);
     }
 
@@ -176,7 +188,7 @@ export class playerData {
             tempNum = 0;
         }
         this.propsNums[propsName] = tempNum;
-        ccStorageTools.setData(SaveKey.props, this.propsNums);
+        this.reportGame();
         if (isRefresh) {
             gm.Event.emit(GameEvent.refreshProps);
         }
@@ -194,7 +206,7 @@ export class playerData {
         }
         let propsKey = this.getLevelPropsNumKey(propsType, level);
         this.propsNums[propsKey] = num;
-        ccStorageTools.setData(SaveKey.props, this.propsNums);
+        this.reportGame();
         gm.Event.emit(GameEvent.refreshProps);
     }
 
@@ -213,7 +225,7 @@ export class playerData {
             tempNum = 0;
         }
         this.propsNums[propsKey] = tempNum;
-        ccStorageTools.setData(SaveKey.props, this.propsNums);
+        this.reportGame();
         if (isRefresh) {
             gm.Event.emit(GameEvent.refreshProps);
         }
@@ -225,53 +237,143 @@ export class playerData {
         if (this.money < 0) {
             this.money = 0;
         }
-        ccStorageTools.setData(SaveKey.money, this.money);
+        this.reportGame();
         gm.Event.emit(GameEvent.refreshPlayerMonetary);
     }
 
     /**初始化当前穿戴皮肤 */
     initSkinData(defaultSkinId: number) {
-        let skinData = ccStorageTools.getData(SaveKey.skinId);
-        if (skinData == null || skinData == undefined) {
-            this.setSkinId(defaultSkinId);
-            ccStorageTools.setData(SaveKey.skinId, this.skinId);
-        } else {
-            this.skinId = ccStorageTools.getNumberData(SaveKey.skinId) || 0;
+        this.defaultSkinId = defaultSkinId;
+        if (!this.isGameDataLoaded) {
+            return;
         }
+
+        this.completeSkinData();
     }
 
     /**设置当前穿戴皮肤 */
     setSkinId(skinId: number) {
         let isChanged = this.skinId != skinId;
         this.skinId = skinId;
-        ccStorageTools.setData(SaveKey.skinId, this.skinId);
         if (isChanged) {
+            this.reportGame();
             gm.Event.emit(GameEvent.refreshRoleSkin);
         }
     }
 
-    /**设置全皮肤拥有 */
-    getAllSkin() {
-        let unlockedSkinMap = ccStorageTools.getData(SaveKey.unlockedRoleSkin) || {};
-        for (let i = 0; i < configData.roleSkinCount; i++) {
-            unlockedSkinMap[i + ""] = true;
+    /**判断角色皮肤是否已解锁 */
+    isSkinUnlocked(skinId: number) {
+        return !!this.unlockedRoleSkin[skinId + ""];
+    }
+
+    /**设置角色皮肤解锁状态 */
+    setSkinUnlocked(skinId: number, unlocked = true) {
+        let key = skinId + "";
+        if (!!this.unlockedRoleSkin[key] == unlocked) {
+            return;
         }
 
-        ccStorageTools.setData(SaveKey.unlockedRoleSkin, unlockedSkinMap);
+        this.unlockedRoleSkin[key] = unlocked;
+        this.reportGame();
+    }
+
+    /**设置全皮肤拥有 */
+    getAllSkin() {
+        for (let i = 0; i < configData.roleSkinCount; i++) {
+            this.unlockedRoleSkin[i + ""] = true;
+        }
+
+        this.reportGame();
+    }
+
+    /**使用登录接口下发的云端游戏数据 */
+    initGameData(gold: any, ext: any) {
+        let gameExt = ext && typeof ext == "object" && !Array.isArray(ext) ? ext : {};
+
+        this.money = Math.max(0, Number(gold) || 0);
+        this.propsNums = gameExt.propsNums && typeof gameExt.propsNums == "object"
+            ? Object.assign({}, gameExt.propsNums)
+            : {};
+        this.unlockedRoleSkin = gameExt.unlockedRoleSkin && typeof gameExt.unlockedRoleSkin == "object"
+            ? Object.assign({}, gameExt.unlockedRoleSkin)
+            : {};
+        this.skinId = Number.isInteger(+gameExt.skinId) && +gameExt.skinId >= 0
+            ? +gameExt.skinId
+            : this.defaultSkinId;
+        this.isGameDataLoaded = true;
+
+        this.completeSkinData();
+    }
+
+    /**补全新用户的默认皮肤数据 */
+    private completeSkinData() {
+        if (this.defaultSkinId == null) {
+            return;
+        }
+
+        let isChanged = false;
+        if (!Number.isInteger(this.skinId) || this.skinId < 0) {
+            this.skinId = this.defaultSkinId;
+            isChanged = true;
+        }
+        if (!this.isSkinUnlocked(this.defaultSkinId)) {
+            this.unlockedRoleSkin[this.defaultSkinId + ""] = true;
+            isChanged = true;
+        }
+
+        if (isChanged) {
+            this.reportGame();
+        }
+    }
+
+    /**上报感染币、皮肤和道具数据 */
+    reportGame() {
+        if (!gm.isLogin) {
+            return;
+        }
+
+        this.isGameReportDirty = true;
+        if (this.isReportingGame || this.isGameReportScheduled) {
+            return;
+        }
+
+        // 合并购买皮肤等同步流程中的多次数据修改，统一上报最终状态。
+        this.isGameReportScheduled = true;
+        Promise.resolve().then(() => {
+            this.isGameReportScheduled = false;
+            this.flushGameReport();
+        });
+    }
+
+    /**串行上报，避免旧请求后返回并覆盖新数据 */
+    private async flushGameReport() {
+        if (this.isReportingGame || !this.isGameReportDirty || !gm.isLogin) {
+            return;
+        }
+
+        this.isGameReportDirty = false;
+        this.isReportingGame = true;
+        try {
+            await httpMgr.post(urlConfig.reportGame, {
+                gold: this.money,
+                ext: {
+                    skinId: this.skinId,
+                    unlockedRoleSkin: Object.assign({}, this.unlockedRoleSkin),
+                    propsNums: Object.assign({}, this.propsNums),
+                },
+            });
+        } finally {
+            this.isReportingGame = false;
+            if (this.isGameReportDirty) {
+                this.flushGameReport();
+            }
+        }
     }
 
     /**初始化存储数据 */
     initData() {
-        this.money = ccStorageTools.getNumberData(SaveKey.money);
-        this.initPropsNum();
-
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
         gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
-    }
-
-    /**初始化道具集合 */
-    initPropsNum() {
-        this.propsNums = ccStorageTools.getData(SaveKey.props) || {};
     }
 }
 

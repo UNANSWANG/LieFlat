@@ -7,8 +7,6 @@ import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { roleSkinItemController } from '../controller/item/roleSkinItemController';
 import { ccTools } from '../extention/generalTools';
 import { pData } from '../manager/playerData';
-import { ccStorageTools } from '../extention/storageTools';
-import { SaveKey } from '../manager/configData';
 import { videoMgr } from '../manager/videoManager';
 import { roleAnimName } from '../controller/roleController';
 
@@ -132,9 +130,9 @@ export class UISkinStore extends UIBase {
         this.initList();
     }
 
-    /** 读取皮肤存档 */
+    /** 读取登录接口下发的皮肤数据 */
     private loadSkinData() {
-        this.unlockedSkinMap = ccStorageTools.getData(SaveKey.unlockedRoleSkin) || {};
+        this.unlockedSkinMap = pData.unlockedRoleSkin;
         this.selectId = pData.skinId;
 
         this.unlockSkin(roleSkinConfig.defaultSkinId, false);
@@ -254,10 +252,9 @@ export class UISkinStore extends UIBase {
         return !!this.unlockedSkinMap[skinId + ""];
     }
 
-    /** 解锁皮肤并写入本地存储 */
+    /** 解锁皮肤并上报云端 */
     private unlockSkin(skinId: number, refresh = true) {
-        this.unlockedSkinMap[skinId + ""] = true;
-        ccStorageTools.setData(SaveKey.unlockedRoleSkin, this.unlockedSkinMap);
+        pData.setSkinUnlocked(skinId);
         if (refresh) {
             this.rebuildList();
         }

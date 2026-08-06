@@ -27,7 +27,7 @@ export class preloadManager extends Component {
             ccStorageTools.setLimitTimeData(SaveKey.isShowWarm, 1);
         }
 
-        gm.Event.on(GameEvent.fullSkin, pData.getAllSkin, this);
+        gm.Event.on(GameEvent.fullSkin, pData.getAllSkin, pData);
     }
 }
 

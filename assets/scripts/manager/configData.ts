@@ -190,8 +190,6 @@ export enum SaveKey {
     level = "level",
     /**引导 */
     guide = "guide",
-    /**游戏外货币（场外） */
-    money = "money",
     /**音效开关 */
     effect = "effect",
     /**音效音量 */
@@ -202,8 +200,6 @@ export enum SaveKey {
     musicVolume = "musicVolume",
     /**振动开关 */
     vibrat = "vibrat",
-    /**道具存储 */
-    props = "props",
     /**今日是否领取过侧边栏奖励 */
     isGetRevisit = "isGetRevisit",
     /**今日是否通过分享领取过感染币 */
@@ -212,10 +208,6 @@ export enum SaveKey {
     avatarUrl = "avatarUrl",
     /**今日是否弹出过温馨提示 */
     isShowWarm = "isShowWarm",
-    /**已解锁角色皮肤 */
-    unlockedRoleSkin = "unlockedRoleSkin",
-    /**当前穿戴皮肤 */
-    skinId = "skinId",
     /**敌人是否只攻击自身（gm配置） */
     onlyAttackSelf = "onlyAttackSelf",
     /**是否免广告（gm配置） */

@@ -130,16 +130,9 @@ export class UIProps extends UIBase {
             return;
         }
 
-        if (this.isMaxLevel) {
-            this.titleLab.fontSize = 20;
-            this.titleLab.lineHeight = 30;
-            let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
-            this.titleLab.string = propsData.desc;
-        } else {
-            this.titleLab.fontSize = 60;
-            this.titleLab.lineHeight = 60;
-            this.titleLab.string = "升级";
-        }
+        this.titleLab.fontSize = 60;
+        this.titleLab.lineHeight = 60;
+        this.titleLab.string = "升级";
     }
 
     /**刷新页面 */
@@ -159,10 +152,11 @@ export class UIProps extends UIBase {
             }
         }
 
-        this.propsLayout.children[0].active = !this.isMaxLevel && !this.isGrayProps;
+        this.propsLayout.children[0].active = !this.isGrayProps;
         this.propsLayout.children[1].active = this.hasRemoveProps;
         //有次数且是门
-        this.propsLayout.children[2].active = !this.isGrayProps && pData.adUpgradeDoorCount > 0 && this.propsComp.propsType == tilePropsType.door;
+        this.propsLayout.children[2].active = !this.isMaxLevel && !this.isGrayProps
+            && pData.adUpgradeDoorCount > 0 && this.propsComp.propsType == tilePropsType.door;
 
         let propsLength = 0;
 
@@ -184,6 +178,7 @@ export class UIProps extends UIBase {
             let desLab = propsItem.getChildByName("desLab").getComponent(Label);
             let nameLab = propsItem.getChildByName("nameLab").getComponent(Label);
             let buyBtn = propsItem.getChildByName("buyBtn");
+            let maxNode = propsItem.getChildByName("max");
             let limitLab = buyBtn.getChildByName("limitLab").getComponent(Label);
             let buyBg = buyBtn.getChildByName("bg");
             let grayBg = buyBg.getChildByName("gray");
@@ -195,13 +190,16 @@ export class UIProps extends UIBase {
             let coinNumLab = coinLayout.getChildByName("numLab").getComponent(Label);
             let powerNumLab = powerLayout.getChildByName("numLab").getComponent(Label);
             let numNode = propsItem.getChildByName("numNode");
+            let isMaxPropsItem = i == 0 && this.isMaxLevel;
 
             numNode.active = false;
+            buyBtn.active = !isMaxPropsItem;
+            maxNode.active = isMaxPropsItem;
             let powerNum = 0;
             let coinNum = 0;
             limitLab.string = "";
 
-            if ((i == 0 && nextPropsData.preConditions) || i == 2) {
+            if ((i == 0 && !isMaxPropsItem && nextPropsData.preConditions) || i == 2) {
                 desLab.fontSize = 25;
                 desLab.lineHeight = 30;
             } else {
@@ -211,13 +209,14 @@ export class UIProps extends UIBase {
 
             buyLayout.active = i != 2;
             if (i == 0) {
-                powerNum = nextPropsData.power;
-                coinNum = nextPropsData.coin;
+                let displayPropsData = isMaxPropsItem ? propsData : nextPropsData;
+                powerNum = displayPropsData.power;
+                coinNum = displayPropsData.coin;
 
-                desLab.string = nextPropsData.desc;
+                desLab.string = displayPropsData.desc;
 
-                if (nextPropsData.preConditions) {
-                    let conditionData = JSON.parse(nextPropsData.preConditions);
+                if (!isMaxPropsItem && displayPropsData.preConditions) {
+                    let conditionData = JSON.parse(displayPropsData.preConditions);
                     for (let condition of conditionData) {
                         let nameStr = propsConfig.getPropsData(condition[0])[Number(condition[1]) - 1].name;
                         desLab.string += "\n前置:" + nameStr;
@@ -225,9 +224,11 @@ export class UIProps extends UIBase {
                 }
                 coinNumLab.string = coinNum + "";
                 powerNumLab.string = powerNum + "";
-                nameLab.string = nextPropsData.name;
-                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType + "_" + nextPropsData.level);
-                this.refreshBuyBtnState(buyBtn, nextPropsData);
+                nameLab.string = displayPropsData.name;
+                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + displayPropsData.propsType + "_" + displayPropsData.level);
+                if (!isMaxPropsItem) {
+                    this.refreshBuyBtnState(buyBtn, displayPropsData);
+                }
             } else if (i == 1) {
                 powerNum = this.getRemoveRewardPower(propsData);
                 coinNum = this.getRemoveRewardCoin(propsData);

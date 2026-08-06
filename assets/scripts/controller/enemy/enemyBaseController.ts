@@ -1631,6 +1631,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        uiMgr.showTips("感染者逃跑了");
         this.clearTarget();
         this.emptyRoomIgnoreDoorRoomIdx = 0;
         this.clearMovePath();
@@ -1698,6 +1699,7 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        uiMgr.showTips("感染者逃跑了");
         this.playRoleAnim(this.movePath.length > 0 ? enemyAnim.move : enemyAnim.idle, true);
     }
 

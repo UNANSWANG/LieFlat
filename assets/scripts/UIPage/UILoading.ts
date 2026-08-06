@@ -212,6 +212,7 @@ export class UILoading extends Component {
 
     /**表格加载完成 */
     tableLoadComplete() {
+        pData.initPropsNum();
         this.tableComplete = true;
         this.checkLoadComplete();
     }

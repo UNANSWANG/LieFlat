@@ -14,7 +14,7 @@ export class jsonProps extends jsonBase {
     /**可随机生成的道具数据 */
     private randomPropsData: JsonPropsData[] = [];
     /**神秘商店道具数据 */
-    private storePropsData: JsonPropsData[][] = [];
+    storePropsData: JsonPropsData[][] = [];
     /**按建筑类型分组的一级道具数据 */
     private buildTypePropsData: { [key: number]: JsonPropsData[] } = {};
 
@@ -135,6 +135,8 @@ export interface JsonPropsData {
     storePrice: number;
     /**价格数组 */
     priceArray: string;
+    /**神秘商店初始数量 */
+    storeInitNum: number;
 }
 
 

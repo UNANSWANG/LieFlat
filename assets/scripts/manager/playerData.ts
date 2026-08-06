@@ -5,6 +5,7 @@ import { configData, GameEvent, gmConfig, PropsName, SaveKey } from './configDat
 import { gm, PlatType } from './gm';
 import { httpMgr } from '../sdk/network/httpManager';
 import { urlConfig } from '../sdk/network/netConfig';
+import { propsConfig } from '../json/jsonProps';
 const { ccclass, property } = _decorator;
 
 //用户游戏内数据
@@ -302,7 +303,25 @@ export class playerData {
             : this.defaultSkinId;
         this.isGameDataLoaded = true;
 
+        this.initPropsNum();
         this.completeSkinData();
+    }
+
+    /**没有云端道具数据时，按商城配置初始化每种道具数量 */
+    initPropsNum() {
+        if (!this.isGameDataLoaded || propsConfig.storePropsData.length <= 0 || Object.keys(this.propsNums).length > 0) {
+            return;
+        }
+
+        for (let i = 0; i < propsConfig.storePropsData.length; i++) {
+            let propsList = propsConfig.storePropsData[i] || [];
+            for (let j = 0; j < propsList.length; j++) {
+                let propsData = propsList[j];
+                let propsKey = this.getLevelPropsNumKey(propsData.propsType, propsData.level);
+                this.propsNums[propsKey] = Math.max(0, Number(propsData.storeInitNum) || 0);
+            }
+        }
+        this.reportGame();
     }
 
     /**补全新用户的默认皮肤数据 */
@@ -333,6 +352,9 @@ export class playerData {
         }
 
         this.isGameReportDirty = true;
+        if (!this.isGameDataLoaded || !Number.isInteger(this.skinId)) {
+            return;
+        }
         if (this.isReportingGame || this.isGameReportScheduled) {
             return;
         }

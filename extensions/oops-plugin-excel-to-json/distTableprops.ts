@@ -79,6 +79,10 @@ export class Tableprops {
     get storeType(): number {
         return this.data.storeType;
     }
+    /** 神秘商店初始数量 */
+    get storeInitNum(): number {
+        return this.data.storeInitNum;
+    }
     /** 商店价格 */
     get storePrice(): number {
         return this.data.storePrice;

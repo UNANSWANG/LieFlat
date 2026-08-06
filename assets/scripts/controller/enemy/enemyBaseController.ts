@@ -472,6 +472,9 @@ export class enemyBaseController extends Component {
         }
 
         this.isNetControlled = true;
+        this.stopAttackPlayer();
+        this.stopAttackProps();
+        this.playRoleAnim(enemyAnim.idle, true);
         this.unschedule(this.stopNetControl);
         this.scheduleOnce(this.stopNetControl, time);
     }
@@ -1636,7 +1639,9 @@ export class enemyBaseController extends Component {
         this.emptyRoomIgnoreDoorRoomIdx = 0;
         this.clearMovePath();
         this.playRoleAnim(enemyAnim.move, true);
-        this.chooseTargetAndFindPath();
+        if (!this.chooseTargetAndFindPath(attackRoomIdx)) {
+            this.startRepairHp(true);
+        }
     }
 
     /**强制离开时，如果只剩当前正在攻击的目标，则回出生点等待后再重新寻找 */

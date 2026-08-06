@@ -294,6 +294,7 @@ export class UILoading extends Component {
                 const gameId = res.game_id
                 const status = res.status
                 this.sdkLoginComplete = true;
+                this.checkLoadComplete();
 
                 if (status === 0) {
                     // 调用登录

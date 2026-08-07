@@ -701,8 +701,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 9,
-      "y": -41,
+      "x": 0,
+      "y": -230,
       "z": 0
     },
     "_lrot": {
@@ -714,8 +714,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 2,
-      "y": 2,
+      "x": 4.5,
+      "y": 4.5,
       "z": 1
     },
     "_mobility": 0,
@@ -742,22 +742,22 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 323,
-      "height": 256
+      "width": 146,
+      "height": 114.44000244140625
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
+      "x": 0.4852054543691139,
+      "y": 0.13133519234820545
     },
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "11ZQsWFlxBgbCfSVaySu0c"
+    "fileId": "4fnRNHi5VOlqayFO+XqYFi"
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "sp.Skeleton",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -778,28 +778,28 @@
       "b": 255,
       "a": 255
     },
-    "_spriteFrame": {
-      "__uuid__": "0211ee8b-8e82-4aba-84c5-15269cadc0fa@f9941",
-      "__expectedType__": "cc.SpriteFrame"
+    "_skeletonData": {
+      "__uuid__": "89b9ee4e-2f5f-40e8-af25-865bf8242a37",
+      "__expectedType__": "sp.SkeletonData"
     },
-    "_type": 0,
-    "_fillType": 0,
-    "_sizeMode": 1,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_useGrayscale": false,
-    "_atlas": null,
+    "defaultSkin": "default",
+    "defaultAnimation": "idle",
+    "_premultipliedAlpha": true,
+    "_timeScale": 1,
+    "_preCacheMode": 0,
+    "_cacheMode": 0,
+    "_sockets": [],
+    "_useTint": false,
+    "_debugMesh": false,
+    "_debugBones": false,
+    "_debugSlots": false,
+    "_enableBatch": false,
+    "loop": true,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "37qUkUF7tKBYctUZZ2U/wq"
+    "fileId": "01lW4vIdBNqpslIe8SpnC0"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -809,7 +809,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "f6gNsilJtGr5RnhjhDyFvT",
+    "fileId": "caMiBrJoFMFpiPiXvhAIIZ",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null

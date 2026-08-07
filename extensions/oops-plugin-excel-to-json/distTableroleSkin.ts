@@ -31,15 +31,15 @@ export class TableroleSkin {
     get limitType(): number {
         return this.data.limitType;
     }
-    /** 购买所需金币
-（类型1） */
-    get money(): number {
-        return this.data.money;
-    }
     /** 通关次数
 （类型3） */
     get levelNum(): number {
         return this.data.levelNum;
+    }
+    /** 购买所需金币
+（类型1） */
+    get money(): number {
+        return this.data.money;
     }
 }
     

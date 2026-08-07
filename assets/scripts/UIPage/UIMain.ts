@@ -60,7 +60,7 @@ export class UIMain extends UIBase {
     /**僵尸移动速度，单位为每秒的 x 坐标距离 */
     zombieMoveSpeeds = [70, 90, 55];
     /**列车的x坐标数组 */
-    trainXRange = [546, -560, -3643];
+    trainXRange = [354, -529, -3643];
     /**列车移动速度，单位为每秒的 x 坐标距离 */
     trainMoveSpeed = 1000;
     /**列车驶出速度，单位为每秒的 x 坐标距离 */

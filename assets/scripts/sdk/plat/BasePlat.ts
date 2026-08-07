@@ -1,5 +1,8 @@
 import { HTML5 } from 'cc/env';
 import { gm } from '../../manager/gm';
+import { httpMgr } from '../network/httpManager';
+import { urlConfig } from '../network/netConfig';
+import { pData } from '../../manager/playerData';
 
 export class BasePlat {
     _ad;
@@ -65,7 +68,7 @@ export class BasePlat {
 
     /**向开放数据域发送信息 */
     sendMessage(str: any) {
-        
+
     }
 
     /**获取好友排行榜 */
@@ -80,9 +83,9 @@ export class BasePlat {
 
     /**刷新设置信息 */
     refreshSetting(call?) {
-    
+
     }
-    
+
     /**打开设置界面 */
     openSetting(call?) {
 
@@ -93,5 +96,14 @@ export class BasePlat {
         if (HTML5) {
             console.log("震动");
         }
+    }
+
+    /**上报广告日志 */
+    reportAdLog(isEnded: boolean) {
+        httpMgr.post(urlConfig.log_video, {
+            level_id: (pData.level + 1).toString(),
+            level: pData.level + 1,
+            is_ended: isEnded,
+        });
     }
 }

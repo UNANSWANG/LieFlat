@@ -78,8 +78,8 @@ export const enemyCommonConfig = {
     doorHpAttackPercent: 0.2,
     /**破门后自身血量阈值百分比 */
     goalHpThresholdPercent: 0.2,
-    /**房门攻击时间检测阈值 */
-    doorAttackTimeThreshold: 20,
+    /**房门攻击时间检测阈值区间 */
+    doorAttackTimeThreshold: [5, 30],
     /**房门被攻击的检测时间（伤害） */
     doorAttackTimeDamage: 10,
     /**房门被攻击的秒伤阈值百分比 */

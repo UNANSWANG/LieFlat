@@ -258,7 +258,7 @@ export class UILoading extends Component {
         enemyCommonConfig.rageAttackSpeed = commonConfig.getValueNumber("rageAttackSpeed");
         enemyCommonConfig.rageTime = commonConfig.getValueNumber("rageTime");
         enemyCommonConfig.rageUseInterval = commonConfig.getValueNumber("rageUseInterval");
-        enemyCommonConfig.doorAttackTimeThreshold = commonConfig.getValueNumber("doorAttackTimeThreshold");
+        enemyCommonConfig.doorAttackTimeThreshold = JSON.parse(commonConfig.getValue("doorAttackTimeThreshold"));
         enemyCommonConfig.doorAttackTimeDamage = commonConfig.getValueNumber("doorAttackTimeDamage");
         enemyCommonConfig.enemyHpAttackPercent = commonConfig.getValueNumber("enemyHpAttackPercent") / 100;
         enemyCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("doorHpAttackPercent") / 100;

@@ -84,6 +84,8 @@ export class enemyBaseController extends Component {
     private doorAttackTimeCheckState: "none" | "waiting" | "recording" | "passed" = "none";
     /**当前攻击门秒伤检测计时 */
     private doorAttackTimeCheckTimer: number = 0;
+    /**本次连续攻击房门的随机检测阈值 */
+    private doorAttackTimeCheckThreshold: number = 0;
     /**当前攻击门秒伤检测累计伤害 */
     private doorAttackTimeCheckDamage: number = 0;
     /**当前攻击门秒伤检测坐标 */
@@ -1564,7 +1566,7 @@ export class enemyBaseController extends Component {
 
         if (this.doorAttackTimeCheckState == "waiting") {
             this.doorAttackTimeCheckTimer += dt;
-            if (this.doorAttackTimeCheckTimer >= enemyCommonConfig.doorAttackTimeThreshold) {
+            if (this.doorAttackTimeCheckTimer >= this.doorAttackTimeCheckThreshold) {
                 this.doorAttackTimeCheckState = "recording";
                 this.doorAttackTimeCheckTimer = 0;
                 this.doorAttackTimeCheckDamage = 0;
@@ -1589,13 +1591,28 @@ export class enemyBaseController extends Component {
         this.doorAttackTimeCheckTilePos = new Vec2(tilePos.x, tilePos.y);
         this.doorAttackTimeCheckTimer = 0;
         this.doorAttackTimeCheckDamage = 0;
+        this.doorAttackTimeCheckThreshold = this.getRandomDoorAttackTimeThreshold();
 
-        if (enemyCommonConfig.doorAttackTimeThreshold <= 0) {
+        if (this.doorAttackTimeCheckThreshold <= 0) {
             this.doorAttackTimeCheckState = "recording";
             return;
         }
 
         this.doorAttackTimeCheckState = "waiting";
+    }
+
+    /**获取本次连续攻击房门的随机检测阈值 */
+    private getRandomDoorAttackTimeThreshold() {
+        let thresholdRange = enemyCommonConfig.doorAttackTimeThreshold;
+        let thresholdMin = Number(thresholdRange?.[0]);
+        let thresholdMax = Number(thresholdRange?.[1]);
+        if (!Number.isFinite(thresholdMin) || !Number.isFinite(thresholdMax)
+            || thresholdMin < 0 || thresholdMax < thresholdMin) {
+            console.error("房门攻击时间检测阈值配置异常，将立即开始伤害检测", thresholdRange);
+            return 0;
+        }
+
+        return thresholdMin + Math.random() * (thresholdMax - thresholdMin);
     }
 
     /**记录高血量攻击门当前检测窗口内造成的伤害 */
@@ -1672,6 +1689,7 @@ export class enemyBaseController extends Component {
     private resetDoorAttackTimeCheck() {
         this.doorAttackTimeCheckState = "none";
         this.doorAttackTimeCheckTimer = 0;
+        this.doorAttackTimeCheckThreshold = 0;
         this.doorAttackTimeCheckDamage = 0;
         this.doorAttackTimeCheckTilePos = null;
     }

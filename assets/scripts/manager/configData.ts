@@ -75,7 +75,9 @@ export const enemyCommonConfig = {
     /**敌人攻击时血量检测阈值百分比（检测逃离） */
     enemyHpAttackPercent: 0.3,
     /**房门被攻击血量检测阈值百分比 */
-    doorHpAttackPercent: 0.2,
+    doorHpAttackPercent: [0.3, 0.5],
+    /**炮台是否击败时间计算（秒） */
+    cannonAttackTimeThreshold: 5,
     /**破门后自身血量阈值百分比 */
     goalHpThresholdPercent: 0.2,
     /**房门攻击时间检测阈值区间 */

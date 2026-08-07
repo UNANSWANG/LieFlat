@@ -229,6 +229,21 @@ export class UILoading extends Component {
         this.scheduleOnce(() => director.loadScene("main"), 0);
     }
 
+    /**获取通用配置中的百分比区间，兼容旧的单值配置 */
+    private getCommonPercentRange(key: string): [number, number] {
+        let configValue = commonConfig.getValue(key);
+        if (typeof configValue == "string") {
+            configValue = JSON.parse(configValue);
+        }
+
+        if (Array.isArray(configValue)) {
+            return [Number(configValue[0]) / 100, Number(configValue[1]) / 100];
+        }
+
+        let percentValue = Number(configValue) / 100;
+        return [percentValue, percentValue];
+    }
+
     /**通用配置表加载完成 */
     commonTableFinish() {
         //通用
@@ -258,10 +273,11 @@ export class UILoading extends Component {
         enemyCommonConfig.rageAttackSpeed = commonConfig.getValueNumber("rageAttackSpeed");
         enemyCommonConfig.rageTime = commonConfig.getValueNumber("rageTime");
         enemyCommonConfig.rageUseInterval = commonConfig.getValueNumber("rageUseInterval");
+        enemyCommonConfig.cannonAttackTimeThreshold = commonConfig.getValueNumber("cannonAttackTimeThreshold");
         enemyCommonConfig.doorAttackTimeThreshold = JSON.parse(commonConfig.getValue("doorAttackTimeThreshold"));
         enemyCommonConfig.doorAttackTimeDamage = commonConfig.getValueNumber("doorAttackTimeDamage");
-        enemyCommonConfig.enemyHpAttackPercent = commonConfig.getValueNumber("enemyHpAttackPercent") / 100;
-        enemyCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("doorHpAttackPercent") / 100;
+        enemyCommonConfig.enemyHpAttackPercent = 0.5//commonConfig.getValueNumber("enemyHpAttackPercent") / 100;
+        enemyCommonConfig.doorHpAttackPercent = [0.1,0.9]//this.getCommonPercentRange("doorHpAttackPercent");
         enemyCommonConfig.goalHpThresholdPercent = commonConfig.getValueNumber("goalHpThresholdPercent") / 100;
         enemyCommonConfig.doorAttackTimeDamagePercent = commonConfig.getValueNumber("doorAttackTimeDamagePercent") / 100;
         enemyCommonConfig.returnStartTime = commonConfig.getValueNumber("returnStartTime");
@@ -276,7 +292,7 @@ export class UILoading extends Component {
         robotCommonConfig.enemyAttackTimeThreshold = commonConfig.getValueNumber("enemyAttackTimeThreshold");
         robotCommonConfig.enemyUpgradeDoorMax = commonConfig.getValueNumber("enemyUpgradeDoorMax");
         robotCommonConfig.enemyAttackTimeUpgrade = commonConfig.getValueNumber("enemyAttackTimeUpgrade");
-        robotCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("doorHpAttackPercent") / 100;
+        robotCommonConfig.doorHpAttackPercent = commonConfig.getValueNumber("robotDoorHpAttackPercent") / 100;
         robotCommonConfig.enemyAttackPropsInterval = commonConfig.getValueNumber("enemyAttackPropsInterval");
         robotCommonConfig.enemyAttackPropsWeight = JSON.parse(commonConfig.getValue("enemyAttackPropsWeight"));
         robotCommonConfig.enemyNotAttackPropsInterval = commonConfig.getValueNumber("enemyNotAttackPropsInterval");

@@ -132,6 +132,8 @@ export class enemyBaseController extends Component {
     private upgradeTime: number = 0;
     /**最近受到的伤害记录 */
     private damageRecords: { time: number, damage: number }[] = [];
+    /**当前攻击房门是否已完成本次血量区间判定 */
+    private hasCheckedDoorHpAttackPercentRange: boolean = false;
     /**狂怒技能冷却计时 */
     private rageUseTimer: number = 0;
     /**狂怒技能持续计时 */
@@ -197,6 +199,7 @@ export class enemyBaseController extends Component {
         this.level = 0;
         this.damageRecords = [];
         this.isForceAttackingDoor = false;
+        this.hasCheckedDoorHpAttackPercentRange = false;
         this.needWaitReturnStart = false;
         this.isWaitingReturnStart = false;
         this.returnStartTimer = 0;
@@ -923,11 +926,27 @@ export class enemyBaseController extends Component {
             return false;
         }
 
-        if (doorComp.hpPercent > enemyCommonConfig.doorHpAttackPercent) {
+        let thresholdRange = this.getDoorHpAttackPercentRange();
+        if (!thresholdRange) {
+            return false;
+        }
+
+        if (doorComp.hpPercent > thresholdRange.upper) {
+            this.hasCheckedDoorHpAttackPercentRange = false;
             this.tryTriggerRoomNet(attackRoomIdx);
             this.startRepairHp();
             return true;
         }
+
+        if (doorComp.hpPercent > thresholdRange.lower) {
+            if (this.tryHandleDoorHpAttackPercentRange(doorComp)) {
+                return true;
+            }
+            this.isForceAttackingDoor = true;
+            return true;
+        }
+
+        this.hasCheckedDoorHpAttackPercentRange = false;
 
         let enemyDamageSpeed = this.getRecentDamage(2);
         let doorDamageSpeed = doorComp.getRecentDamage(2);
@@ -939,6 +958,50 @@ export class enemyBaseController extends Component {
         }
 
         this.isForceAttackingDoor = true;
+        return true;
+    }
+
+    /**获取房门攻击时血量检测区间 */
+    private getDoorHpAttackPercentRange() {
+        let configValue: any = enemyCommonConfig.doorHpAttackPercent;
+        let lower = Array.isArray(configValue) ? Number(configValue[0]) : Number(configValue);
+        let upper = Array.isArray(configValue) ? Number(configValue[1]) : lower;
+        if (!Number.isFinite(lower) || !Number.isFinite(upper) || lower < 0 || upper < lower) {
+            console.error("房门攻击时血量检测区间配置异常", configValue);
+            return null;
+        }
+
+        return { lower, upper };
+    }
+
+    /**进入房门攻击时血量检测中间区间时，判断是否需要逃回出生点 */
+    private tryHandleDoorHpAttackPercentRange(doorComp: gamePropsBase) {
+        if (this.hpPercent > enemyCommonConfig.enemyHpAttackPercent) {
+            return false;
+        }
+
+        let thresholdRange = this.getDoorHpAttackPercentRange();
+        if (!thresholdRange) {
+            return false;
+        }
+
+        if (doorComp.hpPercent <= thresholdRange.lower || doorComp.hpPercent > thresholdRange.upper) {
+            this.hasCheckedDoorHpAttackPercentRange = false;
+            return false;
+        }
+        if (this.hasCheckedDoorHpAttackPercentRange) {
+            return false;
+        }
+
+        this.hasCheckedDoorHpAttackPercentRange = true;
+        let enemyDamageSpeed = this.getRecentDamage(2) / 2;
+        if (enemyDamageSpeed * enemyCommonConfig.cannonAttackTimeThreshold < this.hp) {
+            return false;
+        }
+
+        let attackRoomIdx = this.getCurAttackRoomIdx();
+        this.tryTriggerRoomNet(attackRoomIdx);
+        this.startRepairHp();
         return true;
     }
 
@@ -1421,6 +1484,7 @@ export class enemyBaseController extends Component {
             this.attackingTilePos = new Vec2(tilePos.x, tilePos.y);
             this.hasFearCurAttackDoor = false;
             this.isForceAttackingDoor = false;
+            this.hasCheckedDoorHpAttackPercentRange = false;
             this.resetDoorAttackTimeCheck();
             this.thornDamageTimer = 0;
             if (propComp.propsType == tilePropsType.door) {
@@ -1545,14 +1609,21 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        if (this.hpPercent <= enemyCommonConfig.enemyHpAttackPercent || this.isForceAttackingDoor) {
-            return;
-        }
-
         let tilePos = this.attackingTilePos;
         let doorComp = this.getTilePropComp(tilePos);
         if (!doorComp) {
             this.resetDoorAttackTimeCheck();
+            return;
+        }
+
+        if (this.hpPercent <= enemyCommonConfig.enemyHpAttackPercent) {
+            if (this.tryHandleDoorHpAttackPercentRange(doorComp)) {
+                this.resetDoorAttackTimeCheck();
+            }
+            return;
+        }
+
+        if (this.isForceAttackingDoor) {
             return;
         }
 
@@ -2082,6 +2153,9 @@ export class enemyBaseController extends Component {
             if (actualDamage > 0) {
                 this.recordDoorAttackTimeDamage(actualDamage);
                 this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
+                if (this.tryHandleDoorHpAttackPercentRange(propComp)) {
+                    return;
+                }
                 if (!isDestroyed && this.tryTriggerAttackRoomAlarm()) {
                     return;
                 }

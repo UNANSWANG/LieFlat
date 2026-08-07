@@ -397,6 +397,7 @@ export class enemyBaseController extends Component {
         this.rageUseTimer = 0;
         uiMgr.showTips("感染者释放狂怒技能");
         this.gameComp?.playSceneEffect(audioPath.bossSkill, this.node.worldPosition);
+        this.gameComp?.playSceneEffect(audioPath.shangshikaichang, this.node.worldPosition);
         if (this.tryStartCageControl()) {
             return true;
         }
@@ -2150,6 +2151,7 @@ export class enemyBaseController extends Component {
 
         uiMgr.showTips("感染者释放震慑技能");
         this.gameComp?.playSceneEffect(audioPath.bossSkill, this.node.worldPosition);
+        this.gameComp?.playSceneEffect(audioPath.shangshikaichang, this.node.worldPosition);
         if (this.tryStartCageControl()) {
             this.hasFearCurAttackDoor = true;
             return;

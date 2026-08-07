@@ -603,6 +603,8 @@ export class enemyBaseController extends Component {
         this.repairBloodNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
         this.repairBloodNode.name = "repairBloodSpine";
         this.effectNode.addChild(this.repairBloodNode);
+        this.repairBloodNode.setScale(3, 3, 1);
+        this.repairBloodNode.setPosition(0, 50, 0);
 
         let skeleton = poolMgr.getGameNodeSkeleton(this.repairBloodNode);
         if (skeleton) {

@@ -18,7 +18,7 @@ export enum urlConfig {
     /**排行榜数据 */
     rank = "/client/top",
     /**关卡日志上报 */
-    levelReport = "/client/log_level",
+    levelReport = "/client/reportLevel",
     /**用户数据上报 */
     reportUser = "/client/reportUser",
     /**用户数据 */

@@ -213,7 +213,7 @@ export class doorProps extends gamePropsBase {
 
         let hpBefore = this.hp;
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * repairSpeed / 100 * dt);
-        this.hpBar.fillRange = this.hp / this.maxHp;
+        this.refreshHp();
         if (this.hp > hpBefore) {
             this.keepDoorHpVisible();
         }
@@ -351,7 +351,7 @@ export class doorProps extends gamePropsBase {
     resetHp(isKeepHpShowTimer: boolean = false) {
         this.maxHp = this.propsDatas[this.level].hp;
         this.hp = this.maxHp;
-        this.hpBar.fillRange = 1;
+        this.refreshHp(true);
         this.hpNode.active = false;
         if (!isKeepHpShowTimer) {
             this.doorHpShowTimer = 0;

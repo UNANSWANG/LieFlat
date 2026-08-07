@@ -176,8 +176,12 @@ export class enemyBaseController extends Component {
     hpNode: Node = null;
     /**血量图片 */
     hpBar: Sprite = null;
+    /**血量虚影 */
+    baseHp: Sprite = null;
     /**特效动画节点 */
     effectNode: Node = null;
+    /**血量虚影追赶动画时长 */
+    private hpShadowDuration: number = 0.3;
 
     protected onLoad(): void {
         this.roleAnim = this.node.getChildByName("roleAnim").getComponent(sp.Skeleton);
@@ -185,12 +189,14 @@ export class enemyBaseController extends Component {
         this.levelLab = this.node.getChildByName("levelLab").getComponent(Label);
         this.hpNode = this.node.getChildByName("hpBg");
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
+        this.baseHp = this.hpNode.getChildByName("baseHp").getComponent(Sprite);
         this.roleAnim.setEventListener(this.onRoleAnimEvent.bind(this));
         this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
         this.effectNode = this.node.getChildByName("effectNode");
     }
 
     protected onDestroy(): void {
+        Tween.stopAllByTarget(this.baseHp);
         this.unlockTargetPlayerMove();
     }
 
@@ -326,8 +332,20 @@ export class enemyBaseController extends Component {
     }
 
     /**刷新血量 */
-    refreshHp() {
-        this.hpBar.fillRange = this.hpPercent;
+    refreshHp(isImmediate: boolean = false) {
+        let hpPercent = Math.max(0, Math.min(1, this.hpPercent));
+        let isHpReduced = hpPercent < this.hpBar.fillRange;
+        this.hpBar.fillRange = hpPercent;
+        Tween.stopAllByTarget(this.baseHp);
+
+        if (isImmediate || !isHpReduced) {
+            this.baseHp.fillRange = hpPercent;
+            return;
+        }
+
+        tween(this.baseHp)
+            .to(this.hpShadowDuration, { fillRange: hpPercent }, { easing: "linear" })
+            .start();
     }
 
     /**升级 */
@@ -805,9 +823,9 @@ export class enemyBaseController extends Component {
         }
         this.recordDamage(damage);
         this.hp = this.gameComp?.isRoleDisappearPlaying ? Math.max(1, this.hp - damage) : this.hp - damage;
+        this.hp = Math.max(0, this.hp);
         this.refreshHp();
         if (this.hp <= 0) {
-            this.hp = 0;
             this.die();
             return true;
         }

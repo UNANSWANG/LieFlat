@@ -75,10 +75,16 @@ export class gamePropsBase extends Component {
     hpNode: Node = null;
     /**血量图片 */
     hpBar: Sprite = null;
+    /**血量虚影 */
+    baseHp: Sprite = null;
     /**透明组件 */
     uiOpacity: UIOpacity = null;
     /**效果节点 */
     effectNode: Node = null;
+    /**血量虚影开始追赶前的延时 */
+    private hpShadowDelay: number = 0.3;
+    /**血量虚影追赶动画时长 */
+    private hpShadowDuration: number = 0.25;
 
     protected onLoad(): void {
         this.scaleNode = this.node.getChildByName("scaleNode");
@@ -87,12 +93,14 @@ export class gamePropsBase extends Component {
         this.img3 = this.scaleNode.getChildByName("img3").getComponent(Sprite);
         this.hpNode = this.scaleNode.getChildByName("hpBg");
         this.hpBar = this.hpNode.getChildByName("hpBar").getComponent(Sprite);
+        this.baseHp = this.hpNode.getChildByName("baseHp").getComponent(Sprite);
         this.uiOpacity = this.scaleNode.getComponent(UIOpacity);
         this.effectNode = this.scaleNode.getChildByName("effectNode");
     }
 
     protected onDisable(): void {
         this.unscheduleAllCallbacks();
+        Tween.stopAllByTarget(this.baseHp);
     }
 
     clearData() {
@@ -103,6 +111,7 @@ export class gamePropsBase extends Component {
         Tween.stopAllByTarget(this.img1.node);
         Tween.stopAllByTarget(this.img2.node);
         Tween.stopAllByTarget(this.img3.node);
+        Tween.stopAllByTarget(this.baseHp);
 
         this.img1.spriteFrame = null;
         this.img2.spriteFrame = null;
@@ -112,6 +121,8 @@ export class gamePropsBase extends Component {
         this.img3.node.active = true;
 
         this.hpNode.active = false;
+        this.hpBar.fillRange = 1;
+        this.baseHp.fillRange = 1;
 
         this.img1.node.position = Vec3.ZERO;
         this.img2.node.position = Vec3.ZERO;
@@ -210,6 +221,7 @@ export class gamePropsBase extends Component {
     initMaxHp() {
         this.maxHp = 1;
         this.hp = this.maxHp;
+        this.refreshHp(true);
     }
 
     /**血条百分比 */
@@ -357,13 +369,11 @@ export class gamePropsBase extends Component {
     /**受到伤害 */
     takeDamage(damage: number, killerEnemySkinId?: number) {
         this.recordDamage(damage);
-        this.hp -= damage;
+        this.hp = Math.max(0, this.hp - damage);
         this.playScaleUpAnim();
-        this.hpBar.fillRange = this.hp / this.maxHp;
+        this.refreshHp();
         this.hpNode.active = true;
         if (this.hp <= 0) {
-            this.hp = 0;
-
             if (this.propsType == tilePropsType.bed) {
                 let roleInfo: roleController = this.getSleepingRoleInfoByRoomIdx(this.roomIdx);
                 if (roleInfo) {
@@ -376,6 +386,24 @@ export class gamePropsBase extends Component {
         }
 
         return false;
+    }
+
+    /**刷新血量和延迟血量虚影 */
+    protected refreshHp(isImmediate: boolean = false) {
+        let hpPercent = Math.max(0, Math.min(1, this.hpPercent));
+        let isHpReduced = hpPercent < this.hpBar.fillRange;
+        this.hpBar.fillRange = hpPercent;
+        Tween.stopAllByTarget(this.baseHp);
+
+        if (isImmediate || !isHpReduced) {
+            this.baseHp.fillRange = hpPercent;
+            return;
+        }
+
+        tween(this.baseHp)
+            .delay(this.hpShadowDelay)
+            .to(this.hpShadowDuration, { fillRange: hpPercent }, { easing: "quadOut" })
+            .start();
     }
 
     /**记录受到的伤害 */

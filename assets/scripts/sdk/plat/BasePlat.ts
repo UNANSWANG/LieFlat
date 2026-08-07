@@ -97,13 +97,4 @@ export class BasePlat {
             console.log("震动");
         }
     }
-
-    /**上报广告日志 */
-    reportAdLog(isEnded: boolean) {
-        httpMgr.post(urlConfig.log_video, {
-            level_id: (pData.level + 1).toString(),
-            level: pData.level + 1,
-            is_ended: isEnded,
-        });
-    }
 }

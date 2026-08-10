@@ -1267,7 +1267,7 @@ export class UIGame extends UIBase {
         this.finishGuideTask(guideTaskType.generatorBuild);
     }
 
-    /**门达到7级且金币达到200时，引导在床边空闲格建造发电机 */
+    /**门达到6级且金币达到200时，引导在床边空闲格建造发电机 */
     private refreshGuideGeneratorBuildGuide() {
         if (!pData.isGuide || this.isGuideGeneratorBuildReady || this.isGuideGeneratorBuildComplete
             || playerMgr.playerComp?.state != roleState.bed || pData.gameCoin < 200) {
@@ -1280,7 +1280,7 @@ export class UIGame extends UIBase {
         }
 
         let doorComp = this.getDoorByRoom(roomIdx);
-        if (!doorComp || doorComp.level + 1 < 7) {
+        if (!doorComp || doorComp.level + 1 < 6) {
             return;
         }
 

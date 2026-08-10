@@ -113,7 +113,8 @@ export class roleController extends Component {
         return this._state;
     }
     public set state(value: roleState) {
-        if (value == roleState.dead && this.roleId == playerMgr.playerComp.roleId) {
+        if (value == roleState.dead && this._state != roleState.dead && this.roleId == playerMgr.playerComp?.roleId) {
+            ccTools.vibrate(2);
             this.failSurvivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
             if (this._state == roleState.bed) {
                 this.openFailPageImmediately();

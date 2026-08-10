@@ -386,12 +386,19 @@ export class gamePropsBase extends Component {
         this.refreshHp();
         this.hpNode.active = true;
         if (this.hp <= 0) {
+            let destroyedPropsType = this.propsType;
+            let isPlayerRoomProps = this.propsType != tilePropsType.bed
+                && this.roomIdx > 0
+                && this.roomIdx == playerMgr.playerComp?.roomIdx;
             if (this.propsType == tilePropsType.bed) {
                 let roleInfo: roleController = this.getSleepingRoleInfoByRoomIdx(this.roomIdx);
                 if (roleInfo) {
                     roleInfo.setKillerEnemySkinId(killerEnemySkinId);
                     roleInfo.state = roleState.dead;
                 }
+            }
+            if (isPlayerRoomProps) {
+                ccTools.vibrate(destroyedPropsType == tilePropsType.door ? 2 : 0);
             }
             this.removeProps();
             return true;

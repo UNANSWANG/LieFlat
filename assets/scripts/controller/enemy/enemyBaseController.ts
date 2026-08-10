@@ -78,6 +78,8 @@ export class enemyBaseController extends Component {
     private attackingDoorTilePos: Vec2 = null;
     /**当前连续攻击门期间是否已经触发过震慑 */
     private hasFearCurAttackDoor: boolean = false;
+    /**当前连续攻击门期间是否已经触发过低血量震动 */
+    private hasVibratedCurAttackDoor: boolean = false;
     /**当前攻击的门是否已判定为继续强攻 */
     private isForceAttackingDoor: boolean = false;
     /**当前攻击门秒伤检测阶段 */
@@ -752,6 +754,7 @@ export class enemyBaseController extends Component {
         }
 
         this.isPlayingDeathDisappear = true;
+        ccTools.vibrate(2);
         this.stopAttackPlayer();
         this.survivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
         this.clearFireBurn();
@@ -1503,6 +1506,7 @@ export class enemyBaseController extends Component {
             this.notifyDoorAttackStopped();
             this.attackingTilePos = new Vec2(tilePos.x, tilePos.y);
             this.hasFearCurAttackDoor = false;
+            this.hasVibratedCurAttackDoor = false;
             this.isForceAttackingDoor = false;
             this.hasCheckedDoorHpAttackPercentRange = false;
             this.resetDoorAttackTimeCheck();
@@ -1540,6 +1544,7 @@ export class enemyBaseController extends Component {
         this.isAttackingProps = false;
         this.attackingTilePos = null;
         this.hasFearCurAttackDoor = false;
+        this.hasVibratedCurAttackDoor = false;
         this.isForceAttackingDoor = false;
         this.resetDoorAttackTimeCheck();
         this.thornDamageTimer = 0;
@@ -2173,6 +2178,7 @@ export class enemyBaseController extends Component {
             if (actualDamage > 0) {
                 this.recordDoorAttackTimeDamage(actualDamage);
                 this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
+                this.tryVibratePlayerRoomDoorLowHp(propComp, tilePos, isDestroyed);
                 if (this.tryHandleDoorHpAttackPercentRange(propComp)) {
                     return;
                 }
@@ -2205,6 +2211,21 @@ export class enemyBaseController extends Component {
                 this.chooseTargetAndFindPath();
             }
         }
+    }
+
+    /**玩家房门在本轮连续攻击中首次低于阈值时震动 */
+    private tryVibratePlayerRoomDoorLowHp(propComp: gamePropsBase, tilePos: Vec2, isDestroyed: boolean) {
+        if (this.hasVibratedCurAttackDoor || isDestroyed || propComp.hpPercent >= configData.doorVibrateHpThreshold) {
+            return;
+        }
+
+        let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+        if (roomIdx <= 0 || roomIdx != playerMgr.playerComp?.roomIdx) {
+            return;
+        }
+
+        this.hasVibratedCurAttackDoor = true;
+        ccTools.vibrate(1);
     }
 
     /**在指定世界坐标播放抓痕动画 */

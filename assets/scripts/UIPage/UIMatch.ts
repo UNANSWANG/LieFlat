@@ -308,7 +308,7 @@ export class UIMatch extends UIBase {
             return;
         }
 
-        let bossScale = skinId == 3 ? 2.6 : 3;
+        let bossScale = skinId == 2 ? 2.6 : 3;
         bossNode.setScale(bossScale, bossScale, 1);
         bossNode.active = true;
         bossAnim.skeletonData = null;

@@ -101,9 +101,9 @@ export class generalTools {
     }
 
     /**震动 */
-    vibrate() {
+    vibrate(shortMode = 1) {
         if (audioMgr.isVibrat) {
-            gm.API.vibrateShort();
+            gm.API.vibrateShort(shortMode);
         }
     }
 

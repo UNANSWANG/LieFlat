@@ -1,8 +1,4 @@
 import { HTML5 } from 'cc/env';
-import { gm } from '../../manager/gm';
-import { httpMgr } from '../network/httpManager';
-import { urlConfig } from '../network/netConfig';
-import { pData } from '../../manager/playerData';
 
 export class BasePlat {
     _ad;
@@ -92,7 +88,7 @@ export class BasePlat {
     }
 
     /**震动 */
-    vibrateShort() {
+    vibrateShort(shortMode = 1) {
         if (HTML5) {
             console.log("震动");
         }

@@ -95,7 +95,7 @@ export class TTManager extends BasePlat {
                     console.log("登录成功>>>>", res);
                     console.log(`login 调用成功${res.code} `);
                     userMgr.code = res.code;
-                    
+
                     window["tt"].getUserInfo({
                         success: (res) => {
                             console.log("获取用户信息成功", res);
@@ -490,5 +490,17 @@ export class TTManager extends BasePlat {
             },
         });
 
+    }
+
+    /**震动 */
+    vibrateShort(shortMode = 1) {
+        this.PLAT.vibrateShort({
+            success(res) {
+                console.log(`${res}`);
+            },
+            fail(res) {
+                console.log(`vibrateShort调用失败`);
+            },
+        });
     }
 }

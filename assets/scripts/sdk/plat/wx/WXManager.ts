@@ -251,9 +251,24 @@ export class WXManager extends BasePlat {
     }
 
     /**震动 */
-    vibrateShort() {
+    vibrateShort(shortMode = 1) {
+        let shortType = "";
+        switch (shortMode) {
+            case 0:
+                shortType = "light";
+                break;
+            case 1:
+                shortType = "medium";
+                break;
+            case 2:
+                shortType = "heavy";
+                break;
+            default:
+                shortType = "medium";
+                break;
+        }
         this.PLAT.vibrateShort({
-            type: "medium"
+            type: shortType
         });
     }
 

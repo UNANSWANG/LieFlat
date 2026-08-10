@@ -260,6 +260,8 @@ export class UILoading extends Component {
         configData.roleMatchTime = JSON.parse(commonConfig.getValue("roleMatchTime"));
         configData.robotStartTime = JSON.parse(commonConfig.getValue("robotStartTime"));
         configData.addMoneyNum = commonConfig.getValueNumber("addMoneyNum");
+        configData.bossModeLevel = commonConfig.getValueNumber("bossModeLevel");
+        configData.doorVibrateHpThreshold = commonConfig.getValueNumber("doorVibrateHpThreshold") / 100;
 
         //敌人
         enemyCommonConfig.enemyMoveSpeed = commonConfig.getValueNumber("enemyMoveSpeed");

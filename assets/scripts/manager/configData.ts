@@ -46,6 +46,8 @@ export const configData = {
     addMoneyNum: 100,
     /**boss模式开启关卡数 */
     bossModeLevel: 10,
+    /**门震动血量阈值 */
+    doorVibrateHpThreshold: 0.3,
 }
 
 /**敌人通用配置 */

@@ -22,6 +22,10 @@ export class zoomButton extends Button {
     }
 
     clickBtn() {
+        if (!this.interactable) {
+            return;
+        }
+
         //点击音效
         if(this.playClickSound){
             audioMgr.playEffect(audioPath.click);

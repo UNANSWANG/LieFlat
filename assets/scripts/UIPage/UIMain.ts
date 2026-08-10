@@ -70,12 +70,15 @@ export class UIMain extends UIBase {
     isShowRevisit = false;
     /**是否已经点击开始并等待打开匹配界面 */
     private isOpeningMatch = false;
+    /**开始按钮组件 */
+    private startBtnComp: zoomButton = null;
 
     onLoad() {
         this.bindBtn();
     }
 
     onUI_Open(data?: any): void {
+        this.resetStartButton();
         this.addListener();
         this.initData();
         this.startZombieAnim();
@@ -83,7 +86,7 @@ export class UIMain extends UIBase {
     }
 
     onUI_Close(data?: any): void {
-        this.isOpeningMatch = false;
+        this.resetStartButton();
         this.unscheduleAllCallbacks();
         this.stopZombieAnim();
         this.removeListener();
@@ -97,7 +100,8 @@ export class UIMain extends UIBase {
     }
 
     bindBtn() {
-        this.startBtn.addComponent(zoomButton).onClick = this.cliskStartBtn.bind(this);
+        this.startBtnComp = this.startBtn.addComponent(zoomButton);
+        this.startBtnComp.onClick = this.cliskStartBtn.bind(this);
         this.setBtn.addComponent(zoomButton).onClick = this.cliskSetBtn.bind(this);
         this.rankBtn.addComponent(zoomButton).onClick = this.clickRankBtn.bind(this);
         this.revisitBtn.addComponent(zoomButton).onClick = this.clickRevisitBtn.bind(this);
@@ -242,13 +246,29 @@ export class UIMain extends UIBase {
         }
 
         this.isOpeningMatch = true;
+        this.startBtnComp.interactable = false;
         this.playTrainAnim(this.trainXRange[1], this.trainXRange[2], this.trainLeaveSpeed);
-        this.scheduleOnce(() => {
-            this.isOpeningMatch = false;
-            if (this.node.activeInHierarchy) {
-                uiMgr.openPage(UIPath.UIMatch);
+        this.scheduleOnce(async () => {
+            if (!this.node.activeInHierarchy) {
+                this.resetStartButton();
+                return;
+            }
+
+            try {
+                await uiMgr.openPage(UIPath.UIMatch);
+            } catch (error) {
+                console.error("打开匹配界面失败", error);
+                this.resetStartButton();
             }
         }, 1);
+    }
+
+    /**回到主页或打开匹配页失败时恢复开始按钮 */
+    private resetStartButton() {
+        this.isOpeningMatch = false;
+        if (this.startBtnComp) {
+            this.startBtnComp.interactable = true;
+        }
     }
 
     /**点击设置 */

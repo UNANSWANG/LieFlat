@@ -14,15 +14,22 @@ export class videoManager {
      */
     watchVideo(adType = 68, complete?: (...arg: any[]) => void, noComplete?: (...arg: any[]) => void): void {
         let adCall = () => {
+            gm.gameResume();
             pData.adNum++;
             this.SDKAdPlayComplete();
             complete && complete();
         }
 
+        let noAdCall = (...args: any[]) => {
+            gm.gameResume();
+            noComplete && noComplete(...args);
+        }
+
         if (gm.platType != PlatType.h5 && !gmConfig.isFreeAd) {
             this.currentAdScene = adType;
             this.SDKAdClick();
-            gm.API.watchVideo(adCall, noComplete);
+            gm.gamePause();
+            gm.API.watchVideo(adCall, noAdCall);
         } else {
             console.log("没有广告平台,直接返回成功");
             adCall();

@@ -52,11 +52,13 @@ export class gm extends Component {
     addListener() {
         game.on(Game.EVENT_HIDE, () => {
             console.log("进入后台");
+            gm.gamePause();
             pData.SDKReportLevelExit();
             audioMgr.closeBackgroundMusic();
         }, this);
         game.on(Game.EVENT_SHOW, () => {
             console.log("恢复前台");
+            gm.gameResume();
             //微信的回调需要单独写
             if (gm.platType == PlatType.wx && gm.API.isShare && gm.API.lastShareTime != 0) {
                 let curTime = ccTimeTools.getTime();

@@ -88,6 +88,11 @@ export class UIProps extends UIBase {
             this.propsComp = data.propsComp;
             this.isGrayProps = !!data.isGrayProps;
         }
+        if (!this.isPropsAvailable()) {
+            this.onClose();
+            return;
+        }
+
         let propsType = this.propsComp?.tileItemComp?.tileType;
         if (propsType == tilePropsType.door || propsType == tilePropsType.bed) {
             let guidePropsComp = this.propsComp as doorProps | bedProps;
@@ -289,8 +294,13 @@ export class UIProps extends UIBase {
 
     /**刷新按钮状态 */
     refreshPropsBtnState() {
+        if (!this.isPropsAvailable()) {
+            this.onClose();
+            return;
+        }
+
         this.refreshGuideUpgradeClickNode();
-        if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid || !this.propsComp.tileItemComp) {
+        if (this.isMaxLevel) {
             return;
         }
 
@@ -358,6 +368,10 @@ export class UIProps extends UIBase {
 
     /**获取当前界面需要引导升级的门或床 */
     private getGuideUpgradePropsComp(): doorProps | bedProps {
+        if (!this.isPropsAvailable()) {
+            return null;
+        }
+
         if (this.propsComp?.propsType == tilePropsType.door) {
             let doorComp = this.propsComp as doorProps;
             return doorComp.gameComp?.shouldShowGuideDoorUpgrade(doorComp) ? doorComp : null;
@@ -399,6 +413,13 @@ export class UIProps extends UIBase {
         this.guideUpgradeClickNode = null;
     }
 
+    /**当前界面的道具是否仍然存在且未被替换 */
+    private isPropsAvailable() {
+        let tileItemComp = this.propsComp?.tileItemComp;
+        return !!this.propsComp && this.propsComp.isValid
+            && !!tileItemComp && tileItemComp.propsComp == this.propsComp;
+    }
+
     /**刷新购买按钮状态 */
     private refreshBuyBtnState(buyBtn: Node, propsData: any) {
         if (!buyBtn || !propsData) {
@@ -422,7 +443,7 @@ export class UIProps extends UIBase {
     /**升级道具 */
     clickUpgradeProps() {
         this.onClose();
-        if (this.isMaxLevel || !this.propsComp || !this.propsComp.isValid || !this.propsComp.tileItemComp) {
+        if (this.isMaxLevel || !this.isPropsAvailable()) {
             return;
         }
 
@@ -465,6 +486,11 @@ export class UIProps extends UIBase {
 
     /**拆除道具 */
     clickRemoveProps() {
+        if (!this.isPropsAvailable()) {
+            this.onClose();
+            return;
+        }
+
         //将当前材料的一半返回
 
         let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
@@ -506,12 +532,22 @@ export class UIProps extends UIBase {
 
     /**广告升级门 */
     clickAdUpgradeDoorProps() {
+        if (!this.isPropsAvailable()) {
+            this.onClose();
+            return;
+        }
+
         if (pData.adUpgradeDoorCount <= 0) {
             uiMgr.showTips("广告升级门次数不足");
             return;
         }
 
         videoMgr.watchVideo(68, () => {
+            if (!this.isPropsAvailable()) {
+                this.onClose();
+                return;
+            }
+
             pData.adUpgradeDoorCount--;
             (this.propsComp as doorProps).upgradePropsAd();
             this.onClose();

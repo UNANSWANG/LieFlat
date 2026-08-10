@@ -32,19 +32,19 @@ export class gamePropsBase extends Component {
 
     /**游戏脚本 */
     get gameComp() {
-        return this.tileItemComp.gameComp;
+        return this.tileItemComp?.gameComp || null;
     }
     /**道具类型 */
-    get propsType() {
-        return this.tileItemComp.tileType;
+    get propsType(): tilePropsType {
+        return this.tileItemComp?.tileType ?? tilePropsType.none;
     }
     /**所在房间索引 */
-    get roomIdx() {
-        return this.tileItemComp.roomIdx;
+    get roomIdx(): number {
+        return this.tileItemComp?.roomIdx ?? -1;
     }
     /**坐标系 */
-    get pos() {
-        return this.tileItemComp.pos;
+    get pos(): Vec2 {
+        return this.tileItemComp?.pos || null;
     }
     /**道具效果是否生效中 */
     get isPropsActive() {
@@ -53,6 +53,10 @@ export class gamePropsBase extends Component {
 
     /**房间道具是否满足生效条件 */
     get isRoomEffectActive() {
+        if (!this.tileItemComp) {
+            return false;
+        }
+
         if (this.propsType == tilePropsType.bed || this.propsType == tilePropsType.door) {
             return true;
         }
@@ -158,6 +162,10 @@ export class gamePropsBase extends Component {
 
     /**当前建筑是否满足全部升级条件 */
     checkCanUpgrade(propsData: any = null) {
+        if (!this.tileItemComp) {
+            return false;
+        }
+
         let upgradePropsData = propsData || this.propsDatas?.[this.level + 1];
         return !this.isMaxLevel && !!upgradePropsData
             && ccTools.checkCanBuy(upgradePropsData)
@@ -301,7 +309,7 @@ export class gamePropsBase extends Component {
 
     /**升级道具 */
     upgradeProps() {
-        if (this.isMaxLevel) {
+        if (!this.tileItemComp || this.isMaxLevel) {
             return;
         }
         this.level++;
@@ -313,7 +321,7 @@ export class gamePropsBase extends Component {
 
     /**生产物品 */
     produceItem(type: produceType, num: number) {
-        this.gameComp.addProduceAnim(type, num, this.node.worldPosition);
+        this.gameComp?.addProduceAnim(type, num, this.node.worldPosition);
     }
 
     /**播放缩小动画 */
@@ -368,6 +376,10 @@ export class gamePropsBase extends Component {
 
     /**受到伤害 */
     takeDamage(damage: number, killerEnemySkinId?: number) {
+        if (!this.tileItemComp) {
+            return false;
+        }
+
         this.recordDamage(damage);
         this.hp = Math.max(0, this.hp - damage);
         this.playScaleUpAnim();
@@ -442,7 +454,7 @@ export class gamePropsBase extends Component {
                 //移除回调
                 this.onDisappear();
                 //移除自身
-                this.tileItemComp.removeProps();
+                this.tileItemComp?.removeProps();
             })
             .start();
     }

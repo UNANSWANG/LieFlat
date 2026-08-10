@@ -14,6 +14,7 @@ import { telescopeProps } from './telescopeProps';
 import { bearingProps } from './bearingProps';
 import { fireProps } from './fireProps';
 const { ccclass, property } = _decorator;
+const TARGET_SEARCH_INTERVAL = 0.1;
 
 @ccclass('cannonProps')
 export class cannonProps extends gamePropsBase {
@@ -25,6 +26,8 @@ export class cannonProps extends gamePropsBase {
     private targetEnemy: enemyBaseController = null;
     /**攻击计时 */
     private attackTimer: number = 0;
+    /**目标搜索计时 */
+    private targetSearchTimer: number = TARGET_SEARCH_INTERVAL;
     /**临时世界坐标 */
     private tempWorldPos: Vec3 = new Vec3();
     /**临时本地坐标 */
@@ -41,6 +44,7 @@ export class cannonProps extends gamePropsBase {
     /**道具开始生效 */
     startProps() {
         this.attackStartDelay = 2;
+        this.targetSearchTimer = TARGET_SEARCH_INTERVAL;
     }
 
     /**道具结束生效 */
@@ -50,6 +54,7 @@ export class cannonProps extends gamePropsBase {
         this.attack = 0;
         this.attackRange = 0;
         this.attackTimer = 0;
+        this.targetSearchTimer = TARGET_SEARCH_INTERVAL;
         this.attackStartDelay = 0;
         this.fearTimer = 0;
         this.clearDizzinessNode();
@@ -59,6 +64,7 @@ export class cannonProps extends gamePropsBase {
         super.onDisable();
         this.targetEnemy = null;
         this.attackTimer = 0;
+        this.targetSearchTimer = TARGET_SEARCH_INTERVAL;
         this.attackStartDelay = 0;
         this.fearTimer = 0;
         this.clearDizzinessNode();
@@ -78,13 +84,12 @@ export class cannonProps extends gamePropsBase {
             return;
         }
 
-        this.targetEnemy = this.getAttackTarget();
-        if (!this.targetEnemy) {
+        this.refreshAttackTarget(dt);
+        if (!this.isTargetAvailable(this.targetEnemy)) {
+            this.targetEnemy = null;
             this.attackTimer = this.getCurrentAttackInterval();
             return;
         }
-
-        this.lookAtTarget(this.targetEnemy);
 
         this.attackTimer += dt;
         if (this.attackTimer < this.getCurrentAttackInterval()) {
@@ -93,6 +98,25 @@ export class cannonProps extends gamePropsBase {
 
         this.attackTimer = 0;
         this.shoot(this.targetEnemy);
+    }
+
+    /**低频刷新攻击目标和炮口朝向 */
+    private refreshAttackTarget(dt: number) {
+        this.targetSearchTimer += dt;
+        if (this.targetSearchTimer < TARGET_SEARCH_INTERVAL) {
+            return;
+        }
+
+        this.targetSearchTimer %= TARGET_SEARCH_INTERVAL;
+        this.targetEnemy = this.getAttackTarget();
+        if (this.targetEnemy) {
+            this.lookAtTarget(this.targetEnemy);
+        }
+    }
+
+    /**检查当前目标是否仍可攻击 */
+    private isTargetAvailable(target: enemyBaseController) {
+        return !!target?.node?.isValid && target.hp > 0;
     }
 
     /**刷新开始攻击延迟 */
@@ -252,6 +276,7 @@ export class cannonProps extends gamePropsBase {
 
         this.fearTimer = Math.max(this.fearTimer, time);
         this.targetEnemy = null;
+        this.targetSearchTimer = TARGET_SEARCH_INTERVAL;
         this.createDizzinessNode();
     }
 

@@ -1674,10 +1674,7 @@
     "__prefab": {
       "__id__": 84
     },
-    "_tmxFile": {
-      "__uuid__": "cac245df-9218-46d0-8220-3ee6a2eab69d",
-      "__expectedType__": "cc.TiledMapAsset"
-    },
+    "_tmxFile": null,
     "_enableCulling": true,
     "cleanupImageCache": true,
     "_id": ""

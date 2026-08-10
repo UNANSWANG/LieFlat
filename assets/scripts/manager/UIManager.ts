@@ -1,6 +1,6 @@
 import { _decorator, AnimationClip, AssetManager, Component, instantiate, Node, Prefab, Sprite, tween, UITransform, Vec3 } from 'cc';
 import { UIBase } from '../UIPage/UIBase';
-import { animPath, audioPath, gamePath, imgPath, ItemPath, mapNameArr, UIPath } from './pathConfig';
+import { animPath, audioPath, gamePath, imgPath, ItemPath, UIPath } from './pathConfig';
 import { ccResTools } from '../extention/resTools';
 import { tipsNotice } from '../UIPage/tips/tipsNotice';
 import { pData } from './playerData';
@@ -65,7 +65,7 @@ export class UIManager {
         this.effectItemPrefab = await ccResTools.loadPrefab(this.resBundle, ItemPath.effectItem, false);
     }
 
-    /**预加载游戏页及游戏内使用的页面、预制体、动画和地图 */
+    /**预加载游戏页及游戏内使用的页面、预制体和动画 */
     async preLoadGame() {
         if (this.gamePreloadComplete) {
             return;
@@ -98,7 +98,6 @@ export class UIManager {
             this.preLoadPage(UIPath.UIFail),
             this.loadGamePrefab(),
             this.loadGameAnim(),
-            this.loadGameMap(),
         ]);
     }
 
@@ -140,17 +139,6 @@ export class UIManager {
         this.airYellowAnimClip = clips[1];
         this.fogAnimClip = clips[2];
         this.guideArrowAnimClip = clips[3];
-    }
-
-    /**加载全部候选游戏地图 */
-    private async loadGameMap() {
-        let maps = await Promise.all(mapNameArr.map((mapName) => {
-            return ccResTools.loadTiledMap(this.resBundle, ItemPath.tileMap + mapName, false);
-        }));
-
-        if (maps.some((mapAsset) => !mapAsset)) {
-            throw new Error("游戏地图加载失败");
-        }
     }
 
     /**显示提示 */

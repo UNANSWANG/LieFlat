@@ -1,6 +1,14 @@
 import { _decorator, Component, instantiate, Node, NodePool, Prefab, sp, Sprite, Tween, UIOpacity, UITransform, Vec3 } from 'cc';
 import { gameAnimController } from '../controller/gameAnimController';
 const { ccclass, property } = _decorator;
+const PRODUCE_TIPS_POOL_LIMIT = 24;
+const BULLET_POOL_LIMIT = 48;
+const GAME_NODE_POOL_LIMIT = 32;
+const GAME_SPRITE_POOL_LIMIT = 24;
+const GAME_SPINE_POOL_LIMIT = 12;
+const TILE_ITEM_POOL_LIMIT = 192;
+const PROPS_NODE_POOL_LIMIT = 16;
+const GAME_ANIM_POOL_LIMIT = 24;
 
 //对象池管理类
 @ccclass('poolManager')
@@ -34,7 +42,7 @@ export class poolManager extends Component {
     /**回收生产提示节点并清理运行状态 */
     putProduceTipsNode(node: Node) {
         this.resetNode(node);
-        this.produceTipsPool.put(node);
+        this.putNodeWithLimit(this.produceTipsPool, node, PRODUCE_TIPS_POOL_LIMIT);
     }
 
     /**获取子弹节点 */
@@ -45,7 +53,7 @@ export class poolManager extends Component {
     /**回收子弹节点并清理本次攻击数据 */
     putBulletNode(node: Node) {
         this.resetNode(node);
-        this.bulletPool.put(node);
+        this.putNodeWithLimit(this.bulletPool, node, BULLET_POOL_LIMIT);
     }
 
     /**获取游戏通用节点 */
@@ -56,7 +64,7 @@ export class poolManager extends Component {
     /**回收游戏通用节点 */
     putGameNode(node: Node) {
         this.resetNode(node, true);
-        this.gameNodePool.put(node);
+        this.putNodeWithLimit(this.gameNodePool, node, GAME_NODE_POOL_LIMIT);
     }
 
     /**获取游戏图片节点 */
@@ -71,7 +79,7 @@ export class poolManager extends Component {
         if (sprite) {
             sprite.spriteFrame = null;
         }
-        this.gameSpriteNodePool.put(node);
+        this.putNodeWithLimit(this.gameSpriteNodePool, node, GAME_SPRITE_POOL_LIMIT);
     }
 
     /**获取游戏Spine节点 */
@@ -92,7 +100,7 @@ export class poolManager extends Component {
             skeleton.setCompleteListener(null);
             skeleton.skeletonData = null;
         }
-        this.gameSpineNodePool.put(node);
+        this.putNodeWithLimit(this.gameSpineNodePool, node, GAME_SPINE_POOL_LIMIT);
     }
 
     getGameAnimNode(prefab: Prefab) {
@@ -102,7 +110,7 @@ export class poolManager extends Component {
     putGameAnimNode(node: Node) {
         node.getComponent(gameAnimController)?.clearData();
         this.resetNode(node);
-        this.gameAnimNodePool.put(node);
+        this.putNodeWithLimit(this.gameAnimNodePool, node, GAME_ANIM_POOL_LIMIT);
     }
 
     /**获取游戏图片节点Sprite组件 */
@@ -131,7 +139,7 @@ export class poolManager extends Component {
     /**回收瓦片节点 */
     putTileItem(node: Node) {
         this.resetNode(node);
-        this.tileItemPool.put(node);
+        this.putNodeWithLimit(this.tileItemPool, node, TILE_ITEM_POOL_LIMIT);
     }
 
     /**获取道具节点 */
@@ -147,7 +155,7 @@ export class poolManager extends Component {
     /**回收道具节点 */
     putPropsNode(node: Node, poolKey: string) {
         this.resetNode(node);
-        this.getPropsNodePool(poolKey).put(node);
+        this.putNodeWithLimit(this.getPropsNodePool(poolKey), node, PROPS_NODE_POOL_LIMIT);
     }
 
     /**按道具类型获取独立对象池，避免通用节点累积不同道具脚本 */
@@ -163,12 +171,25 @@ export class poolManager extends Component {
     private getNode(pool: NodePool, prefab: Prefab) {
         let node = pool.get();
         if (!node) {
-            // 不设置容量上限：池为空时继续创建，峰值关卡结束后实例留池复用
+            // 池为空时允许创建新实例，回收时再按各池容量上限裁剪
             node = instantiate(prefab);
         }
 
         node.active = true;
         return node;
+    }
+
+    /**超过容量上限的回收对象直接销毁，避免对象池永久保留峰值实例 */
+    private putNodeWithLimit(pool: NodePool, node: Node, limit: number) {
+        if (!node || !node.isValid) {
+            return;
+        }
+        if (pool.size() >= limit) {
+            node.destroy();
+            return;
+        }
+
+        pool.put(node);
     }
 
     /**通用节点复原 */

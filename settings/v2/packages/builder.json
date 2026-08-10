@@ -89,6 +89,37 @@
             }
           }
         }
+      },
+      "5fQqbfB+NE96uayT8wy3Y3": {
+        "name": "miniGameJpg",
+        "options": {
+          "miniGame": {
+            "astc_8x8": {
+              "quality": "medium"
+            },
+            "jpg": {
+              "quality": 80
+            }
+          }
+        },
+        "overwrite": {
+          "wechatgame": {
+            "astc_8x8": {
+              "quality": "medium"
+            },
+            "jpg": {
+              "quality": 80
+            }
+          },
+          "bytedance-mini-game": {
+            "astc_8x8": {
+              "quality": "medium"
+            },
+            "jpg": {
+              "quality": 80
+            }
+          }
+        }
       }
     }
   }

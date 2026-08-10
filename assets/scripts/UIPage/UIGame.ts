@@ -31,6 +31,7 @@ import { audioMgr } from '../manager/audioManager';
 const { ccclass, property } = _decorator;
 const GUIDE_MAP_NAME = "map05";
 const GUIDE_ROOM_IDX = 8;
+const ROLE_BUTTON_STATE_REFRESH_INTERVAL = 0.1;
 
 enum guideTaskType {
     none,
@@ -270,6 +271,10 @@ export class UIGame extends UIBase {
     isRoleDisappearPlaying: boolean = false;
     /**角色头像按钮状态 */
     private roleBtnStateMap: { [roleId: number]: roleBtnStateData } = {};
+    /**正在受攻击的房间，复用集合避免刷新时产生临时对象 */
+    private attackedRoomSet: Set<number> = new Set();
+    /**角色头像状态刷新计时 */
+    private roleBtnStateRefreshTimer = ROLE_BUTTON_STATE_REFRESH_INTERVAL;
     protected onLoad(): void {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
@@ -306,11 +311,7 @@ export class UIGame extends UIBase {
         this.openVersion++;
         this.removeListener();
         this.clearData();
-        if (this.tiledMap) {
-            // 断开地图组件对本局地图资源的引用，避免关闭后仍被场景节点持有
-            this.tiledMap.tmxAsset = null;
-        }
-        this.currentMapName = "";
+        this.releaseCurrentTiledMap();
         this.matchRoleSkinIds = [];
         this.matchRoleNicknames = [];
         this.matchEnemySkinId = null;
@@ -337,15 +338,23 @@ export class UIGame extends UIBase {
         return true;
     }
 
+    /**释放本局地图及其依赖，避免多局后缓存全部候选地图 */
+    private releaseCurrentTiledMap() {
+        if (this.tiledMap) {
+            this.tiledMap.tmxAsset = null;
+        }
+        if (this.currentMapName && uiMgr.resBundle) {
+            uiMgr.resBundle.release(ItemPath.tileMap + this.currentMapName, TiledMapAsset);
+        }
+        this.currentMapName = "";
+    }
+
     /**重新开始单局 */
     private async restartGame() {
         // 每次重开都先作废上一局的异步任务并立即清场，不能等新地图加载完成后再清理
         let version = ++this.openVersion;
         this.clearData();
-        if (this.tiledMap) {
-            this.tiledMap.tmxAsset = null;
-        }
-        this.currentMapName = "";
+        this.releaseCurrentTiledMap();
         pData.levelInit();
         let mapReady = await this.randomTiledMap(version);
         if (version != this.openVersion || !this.node.activeInHierarchy) {
@@ -482,6 +491,8 @@ export class UIGame extends UIBase {
         this.pendingDoorBlockPosMap = {};
         this.doorAttackerCountMap = {};
         this.gameStartElapsedTime = 0;
+        this.attackedRoomSet.clear();
+        this.roleBtnStateRefreshTimer = ROLE_BUTTON_STATE_REFRESH_INTERVAL;
         Tween.stopAllByTarget(this.repairMask);
         this.repairMask.fillRange = 0;
         this.repairMask.node.active = false;
@@ -1651,6 +1662,8 @@ export class UIGame extends UIBase {
             redMaskOpacity: redMaskOpacity,
             isAttackAnimPlaying: false,
             needLoopAttackAnim: false,
+            lastIsDead: null,
+            lastIsRoomAttacked: null,
             baseAvatarPos: avatarNode ? avatarNode.position.clone() : new Vec3(),
         };
         this.roleBtnStateMap[roleId] = stateData;
@@ -1659,7 +1672,7 @@ export class UIGame extends UIBase {
 
     /**刷新角色头像按钮受击和死亡显示 */
     private refreshRoleBtnAttackState() {
-        let attackRoomMap: { [roomIdx: number]: boolean } = {};
+        this.attackedRoomSet.clear();
         for (let i = 0; i < enemyMgr.enemyArr.length; i++) {
             let enemyComp = enemyMgr.enemyArr[i];
             if (!enemyComp || enemyComp.hp <= 0) {
@@ -1668,13 +1681,12 @@ export class UIGame extends UIBase {
 
             let roomIdx = enemyComp.attackingRoomIdx;
             if (roomIdx > 0) {
-                attackRoomMap[roomIdx] = true;
+                this.attackedRoomSet.add(roomIdx);
             }
         }
 
-        let roleIdArr = Object.keys(this.roleBtnStateMap);
-        for (let i = 0; i < roleIdArr.length; i++) {
-            let roleId = Number(roleIdArr[i]);
+        for (let roleIdKey in this.roleBtnStateMap) {
+            let roleId = Number(roleIdKey);
             let roleComp = this.getRoleCompById(roleId);
             let stateData = this.roleBtnStateMap[roleId];
             if (!stateData || !stateData.roleBtn?.isValid) {
@@ -1682,15 +1694,29 @@ export class UIGame extends UIBase {
             }
 
             let isDead = roleComp?.state == roleState.dead;
-            this.refreshRoleBtnDeadState(stateData, isDead);
-            if (isDead) {
-                this.setRoleBtnAttackAnim(stateData, false, true, false);
+            let isRoomAttacked = !isDead && roleComp?.roomIdx > 0 && this.attackedRoomSet.has(roleComp.roomIdx);
+            if (stateData.lastIsDead == isDead && stateData.lastIsRoomAttacked == isRoomAttacked) {
                 continue;
             }
 
-            let isRoomAttacked = roleComp?.roomIdx > 0 && attackRoomMap[roleComp.roomIdx];
-            this.setRoleBtnAttackAnim(stateData, !!isRoomAttacked);
+            if (stateData.lastIsDead != isDead) {
+                this.refreshRoleBtnDeadState(stateData, isDead);
+            }
+            stateData.lastIsDead = isDead;
+            stateData.lastIsRoomAttacked = isRoomAttacked;
+            this.setRoleBtnAttackAnim(stateData, isRoomAttacked, isDead, !isDead);
         }
+    }
+
+    /**按固定低频刷新角色头像状态 */
+    private refreshRoleBtnAttackStateByInterval(dt: number) {
+        this.roleBtnStateRefreshTimer += dt;
+        if (this.roleBtnStateRefreshTimer < ROLE_BUTTON_STATE_REFRESH_INTERVAL) {
+            return;
+        }
+
+        this.roleBtnStateRefreshTimer %= ROLE_BUTTON_STATE_REFRESH_INTERVAL;
+        this.refreshRoleBtnAttackState();
     }
 
     /**刷新角色头像死亡状态 */
@@ -3370,7 +3396,7 @@ export class UIGame extends UIBase {
         this.refreshGameStartElapsedTime(dt);
         this.refreshRobotSuchRoomDelay(dt);
         this.refreshRepairMask(dt);
-        this.refreshRoleBtnAttackState();
+        this.refreshRoleBtnAttackStateByInterval(dt);
 
         // 移动玩家（不使用vec3计算）
         if (this.isMoving && playerMgr.playerComp?.state == roleState.normal && !playerMgr.playerComp.isMoveLocked) {
@@ -4070,5 +4096,7 @@ interface roleBtnStateData {
     redMaskOpacity: UIOpacity,
     isAttackAnimPlaying: boolean,
     needLoopAttackAnim: boolean,
+    lastIsDead: boolean,
+    lastIsRoomAttacked: boolean,
     baseAvatarPos: Vec3,
 }

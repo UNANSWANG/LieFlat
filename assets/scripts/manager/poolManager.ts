@@ -1,14 +1,14 @@
 import { _decorator, Component, instantiate, Node, NodePool, Prefab, sp, Sprite, Tween, UIOpacity, UITransform, Vec3 } from 'cc';
 import { gameAnimController } from '../controller/gameAnimController';
 const { ccclass, property } = _decorator;
-const PRODUCE_TIPS_POOL_LIMIT = 24;
-const BULLET_POOL_LIMIT = 48;
-const GAME_NODE_POOL_LIMIT = 32;
-const GAME_SPRITE_POOL_LIMIT = 24;
-const GAME_SPINE_POOL_LIMIT = 12;
-const TILE_ITEM_POOL_LIMIT = 192;
-const PROPS_NODE_POOL_LIMIT = 16;
-const GAME_ANIM_POOL_LIMIT = 24;
+const PRODUCE_TIPS_POOL_LIMIT = 48;
+const BULLET_POOL_LIMIT = 128;
+const GAME_NODE_POOL_LIMIT = 64;
+const GAME_SPRITE_POOL_LIMIT = 64;
+const GAME_SPINE_POOL_LIMIT = 32;
+const TILE_ITEM_POOL_LIMIT = 256;
+const PROPS_NODE_POOL_LIMIT = 32;
+const GAME_ANIM_POOL_LIMIT = 64;
 
 //对象池管理类
 @ccclass('poolManager')

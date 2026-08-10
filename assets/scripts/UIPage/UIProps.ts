@@ -310,6 +310,11 @@ export class UIProps extends UIBase {
 
     /**刷新门或床升级按钮上的首次升级点击手指 */
     private refreshGuideUpgradeClickNode() {
+        if (!pData.isGuide) {
+            this.clearGuideUpgradeClickNode();
+            return;
+        }
+
         let guidePropsComp = this.getGuideUpgradePropsComp();
         if (!guidePropsComp) {
             this.clearGuideUpgradeClickNode();
@@ -368,6 +373,10 @@ export class UIProps extends UIBase {
 
     /**当前道具是否仍处于升级引导状态 */
     private isGuideUpgradePropsComp(propsComp: doorProps | bedProps) {
+        if (!pData.isGuide) {
+            return false;
+        }
+
         return this.getGuideUpgradePropsComp() == propsComp;
     }
 

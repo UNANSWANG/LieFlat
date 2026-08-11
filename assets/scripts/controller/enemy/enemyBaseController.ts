@@ -304,6 +304,10 @@ export class enemyBaseController extends Component {
         return this.hp / this.maxHp;
     }
 
+    private get difficultyMultiplier() {
+        return pData.isGuide ? configData.guideDifficultyMultiplier : 1;
+    }
+
     /**当前正在攻击的房间 */
     get attackingRoomIdx() {
         return this.getCurAttackRoomIdx();
@@ -316,7 +320,7 @@ export class enemyBaseController extends Component {
 
     /**重置血量 */
     resetHp() {
-        this.maxHp = enemyConfig.getEnemyData(this.level).hp;
+        this.maxHp = enemyConfig.getEnemyData(this.level).hp * this.difficultyMultiplier;
         this.hp = this.maxHp;
         this.refreshHp();
     }
@@ -325,7 +329,7 @@ export class enemyBaseController extends Component {
     resetAttackDamage() {
         //TODO 伤害临时秒杀
         // this.attackDamage = enemyConfig.getEnemyData(this.level).attack * 3;
-        this.attackDamage = enemyConfig.getEnemyData(this.level).attack;
+        this.attackDamage = enemyConfig.getEnemyData(this.level).attack * this.difficultyMultiplier;
     }
 
     /**刷新等级 */

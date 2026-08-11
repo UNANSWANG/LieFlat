@@ -54,6 +54,8 @@ export class enemyBaseController extends Component {
     attackDamage: number = 0;
     /**当前攻击目标 */
     targetPlayer: roleController = null;
+    /**破门后必须追杀完成的房间 */
+    private forceAttackRoomIdx: number = 0;
     /**当前空床目标坐标 */
     private targetEmptyBedPos: Vec2 = null;
     /**当前空床目标房间 */
@@ -205,6 +207,7 @@ export class enemyBaseController extends Component {
     /**初始化 */
     init(comp: UIGame, id: number, skinId: number, nickname = "") {
         this.level = 0;
+        this.forceAttackRoomIdx = 0;
         this.damageRecords = [];
         this.isForceAttackingDoor = false;
         this.hasCheckedDoorHpAttackPercentRange = false;
@@ -1050,7 +1053,14 @@ export class enemyBaseController extends Component {
         this.syncCurrentPosByNode();
         this.stopAttackPlayer();
 
-        let candidates = this.getTargetCandidates(excludeRoomIdx);
+        let forceAttackTarget = this.getForceAttackRoomTarget();
+        let candidates: enemyTargetCandidate[] = forceAttackTarget
+            ? [{
+                type: "player",
+                targetPos: new Vec2(forceAttackTarget.currentPos.x, forceAttackTarget.currentPos.y),
+                playerComp: forceAttackTarget,
+            }]
+            : this.getTargetCandidates(excludeRoomIdx);
 
         if (candidates.length == 0) {
             this.clearTarget();
@@ -1245,6 +1255,35 @@ export class enemyBaseController extends Component {
 
         let rolePos = roleComp.currentPos;
         return this.gameComp?.tileMap?.[rolePos.x]?.[rolePos.y]?.roomIdx == roomIdx;
+    }
+
+    /**获取破门房间内必须追杀的角色，房间内无人存活时解除锁定 */
+    private getForceAttackRoomTarget(): roleController {
+        if (this.forceAttackRoomIdx <= 0) {
+            return null;
+        }
+
+        if (this.isRoleInRoom(this.targetPlayer, this.forceAttackRoomIdx)) {
+            return this.targetPlayer;
+        }
+
+        let playerComp = playerMgr.playerComp;
+        if (this.isRoleInRoom(playerComp, this.forceAttackRoomIdx)) {
+            return playerComp;
+        }
+
+        let robotArr = this.gameComp?.robotArr || [];
+        for (let i = 0; i < robotArr.length; i++) {
+            let robotComp = robotArr[i];
+            if (!this.isRoleInRoom(robotComp, this.forceAttackRoomIdx)) {
+                continue;
+            }
+
+            return robotComp;
+        }
+
+        this.forceAttackRoomIdx = 0;
+        return null;
     }
 
     /**角色是否在本次需要排除的房间 */
@@ -1796,6 +1835,10 @@ export class enemyBaseController extends Component {
 
     /**开始回出生点回血 */
     private startRepairHp(waitReturnStart: boolean = false) {
+        if (this.getForceAttackRoomTarget()) {
+            return;
+        }
+
         let bornPos = this.getNearestBornPos();
         if (!bornPos) {
             return;
@@ -2195,18 +2238,20 @@ export class enemyBaseController extends Component {
             this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
         }
         if (isDestroyed) {
+            let destroyedRoomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
             if (propType == tilePropsType.bed) {
                 if (isAttackTargetEmptyBed) {
                     this.emptyRoomIgnoreDoorRoomIdx = this.targetEmptyBedRoomIdx;
                 }
-                let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
-                this.gameComp?.grayRoomAfterBedDestroyed(roomIdx);
+                this.gameComp?.grayRoomAfterBedDestroyed(destroyedRoomIdx);
             }
 
             this.clearDestroyedProps(tilePos);
 
-            if (isAttackDoor && this.hpPercent < enemyCommonConfig.goalHpThresholdPercent) {
-                this.startRepairHp();
+            if (isAttackDoor) {
+                this.forceAttackRoomIdx = destroyedRoomIdx;
+                this.clearMovePath();
+                this.chooseTargetAndFindPath();
                 return;
             }
 

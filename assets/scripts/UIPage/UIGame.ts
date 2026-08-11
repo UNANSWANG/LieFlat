@@ -108,6 +108,10 @@ export class UIGame extends UIBase {
     private bedGuideSkeleton: sp.Skeleton = null;
     /**上床按钮引导动画是否正在播放 */
     private isBedGuidePlaying = false;
+    /**是否已上报上床引导开始 */
+    private hasReportedEnterBedGuideStart = false;
+    /**是否已上报上床引导完成 */
+    private hasReportedEnterBedGuideFinish = false;
 
     ///
     ///属性
@@ -483,6 +487,8 @@ export class UIGame extends UIBase {
         this.slideTouchNode.active = false;
         this.oprateBtn.active = false;
         this.refreshBedGuideVisible(false);
+        this.hasReportedEnterBedGuideStart = false;
+        this.hasReportedEnterBedGuideFinish = false;
         this.closeTouchSelect();
         this.timeNode.active = false;
         this.repairBtn.active = false;
@@ -790,6 +796,13 @@ export class UIGame extends UIBase {
             return;
         }
 
+        if (!this.hasReportedEnterBedGuideStart) {
+            if (gm.hgSdk) {
+                gm.hgSdk.track('TUTORIAL_START', {});
+            }
+            this.hasReportedEnterBedGuideStart = true;
+        }
+
         let previousPos = startPos;
         for (let i = 0; i < path.length - 1; i++) {
             let tilePos = path[i];
@@ -893,6 +906,9 @@ export class UIGame extends UIBase {
             return;
         }
 
+        if (gm.hgSdk) {
+            gm.hgSdk.track('TUTORIAL_FINISH', {});
+        }
         this.currentGuideTask = guideTaskType.none;
         while (this.pendingGuideTaskQueue.length > 0) {
             let nextTaskType = this.pendingGuideTaskQueue.shift();
@@ -908,6 +924,10 @@ export class UIGame extends UIBase {
 
     /**创建当前队首引导的场景点击手指 */
     private showCurrentGuideTask() {
+        if (gm.hgSdk) {
+            gm.hgSdk.track('TUTORIAL_START', {});
+        }
+
         if (this.currentGuideTask == guideTaskType.doorUpgrade) {
             let roomIdx = playerMgr.playerComp?.roomIdx || 0;
             this.createGuideDoorClickNode(this.getDoorByRoom(roomIdx));
@@ -3671,6 +3691,12 @@ export class UIGame extends UIBase {
 
     /**玩家上床回调 */
     playerToBedCall() {
+        if (pData.isGuide && this.hasReportedEnterBedGuideStart && !this.hasReportedEnterBedGuideFinish) {
+            if (gm.hgSdk) {
+                gm.hgSdk.track('TUTORIAL_FINISH', {});
+            }
+            this.hasReportedEnterBedGuideFinish = true;
+        }
         this.recycleAllGuideArrows();
         playerMgr.cameraFollow = false;
         this.rockerTouchNode.active = false;

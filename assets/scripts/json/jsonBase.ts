@@ -47,7 +47,9 @@ export class jsonBase {
             this.data = Object.values(tempData);
             this.tableLoadComplete();
         }
-        console.warn(this.tableName, 'JSON 数据:', this.data);
+        if(gm.isDebug){
+            console.warn(this.tableName, 'JSON 数据:', this.data);
+        }
     }
 
     /**表格处理 */

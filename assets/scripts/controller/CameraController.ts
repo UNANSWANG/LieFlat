@@ -22,6 +22,7 @@ export class CameraController extends Component {
     private cameraPos: Vec3 = null;
     private move: Vec3 = null;
     private cameraWorldPos: Vec3 = new Vec3();
+    private isPositionLocked: boolean = false;
     onLoad() {
         this.camera = this.node.getComponent(Camera);
     }
@@ -81,6 +82,10 @@ export class CameraController extends Component {
 
     /**直接设置相机的坐标 */
     setCameraPos(pos: Vec3, isRefresh: boolean = false) {
+        if (this.isPositionLocked) {
+            return;
+        }
+
         this.cameraPos = this.limitCameraPos(pos);
         this.node.setPosition(this.cameraPos);
         if (isRefresh) {
@@ -88,6 +93,18 @@ export class CameraController extends Component {
                 this.node.setPosition(this.cameraPos);
             }, 0);
         }
+    }
+
+    /**锁定相机坐标，解锁前忽略其他位置控制 */
+    lockCameraPos(pos: Vec3) {
+        this.isPositionLocked = false;
+        this.setCameraPos(pos, true);
+        this.isPositionLocked = true;
+    }
+
+    /**解除相机坐标锁定 */
+    unlockCameraPos() {
+        this.isPositionLocked = false;
     }
 
     /**根据屏幕滑动距离移动相机，表现为拖动画面 */

@@ -22,7 +22,7 @@ export class jsonRobotDifficulty extends jsonBase {
             this.typeArr[data.type - 1].push(data);
         }
 
-        console.warn("-------->初始化机器人难度数据:\n",this.typeArr);
+        // console.warn("-------->初始化机器人难度数据:\n",this.typeArr);
     }
 }
 export let robotDifficultyConfig = new jsonRobotDifficulty();

@@ -95,6 +95,7 @@ export class sawProps extends gamePropsBase {
 
         this.hasKillEnemy = true;
         this.targetEnemy = targetEnemy;
+        this.gameComp?.lockCameraAtSawTarget(targetEnemy);
         this.playDisappearAnim();
     }
 

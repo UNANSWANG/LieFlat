@@ -1,3 +1,4 @@
+import { gm } from "../../manager/gm";
 import { userMgr } from "../../manager/userManager";
 import { netConfig } from "./netConfig";
 import { networkCtrl } from "./networkController";
@@ -25,7 +26,9 @@ export class httpManager {
             sendData = data;
         }
 
-        console.warn("--------->请求url:", url, "请求参数:\n", sendData);
+        if(gm.isDebug){
+            console.warn("--------->请求url:", url, "请求参数:\n", sendData);
+        }
         try {
             let res = await networkCtrl.post(url, sendData);
             success?.(res);

@@ -53,8 +53,6 @@ export class playerData {
         this.adUpgradeDoorCount = 1;
         this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
 
-        console.warn("---------->是否为引导关", this.isGuide);
-
         this.SDKReportLevelStart();
     }
 

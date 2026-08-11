@@ -149,6 +149,8 @@ export class UIGame extends UIBase {
     private uiCamera: Camera = null;
     /**游戏摄像机到UI摄像机的视角比例 */
     private gameToUICameraScale = 1;
+    /**是否因铡刀触发锁定游戏视角 */
+    private isCameraLockedBySaw = false;
     /**选中坐标 */
     private selectedPos: Vec2 = new Vec2();
 
@@ -475,6 +477,8 @@ export class UIGame extends UIBase {
 
     clearData() {
         this.unscheduleAllCallbacks();
+        this.isCameraLockedBySaw = false;
+        this.gameCameraComp?.unlockCameraPos();
         this.rockerTouchNode.active = false;
         this.slideTouchNode.active = false;
         this.oprateBtn.active = false;
@@ -663,7 +667,7 @@ export class UIGame extends UIBase {
                 }
             }
         }
-        console.warn("随机道具点位", this.randomPropsPosArr);
+        // console.warn("随机道具点位", this.randomPropsPosArr);
 
         //处理房间数据
         let roomIdx = 1;
@@ -3913,6 +3917,18 @@ export class UIGame extends UIBase {
         }
 
         uiMgr.showTips("没有可定位的敌人");
+    }
+
+    /**铡刀触发后定位敌人并锁定本局视角 */
+    lockCameraAtSawTarget(enemyComp: enemyBaseController) {
+        if (this.isCameraLockedBySaw || !this.gameCameraComp
+            || !enemyComp?.node || !enemyComp.node.isValid) {
+            return;
+        }
+
+        this.isCameraLockedBySaw = true;
+        playerMgr.cameraFollow = false;
+        this.gameCameraComp.lockCameraPos(enemyComp.node.getPosition());
     }
 
     /**增加游戏内货币 */

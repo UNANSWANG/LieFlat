@@ -59,9 +59,9 @@ export class jsonProps extends jsonBase {
                 }
             }
         }
-        console.warn("-------->初始化道具分类型数据:\n", this.propsData);
-        console.warn("-------->初始化可随机生成道具数据:\n", this.randomPropsData);
-        console.warn("-------->初始化神秘商店道具数据:\n", this.storePropsData);
+        // console.warn("-------->初始化道具分类型数据:\n", this.propsData);
+        // console.warn("-------->初始化可随机生成道具数据:\n", this.randomPropsData);
+        // console.warn("-------->初始化神秘商店道具数据:\n", this.storePropsData);
     }
 
     /**获取指定类型道具数据 */

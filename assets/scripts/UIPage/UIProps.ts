@@ -102,6 +102,7 @@ export class UIProps extends UIBase {
 
         this.refreshTitle();
         this.refreshPage();
+        this.SDKAdReport();
         this.refreshGuideUpgradeClickNode();
     }
 
@@ -478,6 +479,11 @@ export class UIProps extends UIBase {
                 pData.fixGamePower(-nextPropsData.power);
             }
         }
+    }
+
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(68);
     }
 
     ///

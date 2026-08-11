@@ -148,6 +148,7 @@ export class UISetting extends UIBase {
         this.onClose();
         //上报失败
         pData.reportLevel(false);
+        pData.SDKReportLevelExit();
         uiMgr.closeGame();
     }
 

@@ -109,6 +109,7 @@ export class UIFail extends UIBase {
         this.boxRewardNode.active = this.boxNum > 0;
 
         pData.SDKReportLevelFail();
+        this.SDKAdReport();
         pData.reportLevel(false);
     }
 
@@ -139,6 +140,10 @@ export class UIFail extends UIBase {
         this.commonBtn.addComponent(zoomButton).onClick = this.clickCommonBtn.bind(this);
     }
 
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(4);
+    }
 
     ///
     ///点击事件
@@ -151,7 +156,7 @@ export class UIFail extends UIBase {
         }
 
         this.isRewardClaimed = true;
-        videoMgr.watchVideo(68, () => {
+        videoMgr.watchVideo(4, () => {
             this.getReward(3);
         }, () => {
             this.isRewardClaimed = false;

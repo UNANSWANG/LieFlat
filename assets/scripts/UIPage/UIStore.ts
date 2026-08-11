@@ -48,6 +48,7 @@ export class UIStore extends UIBase {
 
     initData() {
         this.refreshPage();
+        this.SDKAdReport();
         this.refreshList();
     }
 
@@ -118,6 +119,11 @@ export class UIStore extends UIBase {
         }
 
         this.scrol.scrollToTop();
+    }
+
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(68);
     }
 
     ///

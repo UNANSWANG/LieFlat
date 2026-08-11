@@ -102,6 +102,8 @@ export class UIBuild extends UIBase {
             this.gameComp?.onGuideBuildUIOpened(this.guideBuildPropsType);
             this.currentIdx = this.getGuideBuildTabIdx();
         }
+
+        this.SDKAdReport();
         this.refreshPage();
     }
 
@@ -442,6 +444,11 @@ export class UIBuild extends UIBase {
         }
 
         return this.getPropsBuildLimitCount(propsData) >= propsData.builNumMax;
+    }
+
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(68);
     }
 
     ///

@@ -109,6 +109,7 @@ export class UISuccess extends UIBase {
         this.boxRewardNode.active = this.boxNum > 0;
 
         pData.SDKReportLevelComplete();
+        this.SDKAdReport();
         pData.addLevel();
     }
 
@@ -138,6 +139,10 @@ export class UISuccess extends UIBase {
         this.commonBtn.addComponent(zoomButton).onClick = this.clickCommonBtn.bind(this);
     }
 
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(4);
+    }
 
     ///
     ///点击事件
@@ -150,7 +155,7 @@ export class UISuccess extends UIBase {
         }
 
         this.isRewardClaimed = true;
-        videoMgr.watchVideo(68, () => {
+        videoMgr.watchVideo(4, () => {
             this.getReward(3);
         }, () => {
             this.isRewardClaimed = false;

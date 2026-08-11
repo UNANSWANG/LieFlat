@@ -38,6 +38,7 @@ export class UIMoney extends UIBase {
 
     initData() {
         this.numLab.string = 'x' + configData.addMoneyNum.toString();
+        this.SDKAdReport();
         this.refreshRewardBtn();
     }
 
@@ -63,6 +64,11 @@ export class UIMoney extends UIBase {
     private getMoneyReward() {
         uiMgr.playMoneyAnim(this.numLab?.node?.parent, configData.addMoneyNum);
         this.onClose();
+    }
+
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(4);
     }
 
     ///
@@ -105,7 +111,7 @@ export class UIMoney extends UIBase {
         }
 
         this.isWatchingAd = true;
-        videoMgr.watchVideo(68, () => {
+        videoMgr.watchVideo(4, () => {
             this.isWatchingAd = false;
             this.getMoneyReward();
         }, () => {

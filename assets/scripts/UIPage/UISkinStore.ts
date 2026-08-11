@@ -69,6 +69,7 @@ export class UISkinStore extends UIBase {
         }
         this.initList();
         this.refreshShowRoleSkin();
+        this.SDKAdReport();
         this.refreshActionNodes();
     }
 
@@ -260,6 +261,15 @@ export class UISkinStore extends UIBase {
         }
     }
 
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(62);
+    }
+
+    ///
+    ///点击事件
+    ///
+
     /** 按条件解锁皮肤 */
     private clickUnlockBtn(skinId: number, limitType: number) {
         let skinData = roleSkinConfig.getSkinDataById(skinId);
@@ -279,7 +289,7 @@ export class UISkinStore extends UIBase {
         }
 
         if (limitType == 2) {
-            videoMgr.watchVideo(68, () => {
+            videoMgr.watchVideo(62, () => {
                 this.unlockSkin(skinId);
                 this.clickUseBtn(skinId);
             });

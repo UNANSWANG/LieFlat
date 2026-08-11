@@ -48,6 +48,8 @@ export const configData = {
     bossModeLevel: 10,
     /**门震动血量阈值 */
     doorVibrateHpThreshold: 0.3,
+    /**引导关的难度倍率 */
+    guideDifficultyMultiplier: 0.7,
 }
 
 /**敌人通用配置 */

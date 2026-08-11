@@ -97,6 +97,7 @@ export class UIMain extends UIBase {
         this.refreshRed();
         this.checkRevisitBtn();
         this.refreshRoleAnim();
+        gm.Event.emit(GameEvent.refreshPlayerMonetary);
     }
 
     bindBtn() {

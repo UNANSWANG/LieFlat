@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.methods = exports.config = exports.unload = exports.load = void 0;
-const ExcelToJson_1 = require("./ExcelToJson");
 /**
  * @en Hooks triggered after extension loading is complete
  * @zh 扩展加载完成后触发的钩子
@@ -33,6 +32,9 @@ exports.methods = {
             console.warn("项目->项目设置->Excel To Json->PathTs 配置路径");
             return;
         }
-        (0, ExcelToJson_1.run)();
+        const modulePath = require.resolve("./ExcelToJson");
+        delete require.cache[modulePath];
+        const { run } = require(modulePath);
+        await run();
     }
 };

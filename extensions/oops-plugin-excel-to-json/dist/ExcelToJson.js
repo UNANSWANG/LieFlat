@@ -78,7 +78,7 @@ async function convert(src, dst, name, isClient) {
                     let key = keys[index];
                     switch (type) {
                         case "int":
-                            data[key] = parseInt(value);
+                            data[key] = parseFloat(value);
                             types_client[key] = {
                                 en: "number",
                                 zh: names[index]
@@ -152,17 +152,17 @@ async function convert(src, dst, name, isClient) {
         (0, JsonToTs_1.createTs)(name, types_client, r, primary);
     console.log(isClient ? "客户端数据" : "服务器数据", "生成成功", dst);
 }
-function run() {
+async function run() {
     var inputExcelPath = path_1.default.join(__dirname, main_1.config.PathExcel);
     var outJsonPath = path_1.default.join(__dirname, main_1.config.PathJson);
     const files = fs.readdirSync(inputExcelPath);
-    files.forEach((f) => {
+    for (const f of files) {
         let name = f.substring(0, f.indexOf("."));
         let ext = f.toString().substring(f.lastIndexOf(".") + 1);
         if (ext == "xlsx") {
             // convert(inputExcelPath + f, inputExcelPath + "server\\" + name + ".json", name, false);        // 服务器数据
-            convert(inputExcelPath + f, outJsonPath + name + ".json", name, true); // 客户端数据
+            await convert(inputExcelPath + f, outJsonPath + name + ".json", name, true); // 客户端数据
         }
-    });
+    }
 }
 exports.run = run;

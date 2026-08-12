@@ -1,5 +1,3 @@
-import { run } from "./ExcelToJson";
-
 /**
  * @en Hooks triggered after extension loading is complete
  * @zh 扩展加载完成后触发的钩子
@@ -36,6 +34,9 @@ export const methods: { [key: string]: (...any: any) => any } = {
             return;
         }
 
-        run();
+        const modulePath = require.resolve("./ExcelToJson");
+        delete require.cache[modulePath];
+        const { run } = require(modulePath);
+        await run();
     }
 };

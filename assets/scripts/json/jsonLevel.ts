@@ -13,6 +13,36 @@ export class jsonLevel extends jsonBase {
     get tableData() : JsonLevelData[]{
         return this.data;
     }
+
+    /**根据已通关关卡数获取等级索引和等级内关卡序号 */
+    getLevelIndex(level: number): [number, number] {
+        if (!this.data?.length) {
+            return [-1, -1];
+        }
+
+        let remainingLevel = Number.isFinite(level) ? Math.max(0, Math.floor(level)) : 0;
+        for (let i = 0; i < this.tableData.length; i++) {
+            if (i == this.tableData.length - 1) {
+                return [i, remainingLevel + 1];
+            }
+            let quantity = this.tableData[i].quantity;
+            if (remainingLevel < quantity) {
+                return [i, remainingLevel + 1];
+            }
+            remainingLevel -= quantity;
+        }
+
+        return [-1, -1];
+    }
+
+    /**根据等级索引和等级内关卡序号获取关卡名称 */
+    getLevelName(levelIndex: [number, number]): string {
+        let levelData = this.tableData?.[levelIndex?.[0]];
+        if (!levelData || levelIndex[1] < 1) {
+            return "";
+        }
+        return `${levelData.name}-${levelIndex[1]}`;
+    }
 }
 export let levelConfig = new jsonLevel();
 

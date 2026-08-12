@@ -15,25 +15,45 @@ export class TablelevelTable {
     /** 编号【KEY】 */
     id: number = 0;
 
-    /** 关卡数据 */
-    get levelData(): string {
-        return this.data.levelData;
+    /** 难度名称 */
+    get name(): string {
+        return this.data.name;
     }
-    /** 生命值 */
-    get lifeNum(): number {
-        return this.data.lifeNum;
+    /** boss等级最大值 */
+    get levelMax(): number {
+        return this.data.levelMax;
     }
-    /** 关卡时间（秒） */
-    get levelTime(): number {
-        return this.data.levelTime;
+    /** 关卡数量 */
+    get quantity(): number {
+        return this.data.quantity;
     }
-    /** 是否为冲刺关卡 */
-    get isSprint(): number {
-        return this.data.isSprint;
+    /** boss血量（1级） */
+    get hp(): number {
+        return this.data.hp;
     }
-    /** 彩色箭头数量 */
-    get colorNum(): number {
-        return this.data.colorNum;
+    /** boss攻击力（1级） */
+    get attack(): number {
+        return this.data.attack;
+    }
+    /** 升级最小时间 */
+    get upgradeTimeMin(): number {
+        return this.data.upgradeTimeMin;
+    }
+    /** 升级最大时间 */
+    get upgradeTimeMax(): number {
+        return this.data.upgradeTimeMax;
+    }
+    /** 升级血量倍率 */
+    get healthMultiplier(): number {
+        return this.data.healthMultiplier;
+    }
+    /** 升级攻击力倍率 */
+    get attackMultiplier(): number {
+        return this.data.attackMultiplier;
+    }
+    /** 人机难度选择 */
+    get AIdifficulty(): string {
+        return this.data.AIdifficulty;
     }
 }
     

@@ -160,6 +160,9 @@ export class UISetting extends UIBase {
 
     /**点击控制台 */
     clickConsoleBtn() {
+        if(!gm.isDebug){
+            return;
+        }
         this.consoleClickCount++;
         if (this.consoleClickCount >= 5) {
             this.consoleClickCount = 0;

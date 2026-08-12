@@ -3982,6 +3982,9 @@ export class UIGame extends UIBase {
 
     /**监听按钮点击事件 */
     onKeyDown(event: EventKeyboard) {
+        if(!gm.isDebug){
+            return;
+        }
         switch (event.keyCode) {
             case KeyCode.KEY_S:
                 //强制开始游戏

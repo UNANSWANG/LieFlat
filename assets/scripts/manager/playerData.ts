@@ -36,6 +36,8 @@ export class playerData {
     unlockedRoleSkin: { [key: string]: boolean } = {};
     /**是否为引导关 */
     isGuide = false;
+    /**当前关卡允许的人机难度类型 */
+    AIdifficultyTypes: number[] = [];
     /**角色默认皮肤id，角色皮肤表加载后赋值 */
     private defaultSkinId: number = null;
     /**是否已经收到登录接口下发的游戏数据 */
@@ -53,7 +55,9 @@ export class playerData {
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
         this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
-        enemyMgr.enemyAllData = levelConfig.getBossAllData(this.getEnemyLevelTableIndex());
+        let levelTableIndex = this.getEnemyLevelTableIndex();
+        enemyMgr.enemyAllData = levelConfig.getBossAllData(levelTableIndex);
+        this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);
 
         console.warn("--------------->当前关卡敌人全等级数据\n", enemyMgr.enemyAllData);
         this.SDKReportLevelStart();

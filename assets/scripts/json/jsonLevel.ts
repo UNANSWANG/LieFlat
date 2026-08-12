@@ -41,6 +41,11 @@ export class jsonLevel extends jsonBase {
         return this.tableData?.[levelIndex[0]] || null;
     }
 
+    /**根据关卡表索引获取人机难度类型 */
+    getAIDifficultyTypes(levelTableIndex: number): number[] {
+        return this.tableData?.[levelTableIndex]?.AIdifficulty || [];
+    }
+
     /**根据关卡表索引生成Boss全等级数据 */
     getBossAllData(levelTableIndex: number): JsonBossData[] {
         let levelData = this.tableData?.[levelTableIndex];
@@ -108,7 +113,7 @@ export interface JsonLevelData {
     /**升级最大时间倍率 */
     timeMaxMultiplier: number;
     /**人机难度选择 */
-    AIdifficulty: string;
+    AIdifficulty: number[];
 }
 
 export interface JsonBossData {

@@ -797,12 +797,11 @@ export class roleController extends Component {
             return;
         }
 
-        let typeCount = Math.min(configData.robotDifficultyTypeCount, robotDifficultyConfig.typeArr.length);
-        if (typeCount <= 0) {
+        if (pData.AIdifficultyTypes.length <= 0) {
             return;
         }
 
-        this.robotDifficultyType = Math.floor(Math.random() * typeCount) + 1;
+        this.robotDifficultyType = pData.AIdifficultyTypes[Math.floor(Math.random() * pData.AIdifficultyTypes.length)];
         let typeDataArr = robotDifficultyConfig.typeArr[this.robotDifficultyType - 1] || [];
         if (typeDataArr.length > 0) {
             this.robotDifficultyDataIdx = Math.floor(Math.random() * typeDataArr.length);

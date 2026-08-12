@@ -35,6 +35,38 @@ export class jsonLevel extends jsonBase {
         return [-1, -1];
     }
 
+    /**根据已通关关卡数获取关卡配置 */
+    getLevelData(level: number): JsonLevelData {
+        let levelIndex = this.getLevelIndex(level);
+        return this.tableData?.[levelIndex[0]] || null;
+    }
+
+    /**根据关卡表索引生成Boss全等级数据 */
+    getBossAllData(levelTableIndex: number): JsonBossData[] {
+        let levelData = this.tableData?.[levelTableIndex];
+        if (!levelData) {
+            return [];
+        }
+
+        let bossAllData: JsonBossData[] = [];
+        let levelMax = Number.isFinite(levelData.levelMax) ? Math.max(0, Math.floor(levelData.levelMax)) : 0;
+        for (let bossLevel = 0; bossLevel < levelMax; bossLevel++) {
+            let previousBossData = bossAllData[bossLevel - 1];
+            bossAllData.push({
+                level: bossLevel + 1,
+                hp: previousBossData ? previousBossData.hp * levelData.healthMultiplier : levelData.hp,
+                attack: previousBossData ? previousBossData.attack * levelData.attackMultiplier : levelData.attack,
+                upgradeTimeMin: previousBossData
+                    ? previousBossData.upgradeTimeMin + bossLevel * levelData.timeMinMultiplier
+                    : levelData.upgradeTimeMin,
+                upgradeTimeMax: previousBossData
+                    ? previousBossData.upgradeTimeMax + bossLevel * levelData.timeMaxMultiplier
+                    : levelData.upgradeTimeMax,
+            });
+        }
+        return bossAllData;
+    }
+
     /**根据等级索引和等级内关卡序号获取关卡名称 */
     getLevelName(levelIndex: [number, number]): string {
         let levelData = this.tableData?.[levelIndex?.[0]];
@@ -46,7 +78,7 @@ export class jsonLevel extends jsonBase {
 }
 export let levelConfig = new jsonLevel();
 
-interface JsonLevelData {
+export interface JsonLevelData {
     /**关卡名称 */
     name: string;
     /**等级最大值 */
@@ -65,6 +97,23 @@ interface JsonLevelData {
     healthMultiplier: number;
     /**升级攻击力倍率 */
     attackMultiplier: number;
+    /**升级最小时间倍率 */
+    timeMinMultiplier: number;
+    /**升级最大时间倍率 */
+    timeMaxMultiplier: number;
     /**人机难度选择 */
     AIdifficulty: string;
+}
+
+export interface JsonBossData {
+    /**等级 */
+    level: number;
+    /**血量 */
+    hp: number;
+    /**攻击力 */
+    attack: number;
+    /**升级最小时间 */
+    upgradeTimeMin: number;
+    /**升级最大时间 */
+    upgradeTimeMax: number;
 }

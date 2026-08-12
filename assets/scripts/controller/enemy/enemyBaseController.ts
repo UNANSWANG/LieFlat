@@ -11,7 +11,6 @@ import { uiMgr } from '../../manager/UIManager';
 import { audioPath, spinePath, UIPath } from '../../manager/pathConfig';
 import { enemyMgr } from '../../manager/enemyManager';
 import { bedProps } from '../props/bedProps';
-import { enemyConfig } from '../../json/jsonEnemy';
 import { gm } from '../../manager/gm';
 import { cannonProps } from '../props/cannonProps';
 import { iceProps } from '../props/iceProps';
@@ -318,12 +317,13 @@ export class enemyBaseController extends Component {
 
     /**初始化最大等级 */
     initMaxLevel() {
-        this.maxLevel = enemyConfig.enemyAllData.length;
+        this.maxLevel = enemyMgr.enemyAllData?.length || 1;
     }
 
     /**重置血量 */
     resetHp() {
-        this.maxHp = enemyConfig.getEnemyData(this.level).hp * this.difficultyMultiplier;
+        let bossData = enemyMgr.enemyAllData?.[this.level];
+        this.maxHp = (bossData?.hp || 0) * this.difficultyMultiplier;
         this.hp = this.maxHp;
         this.refreshHp();
     }
@@ -331,8 +331,9 @@ export class enemyBaseController extends Component {
     /**重置伤害 */
     resetAttackDamage() {
         //TODO 伤害临时秒杀
-        // this.attackDamage = enemyConfig.getEnemyData(this.level).attack * 3;
-        this.attackDamage = enemyConfig.getEnemyData(this.level).attack * this.difficultyMultiplier;
+        // this.attackDamage = enemyMgr.enemyAllData[this.level].attack * 3;
+        let bossData = enemyMgr.enemyAllData?.[this.level];
+        this.attackDamage = (bossData?.attack || 0) * this.difficultyMultiplier;
     }
 
     /**刷新等级 */
@@ -734,19 +735,19 @@ export class enemyBaseController extends Component {
             return 0;
         }
 
-        let enemyData = enemyConfig.getEnemyData(this.level);
-        if (!enemyData) {
+        let bossData = enemyMgr.enemyAllData?.[this.level];
+        if (!bossData) {
             return 0;
         }
 
-        let upgradeTimeMin = Number(enemyData.upgradeTimeMin);
-        let upgradeTimeMax = Number(enemyData.upgradeTimeMax);
+        let upgradeTimeMin = Number(bossData.upgradeTimeMin);
+        let upgradeTimeMax = Number(bossData.upgradeTimeMax);
         if (!Number.isFinite(upgradeTimeMin) || !Number.isFinite(upgradeTimeMax)
             || upgradeTimeMin <= 0 || upgradeTimeMax < upgradeTimeMin) {
             console.error("敌人升级时间配置异常，已停止自动升级", {
                 level: this.level + 1,
-                upgradeTimeMin: enemyData.upgradeTimeMin,
-                upgradeTimeMax: enemyData.upgradeTimeMax,
+                upgradeTimeMin: bossData.upgradeTimeMin,
+                upgradeTimeMax: bossData.upgradeTimeMax,
             });
             return 0;
         }

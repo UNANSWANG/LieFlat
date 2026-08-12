@@ -3,7 +3,6 @@ import { gm } from './gm';
 import { GameEvent } from './configData';
 import { propsConfig } from '../json/jsonProps';
 import { commonConfig } from '../json/jsonCommon';
-import { enemyConfig } from '../json/jsonEnemy';
 import { robotUpgradeConfig } from '../json/jsonRobotUpgrade';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { nicknameConfig } from '../json/jsonNickname';
@@ -16,7 +15,7 @@ const { ccclass, property } = _decorator;
 @ccclass('jsonManager')
 export class jsonManager  {
     /**表格数量 */
-    tableNum = 10;
+    tableNum = 9;
     /**已加载的表格数量 */
     tableLoadNum = 0;
 
@@ -29,7 +28,6 @@ export class jsonManager  {
         propsConfig.initTable();
         commonConfig.initTable();
         nicknameConfig.initTable();
-        enemyConfig.initTable();
         robotUpgradeConfig.initTable();
         roleSkinConfig.initTable();
         robotDifficultyConfig.initTable();

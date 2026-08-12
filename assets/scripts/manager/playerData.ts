@@ -6,6 +6,7 @@ import { gm, PlatType } from './gm';
 import { httpMgr } from '../sdk/network/httpManager';
 import { urlConfig } from '../sdk/network/netConfig';
 import { propsConfig } from '../json/jsonProps';
+import { enemyMgr } from './enemyManager';
 const { ccclass, property } = _decorator;
 
 //用户游戏内数据
@@ -52,8 +53,15 @@ export class playerData {
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
         this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
+        enemyMgr.enemyAllData = levelConfig.getBossAllData(this.getEnemyLevelTableIndex());
 
+        console.warn("当前关卡敌人全等级数据", enemyMgr.enemyAllData);
         this.SDKReportLevelStart();
+    }
+
+    /**获取当前关卡使用的敌人关卡表索引 */
+    getEnemyLevelTableIndex(): number {
+        return levelConfig.getLevelIndex(this.level)[0];
     }
 
     /**SDK关卡开始上报 */
@@ -118,19 +126,6 @@ export class playerData {
         //TODO 测试
         // console.warn("上报关卡给后端", levelReprotData);
         httpMgr.post(urlConfig.levelReport, levelReprotData);
-    }
-
-    /**循环后的实际关卡数（对应表格） */
-    get realyLevel() {
-        let totalLevels = levelConfig.tableData.length;
-        const startIndex = 30;
-
-        if (this.level < totalLevels) {
-            return this.level;
-        } else {
-            // 从第30关开始循环
-            return startIndex + ((this.level - startIndex) % (totalLevels - startIndex));
-        }
     }
 
     /**增加用户关卡数 */

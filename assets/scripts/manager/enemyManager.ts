@@ -1,5 +1,5 @@
 import { _decorator, Node, Vec2 } from 'cc';
-import { enemyBaseController } from '../controller/enemy/enemyBaseController';
+import type { enemyBaseController } from '../controller/enemy/enemyBaseController';
 const { ccclass, property } = _decorator;
 
 @ccclass('enemyManager')
@@ -8,6 +8,9 @@ export class enemyManager {
     enemyArr: enemyBaseController[] = [];
     /**敌人id(单局累加) */
     enemyId: number = 0;
+
+    /**当前关卡敌人全等级数据 */
+    enemyAllData: any = [];
 
     /**敌人出生点位数组 */
     enemyBornPosArr: Vec2[] = [];

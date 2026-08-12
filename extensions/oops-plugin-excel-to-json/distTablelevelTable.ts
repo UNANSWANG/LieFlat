@@ -51,6 +51,14 @@ export class TablelevelTable {
     get attackMultiplier(): number {
         return this.data.attackMultiplier;
     }
+    /** 升级最小时间倍率 */
+    get timeMinMultiplier(): number {
+        return this.data.timeMinMultiplier;
+    }
+    /** 升级最大时间倍率 */
+    get timeMaxMultiplier(): number {
+        return this.data.timeMaxMultiplier;
+    }
     /** 人机难度选择 */
     get AIdifficulty(): string {
         return this.data.AIdifficulty;

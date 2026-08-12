@@ -1,6 +1,6 @@
 {
     "package_version": 2,
-    "version": "1.0.2",
+    "version": "1.0.3",
     "name": "oops-plugin-excel-to-json",
     "description": "i18n:oops-plugin-excel-to-json.description",
     "main": "./dist/main.js",
@@ -23,10 +23,6 @@
                         "default": ""
                     },
                     "PathJson": {
-                        "ui": "ui-input",
-                        "default": ""
-                    },
-                    "PathTs": {
                         "ui": "ui-input",
                         "default": ""
                     }

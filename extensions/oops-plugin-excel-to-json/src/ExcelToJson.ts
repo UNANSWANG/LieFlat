@@ -1,5 +1,4 @@
 import path from "path";
-import { createTs } from "./JsonToTs";
 import { config } from "./main";
 
 const fs = require('fs')
@@ -25,14 +24,12 @@ function isEmptyValue(value: any) {
  * Excel转Json数据
  * @param {*} src           读取的excel文件目录
  * @param {*} dst           导出的json文件目录
- * @param {*} name          excel文件名
  */
-async function convert(src: string, dst: string, name: string) {
+async function convert(src: string, dst: string) {
     let r: any = {};
     let names: any[] = [];          // 文名字段名
     let keys: any[] = [];           // 字段名
     let types: any[] = [];          // 通用字段数据类型
-    let types_client: any = {};     // 客户端数据类型
     let primary: string[] = [];     // 多主键配置
     let primary_index: number[] = [];
 
@@ -64,31 +61,15 @@ async function convert(src: string, dst: string, name: string) {
                 switch (type) {
                     case "int":
                         data[key] = parseFloat(value);
-                        types_client[key] = {
-                            en: "number",
-                            zh: names[index]
-                        };
                         break;
                     case "float":
                         data[key] = parseFloat(value);
-                        types_client[key] = {
-                            en: "number",
-                            zh: names[index]
-                        };
                         break;
                     case "string":
                         data[key] = value;
-                        types_client[key] = {
-                            en: "string",
-                            zh: names[index]
-                        };
                         break;
                     case "any":
                         data[key] = JSON.parse(value);
-                        types_client[key] = {
-                            en: "any",
-                            zh: names[index]
-                        };
                         break;
                 }
             }
@@ -136,8 +117,6 @@ async function convert(src: string, dst: string, name: string) {
     // 写入流
     await fs.writeFileSync(dst, JSON.stringify(r));
 
-    // 生成表格脚本
-    createTs(name, types_client, r, primary);
     console.log("表格数据生成成功", dst);
 }
 
@@ -149,7 +128,7 @@ export async function run() {
         let name = f.substring(0, f.indexOf("."));
         let ext = f.toString().substring(f.lastIndexOf(".") + 1);
         if (ext == "xlsx") {
-            await convert(inputExcelPath + f, outJsonPath + name + ".json", name);
+            await convert(inputExcelPath + f, outJsonPath + name + ".json");
         }
     }
 }

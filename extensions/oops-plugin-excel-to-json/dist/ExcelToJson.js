@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = void 0;
 const path_1 = __importDefault(require("path"));
-const JsonToTs_1 = require("./JsonToTs");
 const main_1 = require("./main");
 const fs = require('fs');
 const excel = require('exceljs');
@@ -27,14 +26,12 @@ function isEmptyValue(value) {
  * Excel转Json数据
  * @param {*} src           读取的excel文件目录
  * @param {*} dst           导出的json文件目录
- * @param {*} name          excel文件名
  */
-async function convert(src, dst, name) {
+async function convert(src, dst) {
     let r = {};
     let names = []; // 文名字段名
     let keys = []; // 字段名
     let types = []; // 通用字段数据类型
-    let types_client = {}; // 客户端数据类型
     let primary = []; // 多主键配置
     let primary_index = [];
     const workbook = new excel.Workbook();
@@ -66,31 +63,15 @@ async function convert(src, dst, name) {
                 switch (type) {
                     case "int":
                         data[key] = parseFloat(value);
-                        types_client[key] = {
-                            en: "number",
-                            zh: names[index]
-                        };
                         break;
                     case "float":
                         data[key] = parseFloat(value);
-                        types_client[key] = {
-                            en: "number",
-                            zh: names[index]
-                        };
                         break;
                     case "string":
                         data[key] = value;
-                        types_client[key] = {
-                            en: "string",
-                            zh: names[index]
-                        };
                         break;
                     case "any":
                         data[key] = JSON.parse(value);
-                        types_client[key] = {
-                            en: "any",
-                            zh: names[index]
-                        };
                         break;
                 }
             }
@@ -133,8 +114,6 @@ async function convert(src, dst, name) {
     });
     // 写入流
     await fs.writeFileSync(dst, JSON.stringify(r));
-    // 生成表格脚本
-    (0, JsonToTs_1.createTs)(name, types_client, r, primary);
     console.log("表格数据生成成功", dst);
 }
 async function run() {
@@ -145,7 +124,7 @@ async function run() {
         let name = f.substring(0, f.indexOf("."));
         let ext = f.toString().substring(f.lastIndexOf(".") + 1);
         if (ext == "xlsx") {
-            await convert(inputExcelPath + f, outJsonPath + name + ".json", name);
+            await convert(inputExcelPath + f, outJsonPath + name + ".json");
         }
     }
 }

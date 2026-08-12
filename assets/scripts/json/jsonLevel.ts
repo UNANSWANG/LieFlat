@@ -64,7 +64,13 @@ export class jsonLevel extends jsonBase {
                     : levelData.upgradeTimeMax,
             });
         }
-        return bossAllData;
+        return bossAllData.map(data => ({
+            level: data.level,
+            hp: Math.round(data.hp),
+            attack: Math.round(data.attack),
+            upgradeTimeMin: Math.round(data.upgradeTimeMin),
+            upgradeTimeMax: Math.round(data.upgradeTimeMax),
+        }));
     }
 
     /**根据等级索引和等级内关卡序号获取关卡名称 */

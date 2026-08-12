@@ -55,7 +55,7 @@ export class playerData {
         this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
         enemyMgr.enemyAllData = levelConfig.getBossAllData(this.getEnemyLevelTableIndex());
 
-        console.warn("当前关卡敌人全等级数据", enemyMgr.enemyAllData);
+        console.warn("--------------->当前关卡敌人全等级数据\n", enemyMgr.enemyAllData);
         this.SDKReportLevelStart();
     }
 

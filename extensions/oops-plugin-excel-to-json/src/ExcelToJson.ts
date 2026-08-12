@@ -26,16 +26,13 @@ function isEmptyValue(value: any) {
  * @param {*} src           读取的excel文件目录
  * @param {*} dst           导出的json文件目录
  * @param {*} name          excel文件名
- * @param {*} isClient      是否为客户端数据
  */
-async function convert(src: string, dst: string, name: string, isClient: boolean) {
+async function convert(src: string, dst: string, name: string) {
     let r: any = {};
     let names: any[] = [];          // 文名字段名
     let keys: any[] = [];           // 字段名
     let types: any[] = [];          // 通用字段数据类型
     let types_client: any = {};     // 客户端数据类型
-    let servers: any[] = [];        // 是否输出服务器字段数据
-    let clients: any[] = [];        // 是否输出客户端字段数据
     let primary: string[] = [];     // 多主键配置
     let primary_index: number[] = [];
 
@@ -60,56 +57,45 @@ async function convert(src: string, dst: string, name: string, isClient: boolean
             else if (rowNumber === 3) {                         // 通用字段数据类型
                 types.push(value);
             }
-            else if (isClient == false && rowNumber === 4) {    // 是否输出服务器字段数据
-                servers.push(value);
-            }
-            else if (isClient == true && rowNumber === 5) {     // 客户端数据类型 
-                clients.push(value);
-            }
             else {
                 let index = colNumber - 1;
                 let type = types[index];
-                let server = servers[index];
-                let client = clients[index];
-                let isWrite = isClient && client === "client" || isClient == false && server === "server";
-                if (isWrite) {
-                    let key = keys[index];
-                    switch (type) {
-                        case "int":
-                            data[key] = parseFloat(value);
-                            types_client[key] = {
-                                en: "number",
-                                zh: names[index]
-                            };
-                            break;
-                        case "float":
-                            data[key] = parseFloat(value);
-                            types_client[key] = {
-                                en: "number",
-                                zh: names[index]
-                            };
-                            break;
-                        case "string":
-                            data[key] = value;
-                            types_client[key] = {
-                                en: "string",
-                                zh: names[index]
-                            };
-                            break;
-                        case "any":
-                            data[key] = JSON.parse(value);
-                            types_client[key] = {
-                                en: "any",
-                                zh: names[index]
-                            };
-                            break;
-                    }
+                let key = keys[index];
+                switch (type) {
+                    case "int":
+                        data[key] = parseFloat(value);
+                        types_client[key] = {
+                            en: "number",
+                            zh: names[index]
+                        };
+                        break;
+                    case "float":
+                        data[key] = parseFloat(value);
+                        types_client[key] = {
+                            en: "number",
+                            zh: names[index]
+                        };
+                        break;
+                    case "string":
+                        data[key] = value;
+                        types_client[key] = {
+                            en: "string",
+                            zh: names[index]
+                        };
+                        break;
+                    case "any":
+                        data[key] = JSON.parse(value);
+                        types_client[key] = {
+                            en: "any",
+                            zh: names[index]
+                        };
+                        break;
                 }
             }
         });
 
         // 生成数据（多主键）
-        if (rowNumber > 5) {
+        if (rowNumber > 3) {
             const primaryValues = primary.map((key: string) => data[key]);
             if (primaryValues.every(isEmptyValue)) {
                 return;
@@ -150,9 +136,9 @@ async function convert(src: string, dst: string, name: string, isClient: boolean
     // 写入流
     await fs.writeFileSync(dst, JSON.stringify(r));
 
-    // 生成客户端脚本
-    if (isClient) createTs(name, types_client, r, primary);
-    console.log(isClient ? "客户端数据" : "服务器数据", "生成成功", dst);
+    // 生成表格脚本
+    createTs(name, types_client, r, primary);
+    console.log("表格数据生成成功", dst);
 }
 
 export async function run() {
@@ -163,8 +149,7 @@ export async function run() {
         let name = f.substring(0, f.indexOf("."));
         let ext = f.toString().substring(f.lastIndexOf(".") + 1);
         if (ext == "xlsx") {
-            // convert(inputExcelPath + f, inputExcelPath + "server\\" + name + ".json", name, false);        // 服务器数据
-            await convert(inputExcelPath + f, outJsonPath + name + ".json", name, true);                   // 客户端数据
+            await convert(inputExcelPath + f, outJsonPath + name + ".json", name);
         }
     }
 }

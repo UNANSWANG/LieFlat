@@ -28,16 +28,13 @@ function isEmptyValue(value) {
  * @param {*} src           读取的excel文件目录
  * @param {*} dst           导出的json文件目录
  * @param {*} name          excel文件名
- * @param {*} isClient      是否为客户端数据
  */
-async function convert(src, dst, name, isClient) {
+async function convert(src, dst, name) {
     let r = {};
     let names = []; // 文名字段名
     let keys = []; // 字段名
     let types = []; // 通用字段数据类型
     let types_client = {}; // 客户端数据类型
-    let servers = []; // 是否输出服务器字段数据
-    let clients = []; // 是否输出客户端字段数据
     let primary = []; // 多主键配置
     let primary_index = [];
     const workbook = new excel.Workbook();
@@ -62,55 +59,44 @@ async function convert(src, dst, name, isClient) {
             else if (rowNumber === 3) { // 通用字段数据类型
                 types.push(value);
             }
-            else if (isClient == false && rowNumber === 4) { // 是否输出服务器字段数据
-                servers.push(value);
-            }
-            else if (isClient == true && rowNumber === 5) { // 客户端数据类型 
-                clients.push(value);
-            }
             else {
                 let index = colNumber - 1;
                 let type = types[index];
-                let server = servers[index];
-                let client = clients[index];
-                let isWrite = isClient && client === "client" || isClient == false && server === "server";
-                if (isWrite) {
-                    let key = keys[index];
-                    switch (type) {
-                        case "int":
-                            data[key] = parseFloat(value);
-                            types_client[key] = {
-                                en: "number",
-                                zh: names[index]
-                            };
-                            break;
-                        case "float":
-                            data[key] = parseFloat(value);
-                            types_client[key] = {
-                                en: "number",
-                                zh: names[index]
-                            };
-                            break;
-                        case "string":
-                            data[key] = value;
-                            types_client[key] = {
-                                en: "string",
-                                zh: names[index]
-                            };
-                            break;
-                        case "any":
-                            data[key] = JSON.parse(value);
-                            types_client[key] = {
-                                en: "any",
-                                zh: names[index]
-                            };
-                            break;
-                    }
+                let key = keys[index];
+                switch (type) {
+                    case "int":
+                        data[key] = parseFloat(value);
+                        types_client[key] = {
+                            en: "number",
+                            zh: names[index]
+                        };
+                        break;
+                    case "float":
+                        data[key] = parseFloat(value);
+                        types_client[key] = {
+                            en: "number",
+                            zh: names[index]
+                        };
+                        break;
+                    case "string":
+                        data[key] = value;
+                        types_client[key] = {
+                            en: "string",
+                            zh: names[index]
+                        };
+                        break;
+                    case "any":
+                        data[key] = JSON.parse(value);
+                        types_client[key] = {
+                            en: "any",
+                            zh: names[index]
+                        };
+                        break;
                 }
             }
         });
         // 生成数据（多主键）
-        if (rowNumber > 5) {
+        if (rowNumber > 3) {
             const primaryValues = primary.map((key) => data[key]);
             if (primaryValues.every(isEmptyValue)) {
                 return;
@@ -147,10 +133,9 @@ async function convert(src, dst, name, isClient) {
     });
     // 写入流
     await fs.writeFileSync(dst, JSON.stringify(r));
-    // 生成客户端脚本
-    if (isClient)
-        (0, JsonToTs_1.createTs)(name, types_client, r, primary);
-    console.log(isClient ? "客户端数据" : "服务器数据", "生成成功", dst);
+    // 生成表格脚本
+    (0, JsonToTs_1.createTs)(name, types_client, r, primary);
+    console.log("表格数据生成成功", dst);
 }
 async function run() {
     var inputExcelPath = path_1.default.join(__dirname, main_1.config.PathExcel);
@@ -160,8 +145,7 @@ async function run() {
         let name = f.substring(0, f.indexOf("."));
         let ext = f.toString().substring(f.lastIndexOf(".") + 1);
         if (ext == "xlsx") {
-            // convert(inputExcelPath + f, inputExcelPath + "server\\" + name + ".json", name, false);        // 服务器数据
-            await convert(inputExcelPath + f, outJsonPath + name + ".json", name, true); // 客户端数据
+            await convert(inputExcelPath + f, outJsonPath + name + ".json", name);
         }
     }
 }

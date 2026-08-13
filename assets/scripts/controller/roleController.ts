@@ -86,10 +86,12 @@ export class roleController extends Component {
     private isDoorAttackSessionActive: boolean = false;
     /**敌人攻击房门时使用的机器人配置模式 */
     private readonly doorAttackConfigMode: number = 1;
+    /**敌人未攻击房门时使用的机器人配置模式 */
+    private readonly doorIdleConfigMode: number = 2;
     /**机器人难度类型 */
     private robotDifficultyType: number = -1;
-    /**机器人在当前难度类型数组中的配置索引 */
-    private robotDifficultyDataIdx: number = -1;
+    /**机器人在各模式难度类型数组中的配置索引 */
+    private robotDifficultyDataIdxMap: { [mode: number]: number } = {};
     /**当前等待判定的炮台建造配置 */
     private pendingCannonBuildData: JsonCannonBuildData = null;
     /**炮台行为判定计时 */
@@ -646,6 +648,7 @@ export class roleController extends Component {
         this.isRobotUpgrading = true;
         this.resetDoorAttackUpgradeData();
         this.setNextRobotUpgradeTime();
+        this.startNextCannonBuildDecision(true);
     }
 
     /**停止机器人升级曲线 */
@@ -715,13 +718,14 @@ export class roleController extends Component {
 
     /**按当前炮台数量开始下一轮行为判定 */
     private startNextCannonBuildDecision(executeImmediately: boolean = false) {
-        if (!this.isDoorAttackSessionActive || this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
+        if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
             this.cancelCannonBuildDecision();
             return;
         }
 
+        let mode = this.getCannonBuildConfigMode();
         let cannonCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.cannon) || 0;
-        this.pendingCannonBuildData = cannonBuildConfig.getDataByCannonCount(cannonCount, this.doorAttackConfigMode);
+        this.pendingCannonBuildData = cannonBuildConfig.getDataByCannonCount(cannonCount, mode);
         this.cannonBuildDecisionTimer = 0;
         if (executeImmediately && this.pendingCannonBuildData && (Number(this.pendingCannonBuildData.time) || 0) <= 0) {
             this.executeCannonBuildDecision();
@@ -732,7 +736,7 @@ export class roleController extends Component {
     onDoorAttackEnd() {
         this.isDoorAttackSessionActive = false;
         this.robotPropsBuildTimer = 0;
-        this.cancelCannonBuildDecision();
+        this.startNextCannonBuildDecision(true);
     }
 
     /**后期门受到敌人高伤攻击时保留原有的一次房门升级 */
@@ -748,12 +752,12 @@ export class roleController extends Component {
 
     /**刷新炮台行为的延迟判定 */
     private refreshCannonBuildDecision(dt: number) {
-        if (!this.isDoorAttackSessionActive || !this.pendingCannonBuildData) {
+        if (!this.pendingCannonBuildData) {
             return;
         }
 
         if (this.roleId == 0 || this.roomIdx <= 0 || this.state != roleState.bed) {
-            this.onDoorAttackEnd();
+            this.cancelCannonBuildDecision();
             return;
         }
 
@@ -768,11 +772,11 @@ export class roleController extends Component {
         let buildData = this.pendingCannonBuildData;
         this.cancelCannonBuildDecision();
         console.warn
-        if (!this.isDoorAttackSessionActive || !buildData) {
+        if (!buildData) {
             return;
         }
 
-        let difficultyData = this.getRobotDifficultyData();
+        let difficultyData = this.getRobotDifficultyData(this.getCannonBuildConfigMode());
         let idx = Math.floor(Number(buildData.idx));
         let weights = this.parseProbabilityWeights(difficultyData?.[`probability${idx}`]);
         // console.warn("-------->执行炮台行为判定:\n",weights);
@@ -794,7 +798,7 @@ export class roleController extends Component {
     /**初始化并记录本局机器人难度配置位置 */
     private initRobotDifficulty() {
         this.robotDifficultyType = -1;
-        this.robotDifficultyDataIdx = -1;
+        this.robotDifficultyDataIdxMap = {};
         if (this.roleId == 0) {
             return;
         }
@@ -804,26 +808,31 @@ export class roleController extends Component {
         }
 
         this.robotDifficultyType = pData.AIdifficultyTypes[Math.floor(Math.random() * pData.AIdifficultyTypes.length)];
-        console.warn("-------->机器人难度类型:", this.robotDifficultyType);
-        let typeDataArr = robotDifficultyConfig.getDataByModeAndType(
-            this.doorAttackConfigMode,
-            this.robotDifficultyType,
-        );
-        if (typeDataArr.length > 0) {
-            this.robotDifficultyDataIdx = Math.floor(Math.random() * typeDataArr.length);
+        let modes = [this.doorAttackConfigMode, this.doorIdleConfigMode];
+        for (let i = 0; i < modes.length; i++) {
+            let mode = modes[i];
+            let typeDataArr = robotDifficultyConfig.getDataByModeAndType(mode, this.robotDifficultyType);
+            if (typeDataArr.length > 0) {
+                this.robotDifficultyDataIdxMap[mode] = Math.floor(Math.random() * typeDataArr.length);
+            }
         }
     }
 
     /**获取机器人初始化时选中的难度配置 */
-    private getRobotDifficultyData(): JsonRobotDifficultyData {
-        if (this.robotDifficultyType <= 0 || this.robotDifficultyDataIdx < 0) {
+    private getRobotDifficultyData(mode: number): JsonRobotDifficultyData {
+        let dataIdx = this.robotDifficultyDataIdxMap[mode];
+        if (this.robotDifficultyType <= 0 || dataIdx === undefined) {
             return null;
         }
-        console.warn("-------->机器人难度类型:", this.robotDifficultyType);
         return robotDifficultyConfig.getDataByModeAndType(
-            this.doorAttackConfigMode,
+            mode,
             this.robotDifficultyType,
-        )[this.robotDifficultyDataIdx] || null;
+        )[dataIdx] || null;
+    }
+
+    /**根据房门受击状态获取当前炮台建造配置模式 */
+    private getCannonBuildConfigMode(): number {
+        return this.isDoorAttackSessionActive ? this.doorAttackConfigMode : this.doorIdleConfigMode;
     }
 
     /**解析表中的行为权重数组 */

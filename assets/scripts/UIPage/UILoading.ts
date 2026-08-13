@@ -170,7 +170,7 @@ export class UILoading extends Component {
             resolve();
         });
     }
-    loadItems = [UIPath.UIMain, UIPath.UISetting, UIPath.UISkinStore, UIPath.UIStore, UIPath.UIMatch, UIPath.UIWarm, UIPath.UIAnnouncement,UIPath.UIMoney];
+    loadItems = [UIPath.UIMain, UIPath.UISetting, UIPath.UISkinStore, UIPath.UIStore, UIPath.UIMatch, UIPath.UIWarm, UIPath.UIAnnouncement, UIPath.UIMoney, UIPath.UIDifficulty];
 
     /**预加载界面 */
     async preLoadPage() {

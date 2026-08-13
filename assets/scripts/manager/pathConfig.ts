@@ -42,6 +42,8 @@ export enum UIPath {
     UIMoney = "prefabs/UIPage/UIMoney",
     /**boss模式页面 */
     UIBossMode = "prefabs/UIPage/UIBossMode",
+    /**难度选择页面 */
+    UIDifficulty = "prefabs/UIPage/UIDifficulty",
 }
 
 /**物品路径 */

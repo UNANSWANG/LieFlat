@@ -256,15 +256,15 @@ export class UIMain extends UIBase {
             }
 
             try {
-                await uiMgr.openPage(UIPath.UIMatch);
+                await uiMgr.openPage(UIPath.UIDifficulty);
             } catch (error) {
-                console.error("打开匹配界面失败", error);
+                console.error("打开难度界面失败", error);
                 this.resetStartButton();
             }
         }, 1);
     }
 
-    /**回到主页或打开匹配页失败时恢复开始按钮 */
+    /**回到主页或打开难度页失败时恢复开始按钮 */
     private resetStartButton() {
         this.isOpeningMatch = false;
         if (this.startBtnComp) {

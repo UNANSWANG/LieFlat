@@ -11,16 +11,14 @@ export class jsonRobotDifficulty extends jsonBase {
     protected tableUrl2: string = "";
 
     /**根据模式分数据 */
-    modeData: any = {};
-    typeArr: JsonRobotDifficultyData[][] = [];
+    modeData: { [mode: number]: JsonRobotDifficultyData[][] } = {};
 
     /**表格处理 */
     protected processTableData() {
         super.processTableData();
-        //4种难度类型
-        this.typeArr = [[], [], [], []];
+        this.modeData = {};
         for (let i = 0; i < this.data.length; i++) {
-            let data = this.data[i];
+            let data = this.data[i] as JsonRobotDifficultyData;
             if (!this.modeData[data.mode]) {
                 this.modeData[data.mode] = [];
             }
@@ -31,6 +29,11 @@ export class jsonRobotDifficulty extends jsonBase {
         }
 
         console.warn("-------->初始化机器人难度数据:\n",this.modeData);
+    }
+
+    /**按模式和难度类型获取配置组 */
+    getDataByModeAndType(mode: number, type: number): JsonRobotDifficultyData[] {
+        return this.modeData[mode]?.[type - 1] || [];
     }
 }
 export let robotDifficultyConfig = new jsonRobotDifficulty();

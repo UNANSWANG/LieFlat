@@ -84,6 +84,8 @@ export class roleController extends Component {
     private laterHighDamageDoorUpgradeUsed: boolean = false;
     /**当前是否有敌人正在连续攻击房门 */
     private isDoorAttackSessionActive: boolean = false;
+    /**敌人攻击房门时使用的机器人配置模式 */
+    private readonly doorAttackConfigMode: number = 1;
     /**机器人难度类型 */
     private robotDifficultyType: number = -1;
     /**机器人在当前难度类型数组中的配置索引 */
@@ -719,7 +721,7 @@ export class roleController extends Component {
         }
 
         let cannonCount = this.gameComp?.getRoomPropsCountByType(this.roomIdx, tilePropsType.cannon) || 0;
-        this.pendingCannonBuildData = cannonBuildConfig.getDataByCannonCount(cannonCount);
+        this.pendingCannonBuildData = cannonBuildConfig.getDataByCannonCount(cannonCount, this.doorAttackConfigMode);
         this.cannonBuildDecisionTimer = 0;
         if (executeImmediately && this.pendingCannonBuildData && (Number(this.pendingCannonBuildData.time) || 0) <= 0) {
             this.executeCannonBuildDecision();
@@ -802,7 +804,11 @@ export class roleController extends Component {
         }
 
         this.robotDifficultyType = pData.AIdifficultyTypes[Math.floor(Math.random() * pData.AIdifficultyTypes.length)];
-        let typeDataArr = robotDifficultyConfig.typeArr[this.robotDifficultyType - 1] || [];
+        console.warn("-------->机器人难度类型:", this.robotDifficultyType);
+        let typeDataArr = robotDifficultyConfig.getDataByModeAndType(
+            this.doorAttackConfigMode,
+            this.robotDifficultyType,
+        );
         if (typeDataArr.length > 0) {
             this.robotDifficultyDataIdx = Math.floor(Math.random() * typeDataArr.length);
         }
@@ -813,8 +819,11 @@ export class roleController extends Component {
         if (this.robotDifficultyType <= 0 || this.robotDifficultyDataIdx < 0) {
             return null;
         }
-
-        return robotDifficultyConfig.typeArr[this.robotDifficultyType - 1]?.[this.robotDifficultyDataIdx] || null;
+        console.warn("-------->机器人难度类型:", this.robotDifficultyType);
+        return robotDifficultyConfig.getDataByModeAndType(
+            this.doorAttackConfigMode,
+            this.robotDifficultyType,
+        )[this.robotDifficultyDataIdx] || null;
     }
 
     /**解析表中的行为权重数组 */

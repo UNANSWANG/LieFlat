@@ -10,9 +10,20 @@ export class jsonCannonBuild extends jsonBase {
     protected tableUrl1: string = "";
     protected tableUrl2: string = "";
 
+    /**根据模式分数据 */
+    modeData: any = {};
+
     /**表格处理 */
     protected processTableData() {
         super.processTableData();
+        for (let i = 0; i < this.data.length; i++) {
+            let data: JsonCannonBuildData = this.data[i];
+            if (!this.modeData[data.mode]) {
+                this.modeData[data.mode] = [];
+            }
+            this.modeData[data.mode].push(data);
+        }
+        console.warn("-------->初始化炮台建造数据:\n",this.modeData);
     }
 
     /**按当前炮台数量获取对应的建造配置 */
@@ -38,6 +49,8 @@ export class jsonCannonBuild extends jsonBase {
 export let cannonBuildConfig = new jsonCannonBuild();
 
 export interface JsonCannonBuildData {
+    /**模式 */
+    mode: number;
     /**索引 */
     idx: number;
     /**最小数量 */

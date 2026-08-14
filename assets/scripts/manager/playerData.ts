@@ -49,13 +49,17 @@ export class playerData {
     /**是否已安排微任务上报，用于合并同一轮同步操作产生的多次修改 */
     private isGameReportScheduled = false;
 
-    levelInit() {
+    levelInit(selectedLevelTableIndex: number = null) {
         pData.adNum = 0;
         this.gameCoin = 0;
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
         this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
-        let levelTableIndex = this.getEnemyLevelTableIndex();
+        let levelTableIndex = Number.isInteger(selectedLevelTableIndex)
+            && selectedLevelTableIndex >= 0
+            && !!levelConfig.tableData?.[selectedLevelTableIndex]
+            ? selectedLevelTableIndex
+            : this.getEnemyLevelTableIndex();
         enemyMgr.enemyAllData = levelConfig.getBossAllData(levelTableIndex);
         this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);
 

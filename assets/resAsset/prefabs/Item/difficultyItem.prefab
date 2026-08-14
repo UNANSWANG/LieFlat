@@ -269,7 +269,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 82,
+      "width": 6,
       "height": 56.4
     },
     "_anchorPoint": {
@@ -305,7 +305,7 @@
       "b": 77,
       "a": 255
     },
-    "_string": "简单",
+    "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 38,
@@ -813,6 +813,7 @@
       "__id__": 0
     },
     "fileId": "72CJ+V4upMFJNn7ugy8gDH",
+    "instance": null,
     "targetOverrides": null
   }
 ]

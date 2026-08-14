@@ -148,6 +148,8 @@ export enum imgPath {
     enemyBodyFull = "texture/boss/all/all_",
     /**感染币 */
     money = "texture/common/money",
+    /**难度页签 */
+    difficultyItem = "texture/difficulty/item/difficulty_",
 }
 
 /**spine路径 */

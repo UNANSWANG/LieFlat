@@ -43,7 +43,7 @@ export class UIDifficulty extends UIBase {
     initData() {
         this.isOpeningMatch = false;
         this.currentDifficultyIndex = Math.max(0, pData.getEnemyLevelTableIndex());
-        this.selectedDifficultyIndex = this.currentDifficultyIndex;
+        this.selectedDifficultyIndex = pData.getSelectedDifficultyIndex();
         this.refreshDifficultyList();
     }
 
@@ -127,7 +127,7 @@ export class UIDifficulty extends UIBase {
             return;
         }
 
-        this.selectedDifficultyIndex = difficultyIndex;
+        this.selectedDifficultyIndex = pData.setSelectedDifficultyIndex(difficultyIndex);
         let items = this.scrol.content.children;
         for (let i = 0; i < items.length; i++) {
             let selectNode = items[i].getChildByName("select");

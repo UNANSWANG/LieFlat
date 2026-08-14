@@ -192,6 +192,8 @@ export enum GameEvent {
 export enum SaveKey {
     /**关卡数据 */
     level = "level",
+    /**难度选择 */
+    difficulty = "difficulty",
     /**引导 */
     guide = "guide",
     /**音效开关 */

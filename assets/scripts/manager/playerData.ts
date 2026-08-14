@@ -72,6 +72,35 @@ export class playerData {
         return levelConfig.getLevelIndex(this.level)[0];
     }
 
+    /**获取已保存的难度，首次进入默认选择最新解锁难度 */
+    getSelectedDifficultyIndex(): number {
+        let unlockedDifficultyIndex = Math.max(0, this.getEnemyLevelTableIndex());
+        let storedDifficulty = ccStorageTools.getData(SaveKey.difficulty);
+        let selectedDifficultyIndex = storedDifficulty == null
+            ? unlockedDifficultyIndex
+            : Math.floor(Number(storedDifficulty));
+        if (!Number.isFinite(selectedDifficultyIndex)) {
+            selectedDifficultyIndex = unlockedDifficultyIndex;
+        }
+        selectedDifficultyIndex = Math.max(0, Math.min(selectedDifficultyIndex, unlockedDifficultyIndex));
+
+        if (storedDifficulty == null || Number(storedDifficulty) != selectedDifficultyIndex) {
+            ccStorageTools.setData(SaveKey.difficulty, selectedDifficultyIndex);
+        }
+        return selectedDifficultyIndex;
+    }
+
+    /**保存已解锁的难度选择 */
+    setSelectedDifficultyIndex(difficultyIndex: number): number {
+        let unlockedDifficultyIndex = Math.max(0, this.getEnemyLevelTableIndex());
+        let selectedDifficultyIndex = Number.isFinite(difficultyIndex)
+            ? Math.floor(difficultyIndex)
+            : unlockedDifficultyIndex;
+        selectedDifficultyIndex = Math.max(0, Math.min(selectedDifficultyIndex, unlockedDifficultyIndex));
+        ccStorageTools.setData(SaveKey.difficulty, selectedDifficultyIndex);
+        return selectedDifficultyIndex;
+    }
+
     /**SDK关卡开始上报 */
     SDKReportLevelStart() {
         if (gm.hgSdk) {
@@ -140,8 +169,13 @@ export class playerData {
     addLevel() {
         //上报关卡完成
         this.reportLevel(true);
+        let previousDifficultyIndex = this.getEnemyLevelTableIndex();
         this.level++;
         ccStorageTools.setData(SaveKey.level, this.level);
+        let unlockedDifficultyIndex = this.getEnemyLevelTableIndex();
+        if (unlockedDifficultyIndex > previousDifficultyIndex) {
+            this.setSelectedDifficultyIndex(unlockedDifficultyIndex);
+        }
 
         //上传微信好友榜
         if (gm.platType === PlatType.wx) {

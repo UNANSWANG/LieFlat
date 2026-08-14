@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Animation } from 'cc';
+import { _decorator, Component, Node, Animation, ScrollView, Prefab } from 'cc';
 import { UIBase } from './UIBase';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -11,6 +11,14 @@ export class UIDifficulty extends UIBase {
 
     @property(Node)
     startBtn: Node;
+
+    @property(ScrollView)
+    scrol: ScrollView;
+
+    @property(Prefab)
+    itemPre: Prefab;
+
+    colorArr = ["#80BA72", "#FFCC50", "#D44D4D"];
 
     protected onLoad(): void {
         this.bindBtn();

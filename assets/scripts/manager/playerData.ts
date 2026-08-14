@@ -38,6 +38,8 @@ export class playerData {
     isGuide = false;
     /**当前关卡允许的人机难度类型 */
     AIdifficultyTypes: number[] = [];
+    /**当前选择的难度表索引 */
+    difficultyIndex = -1;
     /**角色默认皮肤id，角色皮肤表加载后赋值 */
     private defaultSkinId: number = null;
     /**是否已经收到登录接口下发的游戏数据 */
@@ -49,17 +51,13 @@ export class playerData {
     /**是否已安排微任务上报，用于合并同一轮同步操作产生的多次修改 */
     private isGameReportScheduled = false;
 
-    levelInit(selectedLevelTableIndex: number = null) {
+    levelInit() {
         pData.adNum = 0;
         this.gameCoin = 0;
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
         this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
-        let levelTableIndex = Number.isInteger(selectedLevelTableIndex)
-            && selectedLevelTableIndex >= 0
-            && !!levelConfig.tableData?.[selectedLevelTableIndex]
-            ? selectedLevelTableIndex
-            : this.getEnemyLevelTableIndex();
+        let levelTableIndex = this.getSelectedDifficultyIndex();
         enemyMgr.enemyAllData = levelConfig.getBossAllData(levelTableIndex);
         this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);
 
@@ -75,16 +73,16 @@ export class playerData {
     /**获取已保存的难度，首次进入默认选择最新解锁难度 */
     getSelectedDifficultyIndex(): number {
         let unlockedDifficultyIndex = Math.max(0, this.getEnemyLevelTableIndex());
-        let storedDifficulty = ccStorageTools.getData(SaveKey.difficulty);
-        let selectedDifficultyIndex = storedDifficulty == null
+        let selectedDifficultyIndex = this.difficultyIndex < 0
             ? unlockedDifficultyIndex
-            : Math.floor(Number(storedDifficulty));
+            : Math.floor(Number(this.difficultyIndex));
         if (!Number.isFinite(selectedDifficultyIndex)) {
             selectedDifficultyIndex = unlockedDifficultyIndex;
         }
         selectedDifficultyIndex = Math.max(0, Math.min(selectedDifficultyIndex, unlockedDifficultyIndex));
 
-        if (storedDifficulty == null || Number(storedDifficulty) != selectedDifficultyIndex) {
+        if (this.difficultyIndex != selectedDifficultyIndex) {
+            this.difficultyIndex = selectedDifficultyIndex;
             ccStorageTools.setData(SaveKey.difficulty, selectedDifficultyIndex);
         }
         return selectedDifficultyIndex;
@@ -97,6 +95,7 @@ export class playerData {
             ? Math.floor(difficultyIndex)
             : unlockedDifficultyIndex;
         selectedDifficultyIndex = Math.max(0, Math.min(selectedDifficultyIndex, unlockedDifficultyIndex));
+        this.difficultyIndex = selectedDifficultyIndex;
         ccStorageTools.setData(SaveKey.difficulty, selectedDifficultyIndex);
         return selectedDifficultyIndex;
     }
@@ -429,6 +428,10 @@ export class playerData {
 
     /**初始化存储数据 */
     initData() {
+        let storedDifficulty = ccStorageTools.getData(SaveKey.difficulty);
+        this.difficultyIndex = storedDifficulty == null || !Number.isFinite(Number(storedDifficulty))
+            ? -1
+            : Math.floor(Number(storedDifficulty));
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
         gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
     }

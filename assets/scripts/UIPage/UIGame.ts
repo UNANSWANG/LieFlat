@@ -273,8 +273,6 @@ export class UIGame extends UIBase {
     private matchEnemySkinId: number = null;
     /**匹配界面产生的敌人昵称 */
     private matchEnemyNickname = "";
-    /**难度选择界面选中的关卡表索引 */
-    private matchDifficultyIndex: number = null;
     /**主角死亡消失动画是否正在播放 */
     isRoleDisappearPlaying: boolean = false;
     /**角色头像按钮状态 */
@@ -309,9 +307,6 @@ export class UIGame extends UIBase {
             ? data.enemySkinId
             : null;
         this.matchEnemyNickname = typeof data?.enemyNickname == "string" ? data.enemyNickname.trim() : "";
-        this.matchDifficultyIndex = Number.isInteger(data?.difficultyIndex) && data.difficultyIndex >= 0
-            ? data.difficultyIndex
-            : null;
         this.addListener();
         this.restartGame();
     }
@@ -327,7 +322,6 @@ export class UIGame extends UIBase {
         this.matchRoleNicknames = [];
         this.matchEnemySkinId = null;
         this.matchEnemyNickname = "";
-        this.matchDifficultyIndex = null;
     }
 
     /**随机并装配瓦片地图 */
@@ -367,7 +361,7 @@ export class UIGame extends UIBase {
         let version = ++this.openVersion;
         this.clearData();
         this.releaseCurrentTiledMap();
-        pData.levelInit(this.matchDifficultyIndex);
+        pData.levelInit();
         let mapReady = await this.randomTiledMap(version);
         if (version != this.openVersion || !this.node.activeInHierarchy) {
             return;

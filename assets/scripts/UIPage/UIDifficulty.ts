@@ -154,9 +154,7 @@ export class UIDifficulty extends UIBase {
 
         this.isOpeningMatch = true;
         uiMgr.closePage(UIPath.UIDifficulty);
-        uiMgr.openPage(UIPath.UIMatch, {
-            difficultyIndex: this.selectedDifficultyIndex,
-        });
+        uiMgr.openPage(UIPath.UIMatch);
     }
 
     /**点击关闭 */

@@ -7049,7 +7049,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 1080,
-      "height": 1919.9999999999998
+      "height": 1920
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7150,6 +7150,9 @@
     },
     "timeLab": {
       "__id__": 293
+    },
+    "titleLab": {
+      "__id__": 29
     },
     "enemyItem": {
       "__id__": 44

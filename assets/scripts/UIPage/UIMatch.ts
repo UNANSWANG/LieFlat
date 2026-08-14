@@ -9,6 +9,7 @@ import { ccTools } from '../extention/generalTools';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { nicknameConfig } from '../json/jsonNickname';
 import { audioMgr } from '../manager/audioManager';
+import { levelConfig } from '../json/jsonLevel';
 const { ccclass, property } = _decorator;
 
 type MatchTarget = {
@@ -30,6 +31,9 @@ export class UIMatch extends UIBase {
 
     @property(Label)
     timeLab: Label;
+
+    @property(Label)
+    titleLab: Label;
 
     @property(Node)
     enemyItem: Node;
@@ -63,8 +67,6 @@ export class UIMatch extends UIBase {
     private enemySkinId = 0;
     /**敌人昵称 */
     private enemyNickname = "";
-    /**难度选择界面选中的关卡表索引 */
-    private difficultyIndex: number = null;
     /**本次匹配可随机使用的昵称池 */
     private nicknamePool: string[] = [];
     /**预制体默认的未知角色图片 */
@@ -79,10 +81,8 @@ export class UIMatch extends UIBase {
         this.bindBtn();
     }
 
-    onUI_Open(data?: any) {
-        this.difficultyIndex = Number.isInteger(data?.difficultyIndex) && data.difficultyIndex >= 0
-            ? data.difficultyIndex
-            : null;
+    onUI_Open() {
+        pData.getSelectedDifficultyIndex();
         let anim = this.getComponent(Animation);
         anim.play();
         this.initData();
@@ -105,6 +105,18 @@ export class UIMatch extends UIBase {
 
         this.readyBtn.active = true;
         this.readyedBtn.active = false;
+        if (this.titleLab) {
+            let currentLevelIndex = levelConfig.getLevelIndex(pData.level);
+            let titleLevelIndex = currentLevelIndex;
+            if (pData.difficultyIndex != currentLevelIndex[0]) {
+                let levelQuantity = Math.max(
+                    1,
+                    Math.floor(Number(levelConfig.tableData?.[pData.difficultyIndex]?.quantity) || 1),
+                );
+                titleLevelIndex = [pData.difficultyIndex, levelQuantity];
+            }
+            this.titleLab.string = levelConfig.getLevelName(titleLevelIndex);
+        }
         this.refreshTimeLab();
 
         let roleNodes = this.roleLayout.children;
@@ -345,7 +357,6 @@ export class UIMatch extends UIBase {
             roleNicknames: this.roleNicknames.concat(),
             enemySkinId: this.enemySkinId,
             enemyNickname: this.enemyNickname,
-            difficultyIndex: this.difficultyIndex,
         });
         this.onClose();
     }
@@ -387,7 +398,6 @@ export class UIMatch extends UIBase {
         this.gamePreloadVersion++;
         this.isMatching = false;
         this.isGamePreloadComplete = false;
-        this.difficultyIndex = null;
         let bossAnim = this.enemyItem?.getChildByName("bossNode").getChildByName("bossAnim")?.getComponent(sp.Skeleton);
         if (bossAnim) {
             ccTools.cancelAssetLoad(bossAnim);

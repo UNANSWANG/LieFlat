@@ -20,6 +20,7 @@ import { netProps } from '../props/netProps';
 import { alarmProps } from '../props/alarmProps';
 import { poolMgr } from '../../manager/poolManager';
 import { doorProps } from '../props/doorProps';
+import { audioMgr } from '../../manager/audioManager';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -370,6 +371,7 @@ export class enemyBaseController extends Component {
         this.resetAttackDamage();
         this.resetUpgradeTimer();
 
+        audioMgr.playEffect(audioPath.shangshikaichang);
         uiMgr.showTips(`感染者升级，当前等级${this.level + 1}`);
     }
 

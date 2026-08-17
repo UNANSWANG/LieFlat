@@ -9,7 +9,6 @@ import { ccTools } from '../extention/generalTools';
 import { roleSkinConfig } from '../json/jsonRoleSkin';
 import { nicknameConfig } from '../json/jsonNickname';
 import { audioMgr } from '../manager/audioManager';
-import { levelConfig } from '../json/jsonLevel';
 const { ccclass, property } = _decorator;
 
 type MatchTarget = {
@@ -106,16 +105,8 @@ export class UIMatch extends UIBase {
         this.readyBtn.active = true;
         this.readyedBtn.active = false;
         if (this.titleLab) {
-            let currentLevelIndex = levelConfig.getLevelIndex(pData.level);
-            let titleLevelIndex = currentLevelIndex;
-            if (pData.difficultyIndex != currentLevelIndex[0]) {
-                let levelQuantity = Math.max(
-                    1,
-                    Math.floor(Number(levelConfig.tableData?.[pData.difficultyIndex]?.quantity) || 1),
-                );
-                titleLevelIndex = [pData.difficultyIndex, levelQuantity];
-            }
-            this.titleLab.string = levelConfig.getLevelName(titleLevelIndex);
+            //直接使用当前选择模式的下一关名称，如“初学-1”
+            this.titleLab.string = pData.getSelectedModeLevelName();
         }
         this.refreshTimeLab();
 

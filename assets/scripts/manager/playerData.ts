@@ -14,6 +14,8 @@ const { ccclass, property } = _decorator;
 export class playerData {
     /**当前已通关关卡数 */
     level = 0;
+    /**关卡模式通关数据，格式 [[模式ID, 该模式已通关关卡数], ...]，模式ID从1开始 */
+    modeLevels: number[][] = [];
     /**道具集合 */
     propsNums = {};
     /**当前地图的大小 */
@@ -65,9 +67,118 @@ export class playerData {
         this.SDKReportLevelStart();
     }
 
-    /**获取当前关卡使用的敌人关卡表索引 */
+    /**获取当前关卡使用的敌人关卡表索引（即当前已解锁的最高模式索引） */
     getEnemyLevelTableIndex(): number {
-        return levelConfig.getLevelIndex(this.level)[0];
+        return this.getUnlockedModeIndex();
+    }
+
+    /**获取指定模式（模式ID从1开始）已通关关卡数 */
+    getModePassCount(modeId: number): number {
+        for (let i = 0; i < this.modeLevels.length; i++) {
+            if (this.modeLevels[i][0] == modeId) {
+                return this.modeLevels[i][1];
+            }
+        }
+        return 0;
+    }
+
+    /**设置指定模式（模式ID从1开始）已通关关卡数 */
+    private setModePassCount(modeId: number, count: number) {
+        if (count < 0) {
+            count = 0;
+        }
+        for (let i = 0; i < this.modeLevels.length; i++) {
+            if (this.modeLevels[i][0] == modeId) {
+                this.modeLevels[i][1] = count;
+                return;
+            }
+        }
+        this.modeLevels.push([modeId, count]);
+        //按模式ID升序，保持数据整齐，便于上传后端
+        this.modeLevels.sort((a, b) => a[0] - b[0]);
+    }
+
+    /**增加指定模式（模式ID从1开始）的通关数并存储 */
+    addModePass(modeId: number) {
+        let count = this.getModePassCount(modeId) + 1;
+        this.setModePassCount(modeId, count);
+        ccStorageTools.setData(SaveKey.modeLevels, this.modeLevels);
+    }
+
+    /**获取当前已解锁的最高模式索引（0基）。模式N通关数达到其quantity则解锁模式N+1 */
+    getUnlockedModeIndex(): number {
+        let table = levelConfig.tableData || [];
+        if (table.length <= 0) {
+            return 0;
+        }
+        let unlockedIndex = 0;
+        //最后一个模式无需quantity（无上限），只需判断前面的模式是否通关
+        for (let i = 0; i < table.length - 1; i++) {
+            let quantity = Number(table[i]?.quantity) || 0;
+            if (this.getModePassCount(i + 1) >= quantity) {
+                unlockedIndex = i + 1;
+            } else {
+                break;
+            }
+        }
+        return unlockedIndex;
+    }
+
+    /**获取当前进度所在模式及模式内下一关序号 [模式索引(0基), 关卡序号(1基)] */
+    getCurrentModeLevelIndex(): [number, number] {
+        return this.getModeLevelIndex(this.getUnlockedModeIndex());
+    }
+
+    /**
+     * 获取指定模式的当前关卡索引 [模式索引(0基), 关卡序号(1基)]，通用函数，供关卡名称显示与关卡数据读取共用。
+     * 关卡序号 = 该模式已通关数 + 1；非最后一个模式封顶到该模式关卡数量（quantity），
+     * 即模式关卡有限时通关数再多也只停留在最后一关（如“初学”只有2关，通关999次仍为初学-2）；
+     * 仅最后一个模式为无限关卡，不设上限。
+     */
+    getModeLevelIndex(modeIndex: number): [number, number] {
+        let table = levelConfig.tableData || [];
+        let maxModeIndex = Math.max(0, table.length - 1);
+        let safeModeIndex = Number.isFinite(modeIndex) ? Math.max(0, Math.floor(modeIndex)) : 0;
+        safeModeIndex = Math.min(safeModeIndex, maxModeIndex);
+        let levelNum = this.getModePassCount(safeModeIndex + 1) + 1;
+        //非最后一个模式：关卡序号封顶到该模式关卡数量（quantity）
+        if (safeModeIndex < maxModeIndex) {
+            let quantity = Math.max(1, Math.floor(Number(table[safeModeIndex]?.quantity) || 1));
+            levelNum = Math.min(levelNum, quantity);
+        }
+        return [safeModeIndex, levelNum];
+    }
+
+    /**获取指定模式的关卡名称，如“初学-1” */
+    getModeLevelName(modeIndex: number): string {
+        return levelConfig.getLevelName(this.getModeLevelIndex(modeIndex));
+    }
+
+    /**获取当前选择模式的关卡名称，如“初学-1” */
+    getSelectedModeLevelName(): string {
+        return this.getModeLevelName(this.getSelectedDifficultyIndex());
+    }
+
+    /**解析存储的关卡模式数据，确保为 [[模式ID, 通关数], ...] 结构 */
+    private parseModeLevels(raw: any): number[][] {
+        if (!Array.isArray(raw)) {
+            return [];
+        }
+        let result: number[][] = [];
+        for (let i = 0; i < raw.length; i++) {
+            let item = raw[i];
+            if (!Array.isArray(item) || item.length < 2) {
+                continue;
+            }
+            let modeId = Math.floor(Number(item[0]));
+            let count = Math.floor(Number(item[1]));
+            if (!Number.isFinite(modeId) || modeId <= 0 || !Number.isFinite(count) || count < 0) {
+                continue;
+            }
+            result.push([modeId, count]);
+        }
+        result.sort((a, b) => a[0] - b[0]);
+        return result;
     }
 
     /**获取已保存的难度，首次进入默认选择最新解锁难度 */
@@ -169,6 +280,10 @@ export class playerData {
         //上报关卡完成
         this.reportLevel(true);
         let previousDifficultyIndex = this.getEnemyLevelTableIndex();
+        //当前正在玩的模式ID（1基），取玩家选择的难度（difficultyIndex），未选择则默认当前解锁的最高模式
+        let playingModeIndex = this.difficultyIndex >= 0 ? this.difficultyIndex : previousDifficultyIndex;
+        this.addModePass(playingModeIndex + 1);
+
         this.level++;
         ccStorageTools.setData(SaveKey.level, this.level);
         let unlockedDifficultyIndex = this.getEnemyLevelTableIndex();
@@ -432,6 +547,8 @@ export class playerData {
         this.difficultyIndex = storedDifficulty == null || !Number.isFinite(Number(storedDifficulty))
             ? -1
             : Math.floor(Number(storedDifficulty));
+        //读取关卡模式通关数据
+        this.modeLevels = this.parseModeLevels(ccStorageTools.getData(SaveKey.modeLevels));
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
         gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
     }

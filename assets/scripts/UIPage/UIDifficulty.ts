@@ -79,7 +79,9 @@ export class UIDifficulty extends UIBase {
             }
             let typeLab = item.getChildByName("typeLab")?.getComponent(Label);
             if (typeLab) {
-                typeLab.string = difficultyData[i]?.name || `难度${i + 1}`;
+                let modeName = difficultyData[i]?.name || `难度${i + 1}`;
+                //已解锁模式显示“模式名-下一关序号”（如“初学-1”），未解锁仅显示模式名
+                typeLab.string = isUnlocked ? (pData.getModeLevelName(i) || modeName) : modeName;
                 typeLab.color = new Color(this.colorArr[colorIndex]);
             }
 

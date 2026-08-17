@@ -284,8 +284,6 @@ export class UIMain extends UIBase {
 
     /**点击排行榜 */
     clickRankBtn() {
-        // uiMgr.openPage(UIPath.UIRank);
-        return;
         //有昵称和授权或者h5平台才直接打开排行榜
         if ((gm.API.isAuthorize && userMgr.nickName) || gm.platType == PlatType.h5) {
             uiMgr.openPage(UIPath.UIRank);

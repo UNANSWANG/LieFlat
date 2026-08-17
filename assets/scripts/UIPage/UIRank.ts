@@ -68,7 +68,6 @@ export class UIRank extends UIBase {
     /**切换页面 */
     refreshPage() {
         //先关闭所有页面，等数据后再打开当前页面
-        uiMgr.closePage(ItemPath.loadTips);
         this.rankList.active = false;
         this.rankFriend.active = false;
 
@@ -82,7 +81,6 @@ export class UIRank extends UIBase {
 
             this.rankFriend.active = true;
         } else {
-            uiMgr.openPage(ItemPath.loadTips);
             this.isWaitingData = true;
             let list = this.rankList.getChildByName("rankScrol").getComponent(List);
             let tempType = this.pageIdx == 0 ? "all" : "daily";
@@ -96,11 +94,9 @@ export class UIRank extends UIBase {
                 list.numItems = this.rankData.length;
                 this.refreshSelfData();
                 this.isWaitingData = false;
-                uiMgr.closePage(ItemPath.loadTips);
             }, () => {
                 uiMgr.showTips("获取排行榜数据失败");
                 this.isWaitingData = false;
-                uiMgr.closePage(ItemPath.loadTips);
             })
         }
     }
@@ -248,7 +244,6 @@ export class UIRank extends UIBase {
     }
 
     onClose() {
-        uiMgr.closePage(ItemPath.loadTips);
         uiMgr.closePage(UIPath.UIRank);
     }
 }

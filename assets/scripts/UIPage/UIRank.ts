@@ -113,6 +113,9 @@ export class UIRank extends UIBase {
         if(!rankNumber){
             rankNumber = 100;
         }
+        if (!isSelf) {
+            this.refreshRankItemStyle(item, rankNumber);
+        }
         medals.active = rankNumber <= 3;
         rankLab.node.active = rankNumber > 3;
 
@@ -136,6 +139,18 @@ export class UIRank extends UIBase {
         } else {
             //默认头像
             ccTools.loadImg(avatarImg, imgPath.defAvatar);
+        }
+    }
+
+    /**刷新列表排名项样式（自身排名不处理） */
+    refreshRankItemStyle(item: Node, rankNumber: number) {
+        let styleIndex = rankNumber >= 1 && rankNumber <= 3 ? rankNumber : 4;
+        let bg = item.getChildByName("bg").getComponent(Sprite);
+        ccTools.loadImg(bg, imgPath.rankItemBg + styleIndex);
+
+        for (let i = 0; i < 3; i++) {
+            let line = item.getChildByName(`line_${i}`).getComponent(Sprite);
+            ccTools.loadImg(line, imgPath.rankItemLine + styleIndex);
         }
     }
 

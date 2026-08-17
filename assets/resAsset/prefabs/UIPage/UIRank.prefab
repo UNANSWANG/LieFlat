@@ -7090,7 +7090,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "line",
+    "_name": "line_0",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -7226,7 +7226,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "line-001",
+    "_name": "line_1",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -7362,7 +7362,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "line-002",
+    "_name": "line_2",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {

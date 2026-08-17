@@ -1,4 +1,4 @@
-import { _decorator, Animation, Label, Node, Sprite } from 'cc';
+import { _decorator, Animation, Color, Label, Node, Sprite } from 'cc';
 import { zoomButton } from '../extention/zoomButton';
 import { imgPath, ItemPath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -101,7 +101,7 @@ export class UIRank extends UIBase {
         }
     }
 
-    setRankItemData(item, data) {
+    setRankItemData(item, data, isSelf = false) {
         let medals = item.getChildByName("medals");
         let nameLab = item.getChildByName("nameLab").getComponent(Label);
         let scoreLab = item.getChildByName("scoreLab").getComponent(Label);
@@ -116,14 +116,19 @@ export class UIRank extends UIBase {
         medals.active = rankNumber <= 3;
         rankLab.node.active = rankNumber > 3;
 
-        rankLab.string = data.rank;
+        let isUnranked = isSelf && rankNumber > 100;
+        rankLab.string = isUnranked ? "未上榜" : data.rank;
+        if (isSelf) {
+            rankLab.color = new Color(isUnranked ? "#9B9B9B" : "#FFFFFF");
+            rankLab.fontSize = isUnranked ? 40 : 55;
+        }
         if (rankNumber <= 3) {
             ccTools.showChildByIdx(medals, rankNumber - 1);
         }
 
         nameLab.string = data.name;
 
-        scoreLab.string = data.score;
+        scoreLab.string = this.pageIdx == 1 ? `通过${data.score}关` : data.score;
 
         if (data.avatar) {
             //赋值头像
@@ -158,7 +163,7 @@ export class UIRank extends UIBase {
             selfData.name = `用户${this.selfData.uid}`;
         }
         selfData.avatar = userMgr.avatarUrl ? userMgr.avatarUrl : this.selfData.profile;
-        this.setRankItemData(selfNode, selfData);
+        this.setRankItemData(selfNode, selfData, true);
     }
 
     /**检测自身玩家数据修改排行榜数据 */

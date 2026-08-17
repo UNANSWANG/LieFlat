@@ -150,6 +150,10 @@ export enum imgPath {
     money = "texture/common/money",
     /**难度页签 */
     difficultyItem = "texture/difficulty/item/difficulty_",
+    /**排行榜底 */
+    rankItemBg = "texture/rank/bg/bg_",
+    /**排行榜线 */
+    rankItemLine = "texture/rank/line/line_",
 }
 
 /**spine路径 */

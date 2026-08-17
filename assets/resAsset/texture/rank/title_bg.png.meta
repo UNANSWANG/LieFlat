@@ -11,7 +11,7 @@
     "6c48a": {
       "importer": "texture",
       "uuid": "11ff422f-f954-40a2-9721-8490c144d356@6c48a",
-      "displayName": "img_p_0014_tuceng_2",
+      "displayName": "title_bg",
       "id": "6c48a",
       "name": "texture",
       "userData": {
@@ -35,7 +35,7 @@
     "f9941": {
       "importer": "sprite-frame",
       "uuid": "11ff422f-f954-40a2-9721-8490c144d356@f9941",
-      "displayName": "img_p_0014_tuceng_2",
+      "displayName": "title_bg",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {

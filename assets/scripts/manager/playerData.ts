@@ -37,6 +37,8 @@ export class playerData {
     skinId = 0;
     /**已解锁角色皮肤 */
     unlockedRoleSkin: { [key: string]: boolean } = {};
+    /**云端限时数据（每日0点重置），格式与 storageTools 一致：{ key: 值, key_time: 记录当天0点时间戳 } */
+    limitTimeData: { [key: string]: any } = {};
     /**是否为引导关 */
     isGuide = false;
     /**当前关卡允许的人机难度类型 */
@@ -504,6 +506,53 @@ export class playerData {
         this.reportGame();
     }
 
+    /**获取限时数据的时间键 */
+    private getLimitTimeKey(key: string) {
+        return key + "_time";
+    }
+
+    /**设置限时数据（每日0点过期），存入后端 */
+    setLimitTimeData(key: string, value: any) {
+        this.limitTimeData[this.getLimitTimeKey(key)] = ccTimeTools.getCurrentTime();
+        this.limitTimeData[key] = value;
+        this.reportGame();
+    }
+
+    /**获取限时数据（记录时间不是当天则视为过期） */
+    getLimitTimeData(key: string) {
+        let timeKey = this.getLimitTimeKey(key);
+        if (!this.limitTimeData.hasOwnProperty(timeKey)) {
+            return null;
+        }
+
+        let lastTime = Number(this.limitTimeData[timeKey]) || 0;
+        if (ccTimeTools.getCurrentTime() > lastTime) {
+            //已过期，清理数据（不立即上报，等下次写入时一起同步）
+            delete this.limitTimeData[timeKey];
+            delete this.limitTimeData[key];
+            return null;
+        }
+        return this.limitTimeData[key];
+    }
+
+    /**清理云端限时数据中已过期的部分 */
+    private clearExpiredLimitTimeData() {
+        let curTime = ccTimeTools.getCurrentTime();
+        let keys = Object.keys(this.limitTimeData);
+        for (let i = 0; i < keys.length; i++) {
+            let timeKey = keys[i];
+            if (timeKey.length <= 5 || timeKey.substring(timeKey.length - 5) != "_time") {
+                continue;
+            }
+
+            let lastTime = Number(this.limitTimeData[timeKey]) || 0;
+            if (curTime > lastTime) {
+                delete this.limitTimeData[timeKey];
+                delete this.limitTimeData[timeKey.substring(0, timeKey.length - 5)];
+            }
+        }
+    }
+
     /**使用登录接口下发的云端游戏数据 */
     initGameData(gold: any, ext: any) {
         let gameExt = ext && typeof ext == "object" && !Array.isArray(ext) ? ext : {};
@@ -518,8 +567,12 @@ export class playerData {
         this.skinId = Number.isInteger(+gameExt.skinId) && +gameExt.skinId >= 0
             ? +gameExt.skinId
             : this.defaultSkinId;
+        this.limitTimeData = gameExt.limitTimeData && typeof gameExt.limitTimeData == "object" && !Array.isArray(gameExt.limitTimeData)
+            ? Object.assign({}, gameExt.limitTimeData)
+            : {};
         this.isGameDataLoaded = true;
 
+        this.clearExpiredLimitTimeData();
         this.initPropsNum();
         this.completeSkinData();
     }
@@ -562,7 +615,7 @@ export class playerData {
         }
     }
 
-    /**上报感染币、皮肤和道具数据 */
+    /**上报感染币、皮肤、道具和限时数据 */
     reportGame() {
         if (!gm.isLogin) {
             return;
@@ -599,6 +652,7 @@ export class playerData {
                     skinId: this.skinId,
                     unlockedRoleSkin: Object.assign({}, this.unlockedRoleSkin),
                     propsNums: Object.assign({}, this.propsNums),
+                    limitTimeData: Object.assign({}, this.limitTimeData),
                 },
             });
         } finally {

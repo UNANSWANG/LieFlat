@@ -214,6 +214,8 @@ export enum SaveKey {
     isGetRevisit = "isGetRevisit",
     /**今日是否通过分享领取过感染币 */
     isGetMoneyShare = "isGetMoneyShare",
+    /**今日是否通过分享领取过每日礼包 */
+    isGetDailyGift = "isGetDailyGift",
     /**用户头像 */
     avatarUrl = "avatarUrl",
     /**今日是否弹出过温馨提示 */

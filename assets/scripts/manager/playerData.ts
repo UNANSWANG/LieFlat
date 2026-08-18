@@ -71,6 +71,15 @@ export class playerData {
         this.SDKReportLevelStart();
     }
 
+    /**通关关卡模式数据获取当前关卡数 */
+    getLevelNums(): number {
+        let nums = 0;
+        for (let i = 0; i < this.modeLevels.length; i++) {
+            nums += this.modeLevels[i][1];
+        }
+        return nums;
+    }
+
     /**获取当前关卡使用的敌人关卡表索引（即当前已解锁的最高模式索引） */
     getEnemyLevelTableIndex(): number {
         return this.getUnlockedModeIndex();
@@ -605,8 +614,8 @@ export class playerData {
         this.difficultyIndex = storedDifficulty == null || !Number.isFinite(Number(storedDifficulty))
             ? -1
             : Math.floor(Number(storedDifficulty));
-        //读取关卡模式通关数据
-        this.modeLevels = this.parseModeLevels(ccStorageTools.getData(SaveKey.modeLevels));
+        //读取关卡模式通关数据（本地）
+        // this.modeLevels = this.parseModeLevels(ccStorageTools.getData(SaveKey.modeLevels));
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
         gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
     }

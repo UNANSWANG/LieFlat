@@ -71,8 +71,11 @@ export class platformManager extends Component {
             userMgr.params.openId = data.openid;
             userMgr.params.token = data.token;
             userMgr.params.uid = +data.uid || 0;
-            pData.level = +data.level || 0;
+            pData.modeLevels = data.level_values || [];
+            pData.level = pData.getLevelNums();
             pData.initGameData(data.gold, data.ext);
+
+            console.warn("------------->登录成功用户关卡数:\n", pData.level);
 
             console.log("------------->登录成功用户数据:\n", userMgr.params);
             gm.Event.emit(GameEvent.checkLoginLoad);

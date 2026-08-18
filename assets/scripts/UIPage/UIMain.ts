@@ -78,6 +78,8 @@ export class UIMain extends UIBase {
 
     onLoad() {
         this.bindBtn();
+        // 设置商店节点
+        uiMgr.storeNode = this.storeBtn;
     }
 
     onUI_Open(data?: any): void {

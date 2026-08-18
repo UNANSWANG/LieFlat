@@ -18,7 +18,7 @@ export class UIDailyGift extends UIBase {
     closeBtn: Node;
 
     @property(Node)
-    storePosNode: Node;
+    completeBtn: Node;
 
     /**奖励魔盒数量 */
     boxNum = 2;
@@ -45,6 +45,8 @@ export class UIDailyGift extends UIBase {
     ///
     ///点击事件
     ///
+
+    /**点击分享按钮 */
     clickShareBtn() {
         gm.API.shareAppMessage(() => {
             uiMgr.showTips("分享成功");
@@ -54,11 +56,11 @@ export class UIDailyGift extends UIBase {
 
     /**领取胜利奖励 */
     private getReward() {
-        let boxNode = this.storePosNode.getChildByName("box");
-        uiMgr.playRewardAnim(boxNode, this.storePosNode, this.boxNum * 20, () => {
+        let boxNode = this.shareBtn.getChildByName("box");
+        uiMgr.playRewardAnim(boxNode, uiMgr.storeNode, this.boxNum, () => {
             pData.fixLevelPropsNum(tilePropsType.box, 0, this.boxNum);
-            // this.onClose();
         });
+        this.onClose();
     }
 
     onClose() {

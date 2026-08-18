@@ -351,6 +351,9 @@ export class UIManager {
         }
     }
 
+    /**存储节点 */
+    storeNode = null;
+
     /**播放通用奖励获取动画
      * @param startNode 奖励动画起点及图标节点
      * @param targetNode 奖励动画目标节点
@@ -362,18 +365,33 @@ export class UIManager {
             complete && complete();
             return;
         }
-        if (!startNode || !startNode.isValid || !targetNode || !targetNode.isValid
-            || !this.effectNode || !this.effectNode.isValid || !this.effectItemPrefab) {
+        if (!startNode || !startNode.isValid) {
+            console.warn("播放奖励动画失败：起点节点为空或已销毁，请检查节点是否存在于对应父节点下", startNode);
+            complete && complete();
+            return;
+        }
+        if (!targetNode || !targetNode.isValid) {
+            console.warn("播放奖励动画失败：终点节点为空或已销毁", targetNode);
+            complete && complete();
+            return;
+        }
+        if (!this.effectNode || !this.effectNode.isValid || !this.effectItemPrefab) {
+            console.warn("播放奖励动画失败：特效节点或特效预制体未就绪");
             complete && complete();
             return;
         }
 
         let effectTransform = this.effectNode.getComponent(UITransform);
         if (!effectTransform) {
+            console.warn("播放奖励动画失败：特效节点缺少UITransform组件");
             complete && complete();
             return;
         }
 
+        //起点和终点允许是未激活（active为false）的节点，此处仅取其世界坐标与图标，
+        //未激活节点的世界矩阵可能未刷新，先主动刷新再取世界坐标。
+        startNode.updateWorldTransform();
+        targetNode.updateWorldTransform();
         let startCenter = effectTransform.convertToNodeSpaceAR(startNode.worldPosition);
         let targetPos = effectTransform.convertToNodeSpaceAR(targetNode.worldPosition);
         let iconSpriteFrame = startNode.getComponent(Sprite)?.spriteFrame;

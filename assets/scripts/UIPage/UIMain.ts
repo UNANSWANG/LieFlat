@@ -41,6 +41,9 @@ export class UIMain extends UIBase {
     @property(Node)
     bossModeBtn: Node = null;
 
+    @property(Node)
+    dailyGiftBtn: Node = null;
+
     @property(sp.Skeleton)
     roleAnim: sp.Skeleton = null;
 
@@ -110,6 +113,7 @@ export class UIMain extends UIBase {
         this.skinStoreBtn.addComponent(zoomButton).onClick = this.clickSkinStoreBtn.bind(this);
         this.addMoneyBtn.addComponent(zoomButton).onClick = this.clickAddMoneyBtn.bind(this);
         this.bossModeBtn.addComponent(zoomButton).onClick = this.clickBossModeBtn.bind(this);
+        this.dailyGiftBtn.addComponent(zoomButton).onClick = this.clickDailyGiftBtn.bind(this);
     }
 
     /**添加监听 */
@@ -330,6 +334,11 @@ export class UIMain extends UIBase {
     /**点击皮肤商店 */
     clickSkinStoreBtn() {
         uiMgr.openPage(UIPath.UISkinStore);
+    }
+
+    /**点击每日礼物按钮 */
+    clickDailyGiftBtn() {
+        uiMgr.openPage(UIPath.UIDailyGift);
     }
 
     /**点击boss模式按钮 */

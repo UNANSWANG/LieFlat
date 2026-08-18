@@ -50,6 +50,8 @@ export const configData = {
     doorVibrateHpThreshold: 0.3,
     /**引导关的难度倍率 */
     guideDifficultyMultiplier: 0.7,
+    /**上报排名值的模式系数（rank = 模式ID * 系数 + 该模式关卡数） */
+    rankModeFactor: 100000,
 }
 
 /**敌人通用配置 */

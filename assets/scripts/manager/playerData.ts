@@ -7,6 +7,7 @@ import { httpMgr } from '../sdk/network/httpManager';
 import { urlConfig } from '../sdk/network/netConfig';
 import { propsConfig } from '../json/jsonProps';
 import { enemyMgr } from './enemyManager';
+import { ccTimeTools } from '../extention/timeTools';
 const { ccclass, property } = _decorator;
 
 //用户游戏内数据
@@ -52,6 +53,8 @@ export class playerData {
     private isGameReportDirty = false;
     /**是否已安排微任务上报，用于合并同一轮同步操作产生的多次修改 */
     private isGameReportScheduled = false;
+    /**游戏开始的时间戳 */
+    gameStartTime = 0;
 
     levelInit() {
         pData.adNum = 0;
@@ -62,6 +65,7 @@ export class playerData {
         let levelTableIndex = this.getSelectedDifficultyIndex();
         enemyMgr.enemyAllData = levelConfig.getBossAllData(levelTableIndex);
         this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);
+        this.gameStartTime = ccTimeTools.getTime();
 
         console.warn("--------------->当前关卡敌人全等级数据\n", enemyMgr.enemyAllData);
         this.SDKReportLevelStart();
@@ -157,6 +161,53 @@ export class playerData {
     /**获取当前选择模式的关卡名称，如“初学-1” */
     getSelectedModeLevelName(): string {
         return this.getModeLevelName(this.getSelectedDifficultyIndex());
+    }
+
+    /**获取当前正在游玩的模式索引（0基），取难度选择界面所选模式，未选择则取当前已解锁的最高模式 */
+    getPlayingModeIndex(): number {
+        return this.difficultyIndex >= 0 ? Math.floor(this.difficultyIndex) : this.getUnlockedModeIndex();
+    }
+
+    /**
+     * 获取当前所在关卡的模式进度数据（即下一关的 modeLevels），供上报 level_values 使用。
+     * modeLevels 存的是已通关数，当前正在玩的这一关需要 +1（与上报 level 用 level+1 表示当前关一致）。
+     * 例：存储 [[1,10]] 且选择一模式 => [[1,11]]；存储 [[1,10]] 且选择二模式 => [[1,10],[2,1]]。
+     */
+    getNextModeLevels(): number[][] {
+        let playingModeId = this.getPlayingModeIndex() + 1;
+        //深拷贝，避免污染已存储的通关数据
+        let result: number[][] = this.modeLevels.map(item => [item[0], item[1]]);
+        let isFound = false;
+        for (let i = 0; i < result.length; i++) {
+            if (result[i][0] == playingModeId) {
+                result[i][1] += 1;
+                isFound = true;
+                break;
+            }
+        }
+        if (!isFound) {
+            result.push([playingModeId, 1]);
+        }
+        result.sort((a, b) => a[0] - b[0]);
+        return result;
+    }
+
+    /**
+     * 获取上报用的排名值。取当前进度（getNextModeLevels 的结果）中模式ID最大的一项，
+     * 公式：模式ID * rankModeFactor + 该模式关卡数。例：[[1,10],[2,3],[3,2]] => 3 * 100000 + 2 = 300002。
+     * @param modeLevels 可传入已计算好的进度数据，避免重复计算
+     */
+    getReportRank(modeLevels: number[][] = this.getNextModeLevels()): number {
+        let maxModeLevel: number[] = null;
+        for (let i = 0; i < modeLevels.length; i++) {
+            if (!maxModeLevel || modeLevels[i][0] > maxModeLevel[0]) {
+                maxModeLevel = modeLevels[i];
+            }
+        }
+        if (!maxModeLevel) {
+            return 0;
+        }
+        return maxModeLevel[0] * configData.rankModeFactor + maxModeLevel[1];
     }
 
     /**解析存储的关卡模式数据，确保为 [[模式ID, 通关数], ...] 结构 */
@@ -264,14 +315,21 @@ export class playerData {
             progress = 0;
         }
 
+        let curTime = ccTimeTools.getTime();
+        let gameAllTime = curTime - this.gameStartTime;
+        //当前所在关卡的模式进度（已通关数+1），rank 由该进度中模式ID最大的一项计算
+        let modeLevels = this.getNextModeLevels();
         let levelReprotData = {
             is_pass: isPass ? 1 : 0,
             level: this.level + 1,
             level_progress: progress,
+            time_used: gameAllTime,
+            level_values: modeLevels,
+            rank: this.getReportRank(modeLevels),
         }
 
         //TODO 测试
-        // console.warn("上报关卡给后端", levelReprotData);
+        console.warn("上报关卡给后端", levelReprotData);
         httpMgr.post(urlConfig.levelReport, levelReprotData);
     }
 
@@ -280,8 +338,8 @@ export class playerData {
         //上报关卡完成
         this.reportLevel(true);
         let previousDifficultyIndex = this.getEnemyLevelTableIndex();
-        //当前正在玩的模式ID（1基），取玩家选择的难度（difficultyIndex），未选择则默认当前解锁的最高模式
-        let playingModeIndex = this.difficultyIndex >= 0 ? this.difficultyIndex : previousDifficultyIndex;
+        //当前正在玩的模式ID（1基）
+        let playingModeIndex = this.getPlayingModeIndex();
         this.addModePass(playingModeIndex + 1);
 
         this.level++;

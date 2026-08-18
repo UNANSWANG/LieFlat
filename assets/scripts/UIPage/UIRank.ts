@@ -12,6 +12,7 @@ import { httpMgr } from '../sdk/network/httpManager';
 import { urlConfig } from '../sdk/network/netConfig';
 import { ccStorageTools } from '../extention/storageTools';
 import { SaveKey } from '../manager/configData';
+import { levelConfig } from '../json/jsonLevel';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIRank')
@@ -131,7 +132,14 @@ export class UIRank extends UIBase {
 
         nameLab.string = data.name;
 
-        scoreLab.string = this.pageIdx == 1 ? `通过${data.score}关` : data.score;
+        if (this.pageIdx == 0) {
+            //总榜的value为关卡上报的rank值，反解成关卡名称显示，如 400002 => “进阶-3”
+            scoreLab.string = levelConfig.getRankLevelName(data.score) || `${data.score}`;
+        } else if (this.pageIdx == 1) {
+            scoreLab.string = `通过${data.score}关`;
+        } else {
+            scoreLab.string = data.score;
+        }
 
         if (data.avatar) {
             //赋值头像

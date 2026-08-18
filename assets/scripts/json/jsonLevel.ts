@@ -1,5 +1,6 @@
 import { _decorator, Component, Node } from 'cc';
 import { jsonBase } from './jsonBase';
+import { configData } from '../manager/configData';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonLevel')
@@ -85,6 +86,45 @@ export class jsonLevel extends jsonBase {
             return "";
         }
         return `${levelData.name}-${levelIndex[1]}`;
+    }
+
+    /**
+     * 将上报的排名值（rank）反向解析为关卡索引 [模式索引(0基), 关卡序号(1基)]。
+     * rank = 模式ID * rankModeFactor + 该模式已通关数，展示的是该模式的下一关（已通关数 + 1）；
+     * 若已通关数已达到该模式关卡数量（quantity），则进位到下一模式第1关；
+     * 最后一个模式为无限关卡，不进位。
+     * 例：400002 => 进阶已通关2关 => [3, 3]（进阶-3）；400003 => 进阶已满3关 => [4, 1]（困难-1）。
+     */
+    getRankLevelIndex(rank: number): [number, number] {
+        let table = this.tableData || [];
+        let rankValue = Number.isFinite(Number(rank)) ? Math.max(0, Math.floor(Number(rank))) : 0;
+        if (table.length <= 0 || rankValue <= 0) {
+            return [-1, -1];
+        }
+
+        let modeIndex = Math.floor(rankValue / configData.rankModeFactor) - 1;
+        let passCount = rankValue % configData.rankModeFactor;
+        if (modeIndex < 0) {
+            return [-1, -1];
+        }
+
+        let maxModeIndex = table.length - 1;
+        modeIndex = Math.min(modeIndex, maxModeIndex);
+        let levelNum = passCount + 1;
+        //非最后一个模式：已通关数达到该模式关卡数量时，进位到下一模式第1关
+        if (modeIndex < maxModeIndex) {
+            let quantity = Math.max(1, Math.floor(Number(table[modeIndex]?.quantity) || 1));
+            if (levelNum > quantity) {
+                modeIndex++;
+                levelNum = 1;
+            }
+        }
+        return [modeIndex, levelNum];
+    }
+
+    /**根据上报的排名值（rank）获取关卡名称，如 400002 => “进阶-3”、400003 => “困难-1” */
+    getRankLevelName(rank: number): string {
+        return this.getLevelName(this.getRankLevelIndex(rank));
     }
 }
 export let levelConfig = new jsonLevel();

@@ -527,15 +527,15 @@ export class playerData {
 
         let lastTime = Number(this.limitTimeData[timeKey]) || 0;
         if (ccTimeTools.getCurrentTime() > lastTime) {
-            //已过期，清理数据（不立即上报，等下次写入时一起同步）
-            delete this.limitTimeData[timeKey];
-            delete this.limitTimeData[key];
+            //已过期，置空数据（不立即上报，等下次写入时一起同步）
+            this.limitTimeData[timeKey] = null;
+            this.limitTimeData[key] = null;
             return null;
         }
         return this.limitTimeData[key];
     }
 
-    /**清理云端限时数据中已过期的部分 */
+    /**置空云端限时数据中已过期的部分 */
     private clearExpiredLimitTimeData() {
         let curTime = ccTimeTools.getCurrentTime();
         let keys = Object.keys(this.limitTimeData);
@@ -547,8 +547,8 @@ export class playerData {
 
             let lastTime = Number(this.limitTimeData[timeKey]) || 0;
             if (curTime > lastTime) {
-                delete this.limitTimeData[timeKey];
-                delete this.limitTimeData[timeKey.substring(0, timeKey.length - 5)];
+                this.limitTimeData[timeKey] = null;
+                this.limitTimeData[timeKey.substring(0, timeKey.length - 5)] = null;
             }
         }
     }

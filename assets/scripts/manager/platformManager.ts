@@ -75,7 +75,7 @@ export class platformManager extends Component {
             pData.level = pData.getLevelNums();
             pData.initGameData(data.gold, data.ext);
 
-            console.warn("------------->登录成功用户关卡数:\n", pData.level);
+            // console.warn("------------->用户关卡数:", pData.level);
 
             console.log("------------->登录成功用户数据:\n", userMgr.params);
             gm.Event.emit(GameEvent.checkLoginLoad);

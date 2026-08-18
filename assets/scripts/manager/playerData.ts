@@ -331,14 +331,15 @@ export class playerData {
         let levelReprotData = {
             is_pass: isPass ? 1 : 0,
             level: this.level + 1,
+            level_id: this.level + 1,
             level_progress: progress,
             time_used: gameAllTime,
             level_values: modeLevels,
-            rank: this.getReportRank(modeLevels),
+            level_rank: this.getReportRank(modeLevels),
         }
 
         //TODO 测试
-        console.warn("上报关卡给后端", levelReprotData);
+        // console.warn("上报关卡给后端", levelReprotData);
         httpMgr.post(urlConfig.levelReport, levelReprotData);
     }
 

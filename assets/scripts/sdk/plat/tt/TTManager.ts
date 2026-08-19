@@ -285,6 +285,7 @@ export class TTManager extends BasePlat {
                     console.log("分享成功", res);
                 },
                 fail(e) {
+                    uiMgr.showTips("分享失败");
                     console.log("分享失败");
                 },
             })

@@ -5,6 +5,7 @@ import { BasePlat } from '../sdk/plat/BasePlat';
 import { ccTimeTools } from '../extention/timeTools';
 import { GameEvent } from './configData';
 import { pData } from './playerData';
+import { uiMgr } from './UIManager';
 const { ccclass, property } = _decorator;
 
 export enum PlatType {
@@ -79,6 +80,8 @@ export class gm extends Component {
                     //失败3次算成功
                     if(gm.API.shareFailCount >= 3){
                         call();
+                    }else{
+                        uiMgr.showTips("分享失败");
                     }
                 }
             }

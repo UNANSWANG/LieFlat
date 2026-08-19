@@ -1,5 +1,6 @@
 import { ccStorageTools } from "../../../extention/storageTools";
 import { ccTimeTools } from "../../../extention/timeTools";
+import { gm } from "../../../manager/gm";
 import { uiMgr } from "../../../manager/UIManager";
 import { userMgr } from "../../../manager/userManager";
 import { httpMgr } from "../../network/httpManager";
@@ -68,7 +69,7 @@ export class WXManager extends BasePlat {
 
         updateManager.onCheckForUpdate(function (res) {
             // 请求完新版本信息的回调
-            console.warn("是否有新版本:",res.hasUpdate)
+            console.warn("是否有新版本:", res.hasUpdate)
         })
 
         updateManager.onUpdateReady((res) => {
@@ -371,25 +372,30 @@ export class WXManager extends BasePlat {
             this.isShare = true;
             this.lastShareTime = ccTimeTools.getTime();
         }
-        let shareData = this.getRandomShareImg();
-        let shareText = this.getRandomShareText();
-        return new Promise<Boolean>($resolve => {
-            window["wx"].shareAppMessage({
-                // channel: "invite", //分享渠道
-                title: shareText, //分享标题
-                desc: "快来跟我一起玩吧！", //分享描述
-                imageUrl: shareData[1], //分享图标
-                imageUrlId: shareData[0], //分享图标
-                // success(res) {
-                //     console.log("分享成功", res);
-                //     success && success();
-                // },
-                // fail(e) {
-                //     console.log("分享失败");
-                //     fail && fail();
-                // },
+        if (gm.hgSdk) {
+            gm.hgSdk.share({
             })
-        })
+        } else {
+            let shareData = this.getRandomShareImg();
+            let shareText = this.getRandomShareText();
+            return new Promise<Boolean>($resolve => {
+                window["wx"].shareAppMessage({
+                    // channel: "invite", //分享渠道
+                    title: shareText, //分享标题
+                    desc: "快来跟我一起玩吧！", //分享描述
+                    imageUrl: shareData[1], //分享图标
+                    imageUrlId: shareData[0], //分享图标
+                    // success(res) {
+                    //     console.log("分享成功", res);
+                    //     success && success();
+                    // },
+                    // fail(e) {
+                    //     console.log("分享失败");
+                    //     fail && fail();
+                    // },
+                })
+            })
+        }
     }
 
     shareAppvideo() {

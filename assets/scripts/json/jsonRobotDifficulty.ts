@@ -1,5 +1,6 @@
 import { _decorator, Component, Node } from 'cc';
 import { jsonBase } from './jsonBase';
+import { gm } from '../manager/gm';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonRobotDifficulty')
@@ -28,7 +29,9 @@ export class jsonRobotDifficulty extends jsonBase {
             this.modeData[data.mode][data.type - 1].push(data);
         }
 
-        console.warn("-------->初始化机器人难度数据:\n",this.modeData);
+        if(gm.isDebug){
+            console.warn("-------->初始化机器人难度数据:\n",this.modeData);
+        }
     }
 
     /**按模式和难度类型获取配置组 */

@@ -116,7 +116,7 @@ export class UISuccess extends UIBase {
     /**根据存活时间初始化胜利基础奖励 */
     private initRewardNum(survivalTime: number) {
         this.moneyNum = Math.floor(50 + 20 * survivalTime / 60);
-        this.boxNum = ccTools.getRandomNum(1, 4);
+        this.boxNum = ccTools.getRandomNum(1, 3);
     }
 
     /**加载胜利角色并循环播放待机动画 */

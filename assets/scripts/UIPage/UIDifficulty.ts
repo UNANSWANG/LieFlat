@@ -95,7 +95,8 @@ export class UIDifficulty extends UIBase {
             }
 
             let button = item.getComponent(zoomButton) || item.addComponent(zoomButton);
-            button.interactable = isUnlocked;
+            //未解锁模式也可点击，点击后提示解锁条件
+            button.interactable = true;
             button.onClick = this.clickDifficultyItem.bind(this, i);
         }
 
@@ -123,9 +124,15 @@ export class UIDifficulty extends UIBase {
         }, 0);
     }
 
-    /**选择已解锁难度 */
+    /**选择已解锁难度，未解锁难度提示解锁条件 */
     private clickDifficultyItem(difficultyIndex: number) {
-        if (difficultyIndex < 0 || difficultyIndex > this.currentDifficultyIndex) {
+        if (difficultyIndex < 0) {
+            return;
+        }
+
+        //未解锁模式：提示需要通关上一个模式的最大关卡
+        if (difficultyIndex > this.currentDifficultyIndex) {
+            this.showUnlockTips(difficultyIndex);
             return;
         }
 
@@ -137,6 +144,28 @@ export class UIDifficulty extends UIBase {
                 selectNode.active = items[i].active && i == this.selectedDifficultyIndex;
             }
         }
+    }
+
+    /**提示解锁条件（需要通过上一个模式的最大关卡） */
+    private showUnlockTips(difficultyIndex: number) {
+        let unlockLevelName = this.getUnlockLevelName(difficultyIndex);
+        uiMgr.showTips(unlockLevelName ? `通过${unlockLevelName}解锁` : "该模式暂未解锁");
+    }
+
+    /**
+     * 获取解锁指定模式需要通关的关卡名称，即上一个模式的最大关卡。
+     * 例：简易模式的上一个模式“初学”只有1关，则返回“初学-1”。
+     */
+    private getUnlockLevelName(difficultyIndex: number): string {
+        let difficultyData = levelConfig.tableData || [];
+        let previousIndex = difficultyIndex - 1;
+        let previousData = difficultyData[previousIndex];
+        if (!previousData) {
+            return "";
+        }
+
+        let quantity = Math.max(1, Math.floor(Number(previousData.quantity) || 1));
+        return levelConfig.getLevelName([previousIndex, quantity]);
     }
 
     bindBtn() {

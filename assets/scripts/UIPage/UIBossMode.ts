@@ -3,6 +3,7 @@ import { UIBase } from './UIBase';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
+import { videoMgr } from '../manager/videoManager';
 const { ccclass, property } = _decorator;
 
 
@@ -12,7 +13,7 @@ export class UIBossMode extends UIBase {
     closeBtn: Node;
 
     @property(Node)
-    homeBtn: Node;
+    adBtn: Node;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -25,17 +26,32 @@ export class UIBossMode extends UIBase {
     }
 
     initData() {
-
+        this.SDKAdReport();
     }
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
-        this.homeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
+        this.adBtn.addComponent(zoomButton).onClick = this.clickAdBtn.bind(this);
     }
+
+    /**广告点上报 */
+    SDKAdReport() {
+        videoMgr.SDKAdShow(68);
+    }
+
 
     ///
     ///点击事件
     ///
+
+    /**点击广告 */
+    clickAdBtn() {
+        videoMgr.watchVideo(68, () => {
+            uiMgr.showTips("已催促程序猿加快进度")
+        },()=>{
+            uiMgr.showTips("进度加速失败")
+        });
+    }
 
     /**点击关闭 */
     clickCloseBtn() {

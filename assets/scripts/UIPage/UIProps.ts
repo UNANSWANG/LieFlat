@@ -171,7 +171,7 @@ export class UIProps extends UIBase {
         }
 
         let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
-        let nextPropsData = propsConfig.getPropsData(this.propsComp.propsType)[level];
+        let nextPropsData = this.getUpgradePropsData(propsData, propsConfig.getPropsData(this.propsComp.propsType)[level]);
         for (let i = 0; i < 3; i++) {
             let propsItem = this.propsLayout.children[i];
             if (!propsItem.active) {
@@ -293,6 +293,22 @@ export class UIProps extends UIBase {
         this.bg.setPosition(new Vec3(this.bg.position.x, posY, 0));
     }
 
+    /**
+     * 获取升级用的道具数据（价格已处理）。
+     * 矿脉特殊处理：升级价格 = 下一级价格 - 当前等级价格的一半，其他建筑直接用下一级价格。
+     */
+    private getUpgradePropsData(propsData: any, nextPropsData: any) {
+        if (!nextPropsData || this.propsComp?.propsType != tilePropsType.vein) {
+            return nextPropsData;
+        }
+
+        //拷贝一份，避免修改到配置表数据
+        let upgradePropsData = Object.assign({}, nextPropsData);
+        upgradePropsData.coin = Math.max(0, Math.ceil((Number(nextPropsData.coin) || 0) - (Number(propsData?.coin) || 0) / 2));
+        upgradePropsData.power = Math.max(0, Math.ceil((Number(nextPropsData.power) || 0) - (Number(propsData?.power) || 0) / 2));
+        return upgradePropsData;
+    }
+
     /**刷新按钮状态 */
     refreshPropsBtnState() {
         if (!this.isPropsAvailable()) {
@@ -315,7 +331,8 @@ export class UIProps extends UIBase {
             level = this.propsComp.maxLevel;
         }
 
-        let nextPropsData = propsConfig.getPropsData(this.propsComp.propsType)[level];
+        let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
+        let nextPropsData = this.getUpgradePropsData(propsData, propsConfig.getPropsData(this.propsComp.propsType)[level]);
         this.refreshBuyBtnState(upgradeItem.getChildByName("buyBtn"), nextPropsData);
     }
 
@@ -454,7 +471,7 @@ export class UIProps extends UIBase {
         }
 
         let propsData = propsConfig.getPropsData(this.propsComp.propsType)[this.propsComp.level];
-        let nextPropsData = propsConfig.getPropsData(this.propsComp.propsType)[level];
+        let nextPropsData = this.getUpgradePropsData(propsData, propsConfig.getPropsData(this.propsComp.propsType)[level]);
 
         let unmetPreCondition = this.propsComp.getUnmetUpgradePreCondition(nextPropsData);
         if (unmetPreCondition) {

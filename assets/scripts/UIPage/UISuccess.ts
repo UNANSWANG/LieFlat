@@ -13,6 +13,7 @@ import { loop_anim, loopAnimation } from '../controller/loopAnimation';
 import { roleAnimName } from '../controller/roleController';
 import { ccStorageTools } from '../extention/storageTools';
 import { SaveKey } from '../manager/configData';
+import { commonConfig } from '../json/jsonCommon';
 const { ccclass, property } = _decorator;
 
 @ccclass('UISuccess')
@@ -116,7 +117,9 @@ export class UISuccess extends UIBase {
     /**根据存活时间初始化胜利基础奖励 */
     private initRewardNum(survivalTime: number) {
         this.moneyNum = Math.floor(50 + 20 * survivalTime / 60);
-        this.boxNum = ccTools.getRandomNum(1, 3);
+        let boxRewardWeight = JSON.parse(commonConfig.getValue("boxRewardWeight"));
+        let randomIdx = ccTools.getWeightedRandomIndex(boxRewardWeight);
+        this.boxNum = randomIdx;
     }
 
     /**加载胜利角色并循环播放待机动画 */

@@ -1446,6 +1446,7 @@ export class enemyBaseController extends Component {
     /**按路径移动，下一格有道具时停在当前格攻击道具 */
     private moveByPath(dt: number) {
         if (this.isAttackingPlayer) {
+            this.ensureAttackAnim();
             return;
         }
 
@@ -1471,6 +1472,7 @@ export class enemyBaseController extends Component {
         } else if (this.isTargetPlayerTile(nextTilePos)) {
             this.stopAttackProps();
         } else if (this.tryAttackTileProps(nextTilePos)) {
+            this.ensureAttackAnim();
             return;
         }
 
@@ -1974,7 +1976,27 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        //暂停期间动画已被其他逻辑重新指定（如倒计时结束立即开始攻击），保持当前动画
+        if (this.curRoleAnimName != enemyAnim.idle) {
+            return;
+        }
+
+        //暂停期间进入了攻击状态时，恢复攻击动画，避免攻击事件帧不再触发导致卡死
+        if (this.isAttackingPlayer || this.isAttackingProps) {
+            this.playRoleAnimForce(enemyAnim.attack, true);
+            return;
+        }
+
         this.playRoleAnimForce(animName, true);
+    }
+
+    /**攻击期间保证攻击动画持续播放，避免动画被覆盖后攻击事件帧不触发而卡死 */
+    private ensureAttackAnim() {
+        if (this.curRoleAnimName == enemyAnim.attack) {
+            return;
+        }
+
+        this.playRoleAnim(enemyAnim.attack, true);
     }
 
     /**尝试处理到达当前目标 */

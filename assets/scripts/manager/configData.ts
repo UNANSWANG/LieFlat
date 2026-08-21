@@ -222,6 +222,8 @@ export enum SaveKey {
     onlyAttackSelf = "onlyAttackSelf",
     /**是否免广告（gm配置） */
     isFreeAd = "isFreeAd",
+    /**今日是否弹出过每日礼包 */
+    isShowDailyGift = "isShowDailyGift",
 }
 
 /**道具索引 */

@@ -518,7 +518,7 @@ export class playerData {
         this.reportGame();
     }
 
-    /**获取限时数据（记录时间不是当天则视为过期） */
+    /**获取后端限时数据（记录时间不是当天则视为过期） */
     getLimitTimeData(key: string) {
         let timeKey = this.getLimitTimeKey(key);
         if (!this.limitTimeData.hasOwnProperty(timeKey)) {

@@ -217,6 +217,14 @@ export class UISuccess extends UIBase {
         this.adBtnAnimation.unscheduleAllCallbacks();
         this.adBtnAnimation.stopAni();
         gm.gameResume();
+
+        let isShowDailyGift = Number(ccStorageTools.getLimitTimeData(SaveKey.isShowDailyGift)) == 0;
+        if(isShowDailyGift){
+            ccStorageTools.setLimitTimeData(SaveKey.isShowDailyGift, 1);
+            if(pData.getLimitTimeData(SaveKey.isGetDailyGift) != 1){
+                uiMgr.openPage(UIPath.UIDailyGift);
+            }
+        }
         uiMgr.closePage(UIPath.UISuccess);
     }
 }

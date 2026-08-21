@@ -2843,7 +2843,7 @@ export class UIGame extends UIBase {
         }
 
         this.gameStartCountDownTime--;
-        if(this.gameStartCountDownTime < 10){
+        if (this.gameStartCountDownTime < 10) {
             audioMgr.playEffect(audioPath.daojishi);
         }
         if (this.gameStartCountDownTime <= 0) {
@@ -3360,7 +3360,7 @@ export class UIGame extends UIBase {
             let propComp = tileItem.propsComp;
             if (tileItem.isGrayTile) {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp, isGrayProps: true });
-            } else if (propComp.isMaxLevel && (propComp.propsType == tilePropsType.bed || propComp.propsType == tilePropsType.door)) {
+            } else if (propComp.isMaxLevel && propComp.propsType == tilePropsType.bed) {
                 uiMgr.showTips("已达最大等级");
             } else {
                 uiMgr.openPage(UIPath.UIProps, { pos: this.tempUILocalPos, tilePos: tilePos, propsComp: propComp });
@@ -3982,7 +3982,7 @@ export class UIGame extends UIBase {
 
     /**监听按钮点击事件 */
     onKeyDown(event: EventKeyboard) {
-        if(!gm.isDebug){
+        if (!gm.isDebug) {
             return;
         }
         switch (event.keyCode) {

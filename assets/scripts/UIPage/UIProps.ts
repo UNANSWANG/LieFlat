@@ -152,16 +152,15 @@ export class UIProps extends UIBase {
                 } else if (i == 1) {
                     buyBtn.addComponent(zoomButton).onClick = this.clickRemoveProps.bind(this);
                 } else if (i == 2) {
-                    buyBtn.addComponent(zoomButton).onClick = this.clickAdUpgradeDoorProps.bind(this);
+                    buyBtn.addComponent(zoomButton).onClick = this.clickAdRecoverDoorHp.bind(this);
                 }
             }
         }
 
         this.propsLayout.children[0].active = !this.isGrayProps;
         this.propsLayout.children[1].active = this.hasRemoveProps;
-        //有次数且是门
-        this.propsLayout.children[2].active = !this.isMaxLevel && !this.isGrayProps
-            && pData.adUpgradeDoorCount > 0 && this.propsComp.propsType == tilePropsType.door;
+        //是门就显示（血量回复卡不限次数）
+        this.propsLayout.children[2].active = !this.isGrayProps && this.propsComp.propsType == tilePropsType.door;
 
         let propsLength = 0;
 
@@ -251,15 +250,17 @@ export class UIProps extends UIBase {
                 nameLab.string = "回收";
                 ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + "remove");
             } else if (i == 2) {
-                //广告升级门
+                //广告回复房门血量
                 grayBg.active = false;
                 normalBg.active = false;
                 adBg.active = true;
 
-                desLab.string = nextPropsData.desc + "\n提示：震慑感染者!!!";
+                //满级时无下一级数据，回退使用当前级数据
+                let cardPropsData = nextPropsData || propsData;
+                desLab.string = cardPropsData.desc + "\n提示：震慑感染者!!!";
 
                 nameLab.string = "血量回复卡";
-                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType + "_" + nextPropsData.level);
+                ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + cardPropsData.propsType + "_" + cardPropsData.level);
             }
 
             if (powerNum > 0 && coinNum > 0) {
@@ -507,7 +508,7 @@ export class UIProps extends UIBase {
     }
 
     ///
-    ///点击升级门
+    ///点击广告回复房门血量
     ///
 
     /**拆除道具 */
@@ -556,15 +557,20 @@ export class UIProps extends UIBase {
         return (Number(propsData?.power) || 0) / 2;
     }
 
-    /**广告升级门 */
-    clickAdUpgradeDoorProps() {
+    /**广告回复房门血量（不限次数） */
+    clickAdRecoverDoorHp() {
         if (!this.isPropsAvailable()) {
             this.onClose();
             return;
         }
 
-        if (pData.adUpgradeDoorCount <= 0) {
-            uiMgr.showTips("广告升级门次数不足");
+        let doorComp = this.propsComp as doorProps;
+        if (doorComp.propsType != tilePropsType.door) {
+            return;
+        }
+
+        if (doorComp.isHpFull) {
+            uiMgr.showTips("房门血量已满");
             return;
         }
 
@@ -574,8 +580,7 @@ export class UIProps extends UIBase {
                 return;
             }
 
-            pData.adUpgradeDoorCount--;
-            (this.propsComp as doorProps).upgradePropsAd();
+            (this.propsComp as doorProps).recoverHpAd();
             this.onClose();
         });
     }

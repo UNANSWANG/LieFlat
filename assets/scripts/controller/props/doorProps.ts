@@ -363,6 +363,25 @@ export class doorProps extends gamePropsBase {
         this.resetHp();
     }
 
+    /**房门血量是否已满 */
+    get isHpFull() {
+        return this.maxHp <= 0 || this.hp >= this.maxHp;
+    }
+
+    /**广告回复房门血量（回复至满血，不限次数） */
+    recoverHpAd() {
+        if (this.maxHp <= 0) {
+            return;
+        }
+
+        this.hp = this.maxHp;
+        this.refreshHp(true);
+        this.keepDoorHpVisible();
+        this.playScaleUpAnim();
+        this.gameComp?.playSceneEffect(audioPath.build, this.node.worldPosition);
+        this.checkEnemyEscapeAfterRecoverHp();
+    }
+
     /**受到伤害 */
     takeDamage(damage: number, killerEnemySkinId?: number) {
         //TODO 门无敌
@@ -399,20 +418,6 @@ export class doorProps extends gamePropsBase {
         }
     }
 
-    /**广告升级门 */
-    upgradePropsAd() {
-        let levelBefore = this.level;
-        let doorHpShowTimerBefore = this.doorHpShowTimer;
-        super.upgradeProps();
-        this.resetHp(true);
-        this.doorHpShowTimer = doorHpShowTimerBefore;
-        this.hpNode.active = this.doorHpShowTimer > 0;
-        if (this.level != levelBefore) {
-            this.gameComp?.completeGuideDoorUpgrade(this);
-            this.checkEnemyChoseUpgradeAd();
-        }
-    }
-
     /**房门升级后，检测正在攻击当前门的低血量敌人是否需要逃离 */
     private checkEnemyEscapeAfterUpgrade() {
         for (let i = 0; i < enemyMgr.enemyArr.length; i++) {
@@ -425,8 +430,8 @@ export class doorProps extends gamePropsBase {
         }
     }
 
-    /**广告升级道具，正在攻击当前门的敌人重新选择目标 */
-    private checkEnemyChoseUpgradeAd() {
+    /**广告回复血量后，震慑正在攻击当前门的敌人，使其逃离并重新选择目标 */
+    private checkEnemyEscapeAfterRecoverHp() {
         for (let i = 0; i < enemyMgr.enemyArr.length; i++) {
             let enemyComp = enemyMgr.enemyArr[i];
             if (!enemyComp || !enemyComp.node || !enemyComp.node.isValid || enemyComp.hp <= 0) {
@@ -436,4 +441,5 @@ export class doorProps extends gamePropsBase {
             enemyComp.forceChooseTarget(this.pos);
         }
     }
+
 }

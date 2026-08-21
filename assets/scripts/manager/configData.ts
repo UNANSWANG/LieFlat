@@ -136,6 +136,8 @@ export const gmConfig = {
     isBossInvincible: false,
     /**强制引导 */
     forceGuide: false,
+    /**是否使用本地json */
+    useJsonLocal: false,
 }
 
 /**游戏事件 */
@@ -224,6 +226,8 @@ export enum SaveKey {
     isFreeAd = "isFreeAd",
     /**今日是否弹出过每日礼包 */
     isShowDailyGift = "isShowDailyGift",
+    /**是否使用本地json（gm配置） */
+    useJsonLocal = "useJsonLocal",
 }
 
 /**道具索引 */

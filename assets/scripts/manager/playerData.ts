@@ -673,6 +673,7 @@ export class playerData {
         // this.modeLevels = this.parseModeLevels(ccStorageTools.getData(SaveKey.modeLevels));
         gmConfig.onlyAttackSelf = ccStorageTools.getNumberData(SaveKey.onlyAttackSelf) == 1;
         gmConfig.isFreeAd = ccStorageTools.getNumberData(SaveKey.isFreeAd) == 1;
+        gmConfig.useJsonLocal = ccStorageTools.getNumberData(SaveKey.useJsonLocal) == 1;
     }
 }
 

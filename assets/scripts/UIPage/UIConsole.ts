@@ -43,6 +43,9 @@ export class UIConsole extends UIBase {
     @property(Toggle)
     forceGuideToggle: Toggle;
 
+    @property(Toggle)
+    jsonToggle: Toggle;
+
     protected onLoad(): void {
         this.bindBtn();
     }
@@ -68,6 +71,7 @@ export class UIConsole extends UIBase {
         this.adToggle.node.on(Toggle.EventType.TOGGLE, this.clickAdToggle, this);
         this.bossToggle.node.on(Toggle.EventType.TOGGLE, this.clickBossToggle, this);
         this.forceGuideToggle.node.on(Toggle.EventType.TOGGLE, this.clickForceGuideToggle, this);
+        this.jsonToggle.node.on(Toggle.EventType.TOGGLE, this.clickJsonToggle, this);
     }
 
     /**刷新只攻击玩家自身开关 */
@@ -76,6 +80,7 @@ export class UIConsole extends UIBase {
         this.adToggle.isChecked = gmConfig.isFreeAd;
         this.bossToggle.isChecked = gmConfig.isBossInvincible;
         this.forceGuideToggle.isChecked = gmConfig.forceGuide;
+        this.jsonToggle.isChecked = gmConfig.useJsonLocal;
     }
 
     ///
@@ -126,6 +131,12 @@ export class UIConsole extends UIBase {
     /**点击强制引导开关 */
     clickForceGuideToggle() {
         gmConfig.forceGuide = this.forceGuideToggle?.isChecked;
+    }
+
+    /**点击json开关 */
+    clickJsonToggle() {
+        gmConfig.useJsonLocal = this.jsonToggle?.isChecked;
+        ccStorageTools.setData(SaveKey.useJsonLocal, gmConfig.useJsonLocal ? 1 : 0);
     }
 
     /**点击关闭 */

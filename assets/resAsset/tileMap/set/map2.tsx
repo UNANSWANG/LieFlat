@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.4" tiledversion="1.4.3" name="map3" tilewidth="64" tileheight="64" spacing="2" margin="1" tilecount="12" columns="4">
- <image source="../img/wapian_66.png" width="264" height="198"/>
+<tileset version="1.4" tiledversion="1.4.3" name="map2" tilewidth="64" tileheight="64" spacing="2" margin="1" tilecount="15" columns="5">
+ <image source="../img/qiangdi2.png" width="330" height="198"/>
  <tile id="0">
   <properties>
    <property name="block" type="bool" value="true"/>
@@ -16,12 +16,22 @@
    <property name="block" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="3">
+  <properties>
+   <property name="block" type="bool" value="true"/>
+  </properties>
+ </tile>
  <tile id="4">
   <properties>
    <property name="block" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="6">
+ <tile id="5">
+  <properties>
+   <property name="block" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="7">
   <properties>
    <property name="block" type="bool" value="true"/>
   </properties>
@@ -37,6 +47,16 @@
   </properties>
  </tile>
  <tile id="10">
+  <properties>
+   <property name="block" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="11">
+  <properties>
+   <property name="block" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="12">
   <properties>
    <property name="block" type="bool" value="true"/>
   </properties>

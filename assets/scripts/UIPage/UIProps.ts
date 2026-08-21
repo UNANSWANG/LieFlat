@@ -204,9 +204,12 @@ export class UIProps extends UIBase {
             let coinNum = 0;
             limitLab.string = "";
 
-            if ((i == 0 && !isMaxPropsItem && nextPropsData.preConditions) || i == 2) {
+            if (i == 0 && !isMaxPropsItem && nextPropsData.preConditions) {
                 desLab.fontSize = 25;
                 desLab.lineHeight = 30;
+            } else if (i == 2) {
+                desLab.fontSize = 30;
+                desLab.lineHeight = 35;
             } else {
                 desLab.fontSize = 36;
                 desLab.lineHeight = 40;
@@ -253,9 +256,9 @@ export class UIProps extends UIBase {
                 normalBg.active = false;
                 adBg.active = true;
 
-                desLab.string = nextPropsData.desc + "\n提示:只有一次使用机会哦!!!";
+                desLab.string = nextPropsData.desc + "\n提示：震慑感染者!!!";
 
-                nameLab.string = "房门升级卡";
+                nameLab.string = "血量回复卡";
                 ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + nextPropsData.propsType + "_" + nextPropsData.level);
             }
 

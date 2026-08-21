@@ -63,7 +63,7 @@ export class playerData {
         this.gameCoin = 0;
         this.gamePower = 0;
         this.adUpgradeDoorCount = 1;
-        this.isGuide = ccStorageTools.getNumberData(SaveKey.guide) != 1 || gmConfig.forceGuide;
+        this.isGuide = (ccStorageTools.getNumberData(SaveKey.guide) != 1 && pData.level == 0) || gmConfig.forceGuide;
         let levelTableIndex = this.getSelectedDifficultyIndex();
         enemyMgr.enemyAllData = levelConfig.getBossAllData(levelTableIndex);
         this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);

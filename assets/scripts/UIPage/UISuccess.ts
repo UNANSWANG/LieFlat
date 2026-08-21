@@ -96,9 +96,7 @@ export class UISuccess extends UIBase {
         let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
         this.refreshRoleSpine(skinId);
 
-        if(pData.isGuide){
-            ccStorageTools.setData(SaveKey.guide, 1);
-        }
+        ccStorageTools.setData(SaveKey.guide, 1);
 
         let survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
         this.initRewardNum(survivalTime);

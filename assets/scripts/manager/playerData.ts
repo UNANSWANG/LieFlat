@@ -333,7 +333,7 @@ export class playerData {
         let levelReprotData = {
             is_pass: isPass ? 1 : 0,
             level: this.level + 1,
-            level_id: this.level + 1,
+            level_id: this.difficultyIndex + 1,
             level_progress: progress,
             time_used: gameAllTime,
             level_values: modeLevels,

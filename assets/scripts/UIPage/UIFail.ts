@@ -142,7 +142,7 @@ export class UIFail extends UIBase {
 
     /**广告点上报 */
     SDKAdReport() {
-        videoMgr.SDKAdShow(4);
+        videoMgr.SDKAdShow(10);
     }
 
     ///
@@ -156,7 +156,7 @@ export class UIFail extends UIBase {
         }
 
         this.isRewardClaimed = true;
-        videoMgr.watchVideo(4, () => {
+        videoMgr.watchVideo(10, () => {
             this.getReward(3);
         }, () => {
             this.isRewardClaimed = false;

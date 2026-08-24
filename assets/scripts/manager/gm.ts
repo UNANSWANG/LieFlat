@@ -54,7 +54,6 @@ export class gm extends Component {
         game.on(Game.EVENT_HIDE, () => {
             console.log("进入后台");
             gm.gamePause();
-            pData.SDKReportLevelExit();
             audioMgr.closeBackgroundMusic();
         }, this);
         game.on(Game.EVENT_SHOW, () => {

@@ -9,6 +9,7 @@ import { pData } from '../manager/playerData';
 import { GameEvent } from '../manager/configData';
 import { gm } from '../manager/gm';
 import { videoMgr } from '../manager/videoManager';
+import { tilePropsType } from '../controller/tileItemController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIStore')
@@ -124,6 +125,7 @@ export class UIStore extends UIBase {
     /**广告点上报 */
     SDKAdReport() {
         videoMgr.SDKAdShow(68);
+        videoMgr.SDKAdShow(65);
     }
 
     ///
@@ -168,7 +170,13 @@ export class UIStore extends UIBase {
             return;
         }
 
-        videoMgr.watchVideo(68, () => {
+        let videoId = 68;
+
+        if(propsData.propsType == tilePropsType.box){
+            videoId = 65;
+        }
+
+        videoMgr.watchVideo(videoId, () => {
             uiMgr.showTips(`获取${propsData.name}*1`);
             pData.fixLevelPropsNum(propsData.propsType, propsData.level);
         });

@@ -449,6 +449,7 @@ export class UIBuild extends UIBase {
     /**广告点上报 */
     SDKAdReport() {
         videoMgr.SDKAdShow(68);
+        videoMgr.SDKAdShow(65);
     }
 
     ///
@@ -523,7 +524,12 @@ export class UIBuild extends UIBase {
             return;
         }
 
-        videoMgr.watchVideo(68, () => {
+        let videoId = 68;
+        if(curData.propsType == tilePropsType.box){
+            videoId = 65;
+        }
+
+        videoMgr.watchVideo(videoId, () => {
             pData.fixLevelPropsNum(curData.propsType, curData.level);
             uiMgr.showTips(`获取${curData.name}*1`);
             this.refreshPage();

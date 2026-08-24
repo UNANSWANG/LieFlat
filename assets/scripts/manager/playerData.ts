@@ -8,6 +8,7 @@ import { urlConfig } from '../sdk/network/netConfig';
 import { propsConfig } from '../json/jsonProps';
 import { enemyMgr } from './enemyManager';
 import { ccTimeTools } from '../extention/timeTools';
+import { TTManager } from '../sdk/plat/tt/TTManager';
 const { ccclass, property } = _decorator;
 
 //用户游戏内数据
@@ -349,6 +350,9 @@ export class playerData {
         //TODO 测试
         // console.warn("上报关卡给后端", levelReprotData);
         httpMgr.post(urlConfig.levelReport, levelReprotData);
+        if(gm.platType === PlatType.tt && isPass){
+            (gm.API as TTManager).setRankData(this.level + 1);
+        }
     }
 
     /**增加用户关卡数 */

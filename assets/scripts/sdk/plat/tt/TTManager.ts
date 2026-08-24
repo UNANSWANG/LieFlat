@@ -404,6 +404,41 @@ export class TTManager extends BasePlat {
 
     }
 
+    /**设置排行榜数据 */
+    setRankData(value) {
+        this.PLAT.setImRankData({
+            dataType: 0, //成绩为数字类型
+            value: String(value),
+            priority: 0, //dataType为数字类型，不需要权重，直接传0
+            extra: "extra",
+            zoneId: 'default',
+            success(res) {
+                console.log(`setImRankData success res: ${res}`);
+            },
+            fail(res) {
+                console.log(`setImRankData fail res: ${res.errMsg}`);
+            },
+        });
+    }
+
+    /**获取排行榜 */
+    getRank() {
+        this.PLAT.getImRankList({
+            relationType: "default", // 总榜 
+            dataType: 0, //只圈选type为枚举类型的数据进行排序
+            rankType: "all", //每天凌晨0点更新，只对当天0点到现在写入的数据进行排序
+            suffix: "", //为空或不填，一般枚举类型不需要填后缀
+            rankTitle: "排行榜", //标题
+            zoneId: 'default',
+            success(res) {
+                console.log(`getImRankData success res: ${res}`);
+            },
+            fail(res) {
+                console.log(`getImRankData fail res: ${res.errMsg}`);
+            },
+        });
+    }
+
     checkShortcut(): Promise<Boolean> {
         return new Promise<Boolean>(($resolve) => {
             window["tt"].checkShortcut({

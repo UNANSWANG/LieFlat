@@ -340,7 +340,6 @@ export class UIGame extends UIBase {
 
         this.currentMapName = mapName;
         this.tiledMap.tmxAsset = mapAsset;
-        console.warn("----------->当前随机地图：", this.currentMapName);
         return true;
     }
 

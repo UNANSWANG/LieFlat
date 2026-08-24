@@ -294,36 +294,44 @@ export class UIMain extends UIBase {
 
     /**点击排行榜 */
     clickRankBtn() {
-        //有昵称和授权或者h5平台才直接打开排行榜
-        if ((gm.API.isAuthorize && userMgr.nickName) || gm.platType == PlatType.h5) {
-            uiMgr.openPage(UIPath.UIRank);
-        } else {
-            let getUserInfo = () => {
-                let wxMgr = gm.API as WXManager;
-                wxMgr.getUserProfile(() => {
-                    uiMgr.openPage(UIPath.UIRank);
-                }, () => {
-                    uiMgr.openPage(UIPath.UIRank);
-                });
-            }
-
-            if (!gm.API.isAuthorize) {
-                //没有授权
-                gm.API.requirePrivacyAuthorize(() => {
-                    console.log("授权成功");
-                    if (!userMgr.nickName) {
-                        getUserInfo();
-                    } else {
-                        uiMgr.openPage(UIPath.UIRank);
-                    }
-                }, () => {
-                    console.log("授权失败");
-                    uiMgr.openPage(UIPath.UIRank);
-                });
+        if (gm.platType == PlatType.wx) {
+            //有昵称和授权或者h5平台才直接打开排行榜
+            if (gm.API.isAuthorize && userMgr.nickName) {
+                uiMgr.openPage(UIPath.UIRank);
             } else {
-                //有授权但是没有昵称
-                getUserInfo();
+                let getUserInfo = () => {
+                    let wxMgr = gm.API as WXManager;
+                    wxMgr.getUserProfile(() => {
+                        uiMgr.openPage(UIPath.UIRank);
+                    }, () => {
+                        uiMgr.openPage(UIPath.UIRank);
+                    });
+                }
+
+                if (!gm.API.isAuthorize) {
+                    //没有授权
+                    gm.API.requirePrivacyAuthorize(() => {
+                        console.log("授权成功");
+                        if (!userMgr.nickName) {
+                            getUserInfo();
+                        } else {
+                            uiMgr.openPage(UIPath.UIRank);
+                        }
+                    }, () => {
+                        console.log("授权失败");
+                        uiMgr.openPage(UIPath.UIRank);
+                    });
+                } else {
+                    //有授权但是没有昵称
+                    getUserInfo();
+                }
             }
+        } else if (gm.platType == PlatType.tt) {
+            //抖音平台排行榜逻辑
+            let TTMgr = gm.API as TTManager;
+            TTMgr.getRank();
+        } else {
+            uiMgr.openPage(UIPath.UIRank);
         }
     }
 

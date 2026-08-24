@@ -29,6 +29,8 @@ export class playerData {
     gamePower = 0;
     /**感染币（场外） */
     money = 0;
+    /**碎片数量 */
+    debris = 0;
     /**本局可使用广告升级门的次数 */
     adUpgradeDoorCount = 1;
     /**当前关卡所看广告数 */
@@ -69,7 +71,9 @@ export class playerData {
         this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);
         this.gameStartTime = ccTimeTools.getTime();
 
-        console.warn("--------------->当前关卡敌人全等级数据\n", enemyMgr.enemyAllData);
+        if(gm.isDebug){
+            console.warn("--------------->当前关卡敌人全等级数据\n", enemyMgr.enemyAllData);
+        }
         this.SDKReportLevelStart();
     }
 
@@ -461,6 +465,16 @@ export class playerData {
         gm.Event.emit(GameEvent.refreshPlayerMonetary);
     }
 
+    /**修改碎片数量 */
+    fixDebris(debris: number) {
+        this.debris += debris;
+        if (this.debris < 0) {
+            this.debris = 0;
+        }
+        this.reportGame();
+        gm.Event.emit(GameEvent.refreshPlayerMonetary);
+    }
+
     /**初始化当前穿戴皮肤 */
     initSkinData(defaultSkinId: number) {
         this.defaultSkinId = defaultSkinId;
@@ -570,6 +584,7 @@ export class playerData {
         this.limitTimeData = gameExt.limitTimeData && typeof gameExt.limitTimeData == "object" && !Array.isArray(gameExt.limitTimeData)
             ? Object.assign({}, gameExt.limitTimeData)
             : {};
+        this.debris = Math.max(0, Number(gameExt.debris) || 0);
         this.isGameDataLoaded = true;
 
         this.clearExpiredLimitTimeData();
@@ -651,6 +666,7 @@ export class playerData {
                 ext: {
                     skinId: this.skinId,
                     unlockedRoleSkin: Object.assign({}, this.unlockedRoleSkin),
+                    debris: this.debris,
                     propsNums: Object.assign({}, this.propsNums),
                     limitTimeData: Object.assign({}, this.limitTimeData),
                 },

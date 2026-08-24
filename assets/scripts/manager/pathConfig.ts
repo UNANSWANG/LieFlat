@@ -46,6 +46,8 @@ export enum UIPath {
     UIDifficulty = "prefabs/UIPage/UIDifficulty",
     /**每日礼物页面 */
     UIDailyGift = "prefabs/UIPage/UIDailyGift",
+    /**碎片页面 */
+    UIDebris = "prefabs/UIPage/UIDebris",
 }
 
 /**物品路径 */

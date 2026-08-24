@@ -39,6 +39,9 @@ export class UIMain extends UIBase {
     addMoneyBtn: Node = null;
 
     @property(Node)
+    addDebrisBtn: Node = null;
+
+    @property(Node)
     bossModeBtn: Node = null;
 
     @property(Node)
@@ -116,6 +119,7 @@ export class UIMain extends UIBase {
         this.addMoneyBtn.addComponent(zoomButton).onClick = this.clickAddMoneyBtn.bind(this);
         this.bossModeBtn.addComponent(zoomButton).onClick = this.clickBossModeBtn.bind(this);
         this.dailyGiftBtn.addComponent(zoomButton).onClick = this.clickDailyGiftBtn.bind(this);
+        this.addDebrisBtn.addComponent(zoomButton).onClick = this.clickAddDebrisBtn.bind(this);
     }
 
     /**添加监听 */
@@ -326,6 +330,11 @@ export class UIMain extends UIBase {
     /**点击添加金币 */
     clickAddMoneyBtn() {
         uiMgr.openPage(UIPath.UIMoney);
+    }
+
+    /**点击添加碎片 */
+    clickAddDebrisBtn() {
+        uiMgr.openPage(UIPath.UIDebris);
     }
 
     /**点击商店 */

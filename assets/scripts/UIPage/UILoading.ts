@@ -263,6 +263,7 @@ export class UILoading extends Component {
         configData.addMoneyNum = commonConfig.getValueNumber("addMoneyNum");
         configData.bossModeLevel = commonConfig.getValueNumber("bossModeLevel");
         configData.doorVibrateHpThreshold = commonConfig.getValueNumber("doorVibrateHpThreshold") / 100;
+        configData.enemyModeDebrisNum = commonConfig.getValueNumber("enemyModeDebrisNum");
 
         //敌人
         enemyCommonConfig.enemyMoveSpeed = commonConfig.getValueNumber("enemyMoveSpeed");

@@ -48,8 +48,10 @@ export const configData = {
     bossModeLevel: 10,
     /**门震动血量阈值 */
     doorVibrateHpThreshold: 0.3,
-    /**上报排名值的模式系数（rank = 模式ID * 系数 + 该模式关卡数） */
+    /**上报排名值的模式系数（rank = 模式ID * 系数 + 该模式关卡数） （不读表）*/
     rankModeFactor: 100000,
+    /**敌人模式开始所需碎片数 */
+    enemyModeDebrisNum: 20,
 }
 
 /**敌人通用配置 */

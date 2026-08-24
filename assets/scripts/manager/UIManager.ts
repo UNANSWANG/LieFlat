@@ -281,6 +281,8 @@ export class UIManager {
 
     /**货币动画目标位置(世界坐标) */
     moneyTargetPos: Vec3 = new Vec3();
+    /**碎片动画目标位置(世界坐标) */
+    debrisTargetPos: Vec3 = new Vec3();
 
     /**播放货币动画
      * @param rootNode 货币动画初始节点

@@ -59,6 +59,8 @@ export class playerData {
     private isGameReportScheduled = false;
     /**游戏开始的时间戳 */
     gameStartTime = 0;
+    /**当前匹配模式 0：常规模式 1：敌人模式 */
+    matchMode = 0;
 
     levelInit() {
         pData.adNum = 0;

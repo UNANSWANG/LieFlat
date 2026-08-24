@@ -80,15 +80,22 @@ export class UIMatch extends UIBase {
         this.bindBtn();
     }
 
-    onUI_Open() {
+    onUI_Open($data) {
         pData.getSelectedDifficultyIndex();
         let anim = this.getComponent(Animation);
         anim.play();
-        this.initData();
+        this.initData($data);
         this.preLoadGame();
     }
 
-    initData() {
+    initData(data) {
+        if(data && data.mode == 1){
+            //敌人模式
+            pData.matchMode = 1;
+        }else{
+            //常规模式
+            pData.matchMode = 0;
+        }
         this.matchTime = 0;
         this.currentMatchIndex = 0;
         this.currentMatchDelay = 0;

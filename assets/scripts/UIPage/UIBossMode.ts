@@ -4,6 +4,8 @@ import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
 import { videoMgr } from '../manager/videoManager';
+import { pData } from '../manager/playerData';
+import { configData } from '../manager/configData';
 const { ccclass, property } = _decorator;
 
 
@@ -43,6 +45,17 @@ export class UIBossMode extends UIBase {
     ///
     ///点击事件
     ///
+
+    /**点击开始按钮 */
+    clickStartBtn() {
+        if(pData.debris < configData.enemyModeDebrisNum){
+            uiMgr.showTips(`碎片不足${pData.debris}/${configData.enemyModeDebrisNum}`);
+            return;
+        }
+
+        this.onClose();
+        uiMgr.openPage(UIPath.UIMatch);
+    }
 
     /**点击广告 */
     clickAdBtn() {

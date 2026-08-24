@@ -1,4 +1,4 @@
-import { _decorator, Label, Node, sp, tween, Tween, Vec3 } from 'cc';
+import { _decorator, Label, math, Node, sp, tween, Tween, Vec3 } from 'cc';
 import { UIBase } from './UIBase';
 import { audioPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -114,7 +114,7 @@ export class UISuccess extends UIBase {
 
     /**根据存活时间初始化胜利基础奖励 */
     private initRewardNum(survivalTime: number) {
-        this.moneyNum = Math.floor(50 + 20 * survivalTime / 60);
+        this.moneyNum = 20 + (3 + pData.difficultyIndex) * Math.max(1, Math.ceil(survivalTime / 300));
         let boxRewardWeight = JSON.parse(commonConfig.getValue("boxRewardWeight"));
         let randomIdx = ccTools.getWeightedRandomIndex(boxRewardWeight);
         this.boxNum = randomIdx;
@@ -219,9 +219,9 @@ export class UISuccess extends UIBase {
         gm.gameResume();
 
         let isShowDailyGift = Number(ccStorageTools.getLimitTimeData(SaveKey.isShowDailyGift)) == 0;
-        if(isShowDailyGift){
+        if (isShowDailyGift) {
             ccStorageTools.setLimitTimeData(SaveKey.isShowDailyGift, 1);
-            if(pData.getLimitTimeData(SaveKey.isGetDailyGift) != 1){
+            if (pData.getLimitTimeData(SaveKey.isGetDailyGift) != 1) {
                 uiMgr.openPage(UIPath.UIDailyGift);
             }
         }

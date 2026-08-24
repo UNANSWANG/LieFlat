@@ -115,7 +115,7 @@ export class UIFail extends UIBase {
 
     /**根据存活时间初始化失败基础奖励 */
     private initRewardNum(survivalTime: number) {
-        this.moneyNum = Math.floor(20 + 10 * survivalTime / 60);
+        this.moneyNum = 2 + (2 + pData.difficultyIndex) * Math.max(1, Math.ceil(survivalTime / 300));
         this.boxNum = 0;
     }
 

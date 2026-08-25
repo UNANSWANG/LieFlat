@@ -273,6 +273,16 @@ export class UIGame extends UIBase {
     private matchEnemySkinId: number = null;
     /**匹配界面产生的敌人昵称 */
     private matchEnemyNickname = "";
+    /**敌人模式中由玩家控制的敌人 */
+    private controlledEnemy: enemyBaseController = null;
+    /**敌人模式倒计时结束后是否持续跟随敌人 */
+    private isEnemyCameraFollowing = false;
+    /**敌人模式中六个机器人的难度类型，每种被抽中的类型恰好分配两人 */
+    private enemyModeRobotDifficultyTypes: number[] = [];
+
+    private get isEnemyMode() {
+        return pData.matchMode == 1;
+    }
     /**主角死亡消失动画是否正在播放 */
     isRoleDisappearPlaying: boolean = false;
     /**角色头像按钮状态 */
@@ -298,10 +308,10 @@ export class UIGame extends UIBase {
         ++this.openVersion;
         //获取匹配界面随机出的皮肤id
         this.matchRoleSkinIds = Array.isArray(data?.roleSkinIds)
-            ? data.roleSkinIds.filter((skinId) => Number.isInteger(skinId) && skinId >= 0).slice(0, 5)
+            ? data.roleSkinIds.filter((skinId) => Number.isInteger(skinId) && skinId >= 0).slice(0, 6)
             : [];
         this.matchRoleNicknames = Array.isArray(data?.roleNicknames)
-            ? data.roleNicknames.slice(0, 5).map((nickname) => typeof nickname == "string" ? nickname.trim() : "")
+            ? data.roleNicknames.slice(0, 6).map((nickname) => typeof nickname == "string" ? nickname.trim() : "")
             : [];
         this.matchEnemySkinId = Number.isInteger(data?.enemySkinId) && data.enemySkinId >= 0
             ? data.enemySkinId
@@ -459,11 +469,14 @@ export class UIGame extends UIBase {
         /**清除数据 */
         this.clearData();
 
-        this.rockerTouchNode.active = true;
+        this.rockerTouchNode.active = !this.isEnemyMode;
+        this.slideTouchNode.active = this.isEnemyMode;
         this.refreshMonetaryLab();
 
         this.initMapLayer();
         this.getMapObjectLayer();
+
+        this.initEnemyModeRobotDifficultyTypes();
 
         this.initRobot();
         this.initPlayer();
@@ -537,6 +550,9 @@ export class UIGame extends UIBase {
         ccTools.destroyAllChild(this.roleBtnLayout);
 
         playerMgr.player = null;
+        this.controlledEnemy = null;
+        this.isEnemyCameraFollowing = false;
+        this.enemyModeRobotDifficultyTypes = [];
         enemyMgr.enemyArr = [];
         enemyMgr.enemyId = 0;
         enemyMgr.enemyBornPosArr = [];
@@ -757,8 +773,21 @@ export class UIGame extends UIBase {
     initPlayer() {
         playerMgr.player = instantiate(this.rolePre);
         this.roleNode.addChild(playerMgr.player);
-        playerMgr.cameraFollow = true;
+        playerMgr.cameraFollow = !this.isEnemyMode;
         this.initRolePos(playerMgr.player);
+        if (this.isEnemyMode) {
+            // 复用原玩家节点作为第六个机器人，兼容房间和道具系统对 playerMgr 的引用。
+            let robotIndex = this.robotArr.length;
+            playerMgr.playerComp.init(
+                this,
+                robotIndex + 1,
+                this.matchRoleSkinIds[robotIndex],
+                this.matchRoleNicknames[robotIndex],
+                this.enemyModeRobotDifficultyTypes[robotIndex],
+            );
+            this.robotArr.push(playerMgr.playerComp);
+            return;
+        }
         playerMgr.playerComp.init(this, 0, pData.skinId);
         this.playerLastRoomIdx = this.getRoomIdxByTilePos(playerMgr.playerComp.currentPos);
     }
@@ -1624,8 +1653,24 @@ export class UIGame extends UIBase {
             this.robotArr.push(robotComp);
             this.initRolePos(robot);
             let skinId = this.matchRoleSkinIds[i];
-            robotComp.init(this, i + 1, skinId, this.matchRoleNicknames[i]);
+            robotComp.init(this, i + 1, skinId, this.matchRoleNicknames[i], this.enemyModeRobotDifficultyTypes[i]);
         }
+    }
+
+    /**敌人模式随机三种难度，并将每种难度各分配给两名机器人 */
+    private initEnemyModeRobotDifficultyTypes() {
+        this.enemyModeRobotDifficultyTypes = [];
+        if (!this.isEnemyMode) {
+            return;
+        }
+
+        let availableTypes = Array.from(new Set(pData.AIdifficultyTypes || []));
+        ccTools.shuffleArray(availableTypes);
+        let selectedTypes = availableTypes.slice(0, Math.min(3, availableTypes.length));
+        for (let i = 0; i < selectedTypes.length; i++) {
+            this.enemyModeRobotDifficultyTypes.push(selectedTypes[i], selectedTypes[i]);
+        }
+        ccTools.shuffleArray(this.enemyModeRobotDifficultyTypes);
     }
 
     /**初始化角色定位按钮 */
@@ -1640,7 +1685,7 @@ export class UIGame extends UIBase {
             this.createRoleBtn(this.robotArr[i]);
         }
 
-        if (playerMgr.playerComp) {
+        if (playerMgr.playerComp && !this.isEnemyMode) {
             this.createRoleBtn(playerMgr.playerComp);
         }
     }
@@ -1854,6 +1899,10 @@ export class UIGame extends UIBase {
         enemyMgr.enemyArr.push(enemyComp);
         let skinId = this.matchEnemySkinId;
         enemyComp.init(this, enemyMgr.enemyId, skinId, this.matchEnemyNickname);
+        enemyComp.setPlayerControlled(this.isEnemyMode);
+        if (this.isEnemyMode) {
+            this.controlledEnemy = enemyComp;
+        }
         enemyMgr.enemyId++;
 
         let randomIdx = Math.floor(Math.random() * enemyMgr.enemyBornPosArr.length);
@@ -2832,7 +2881,14 @@ export class UIGame extends UIBase {
 
         uiMgr.showTips("感染者开始行动");
         audioMgr.playEffect(audioPath.shangshikaichang);
-        enemyMgr.enemyArr[0]?.chooseTargetAndFindPath();
+        if (this.isEnemyMode) {
+            this.isEnemyCameraFollowing = true;
+            this.rockerTouchNode.active = true;
+            this.slideTouchNode.active = false;
+            this.rockerReset();
+        } else {
+            enemyMgr.enemyArr[0]?.chooseTargetAndFindPath();
+        }
     }
 
     /**刷新倒计时 */
@@ -2861,6 +2917,14 @@ export class UIGame extends UIBase {
     /**开始游戏倒计时 */
     startGameCountDown() {
         this.isGameStartCountDownEnd = false;
+        if (this.isEnemyMode) {
+            this.isEnemyCameraFollowing = false;
+            this.rockerTouchNode.active = false;
+            this.slideTouchNode.active = true;
+            if (this.controlledEnemy?.node) {
+                this.gameCameraComp?.setCameraPos(this.controlledEnemy.node.position, true);
+            }
+        }
         this.refreshRepairBtnVisible();
         this.gameStartCountDownTime = enemyCommonConfig.enemyStartTime;
         let timeLabel = this.timeNode.getChildByName("timeLab").getComponent(Label);
@@ -2872,6 +2936,10 @@ export class UIGame extends UIBase {
 
     /**刷新修复按钮显隐 */
     private refreshRepairBtnVisible() {
+        if (this.isEnemyMode) {
+            this.repairBtn.active = false;
+            return;
+        }
         this.repairBtn.active = this.isGameStartCountDownEnd && playerMgr.playerComp?.roomIdx > 0;
     }
 
@@ -2891,6 +2959,12 @@ export class UIGame extends UIBase {
     /**响应全局游戏继续 */
     private onGameResume() {
         this.isGamePause = false;
+
+        if (this.isEnemyMode) {
+            this.rockerTouchNode.active = this.isGameStartCountDownEnd;
+            this.slideTouchNode.active = !this.isGameStartCountDownEnd;
+            return;
+        }
 
         if (playerMgr.playerComp?.roomIdx > 0) {
             this.rockerTouchNode.active = false;
@@ -2925,7 +2999,11 @@ export class UIGame extends UIBase {
         rockerPoint.position = Vec3.ZERO;
 
         this.isMoving = false;
-        playerMgr.playerComp?.playRoleAnim(roleAnimName.idle, true);
+        if (this.isEnemyMode) {
+            this.controlledEnemy?.stopPlayerInputMove();
+        } else {
+            playerMgr.playerComp?.playRoleAnim(roleAnimName.idle, true);
+        }
     }
 
     /**限制坐标移动 */
@@ -3422,7 +3500,14 @@ export class UIGame extends UIBase {
         this.refreshRoleBtnAttackStateByInterval(dt);
 
         // 移动玩家（不使用vec3计算）
-        if (this.isMoving && playerMgr.playerComp?.state == roleState.normal && !playerMgr.playerComp.isMoveLocked) {
+        if (this.isEnemyMode) {
+            if (this.isEnemyCameraFollowing && this.controlledEnemy?.node) {
+                this.gameCameraComp?.setCameraPos(this.controlledEnemy.node.position);
+            }
+            if (this.isMoving) {
+                this.controlledEnemy?.moveByPlayerInput(this.currentMoveDirection, dt);
+            }
+        } else if (this.isMoving && playerMgr.playerComp?.state == roleState.normal && !playerMgr.playerComp.isMoveLocked) {
             let speed = this.isEnemyCanMove ? configData.moveSpeedGame : configData.moveSpeed;
             playerMgr.playerComp?.playRoleAnim(roleAnimName.move, true);
             //玩家移动
@@ -4066,6 +4151,9 @@ export class UIGame extends UIBase {
 
     /**点击角色定位按钮 */
     clickRoleBtn(roleId: number) {
+        if (this.isEnemyMode) {
+            return;
+        }
         if (!playerMgr.playerComp || playerMgr.playerComp.roomIdx <= 0) {
             return;
         }

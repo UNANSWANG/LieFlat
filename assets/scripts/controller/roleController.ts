@@ -228,7 +228,7 @@ export class roleController extends Component {
         this.roleNameLab = this.node.getChildByName("roleNameLab").getComponent(Label);
     }
 
-    init(comp: UIGame, id: number, skinId: number, nickname = "") {
+    init(comp: UIGame, id: number, skinId: number, nickname = "", difficultyType: number = -1) {
         this.moveLockOwners.clear();
         this.gameComp = comp;
         this.roleId = id;
@@ -238,7 +238,7 @@ export class roleController extends Component {
         this.state = roleState.normal;
         this.stopRobotUpgrade();
         this.resetDoorAttackUpgradeData();
-        this.initRobotDifficulty();
+        this.initRobotDifficulty(difficultyType);
         this.gamePropsBuildCountMap = {};
         this.clearTargetBedReservation();
         this.clearTargetRandomPropsReservation();
@@ -796,7 +796,7 @@ export class roleController extends Component {
     }
 
     /**初始化并记录本局机器人难度配置位置 */
-    private initRobotDifficulty() {
+    private initRobotDifficulty(forcedDifficultyType: number = -1) {
         this.robotDifficultyType = -1;
         this.robotDifficultyDataIdxMap = {};
         if (this.roleId == 0) {
@@ -807,7 +807,9 @@ export class roleController extends Component {
             return;
         }
 
-        this.robotDifficultyType = pData.AIdifficultyTypes[Math.floor(Math.random() * pData.AIdifficultyTypes.length)];
+        this.robotDifficultyType = pData.AIdifficultyTypes.indexOf(forcedDifficultyType) >= 0
+            ? forcedDifficultyType
+            : pData.AIdifficultyTypes[Math.floor(Math.random() * pData.AIdifficultyTypes.length)];
         let modes = [this.doorAttackConfigMode, this.doorIdleConfigMode];
         for (let i = 0; i < modes.length; i++) {
             let mode = modes[i];
@@ -816,6 +818,7 @@ export class roleController extends Component {
                 this.robotDifficultyDataIdxMap[mode] = Math.floor(Math.random() * typeDataArr.length);
             }
         }
+        console.warn("-------->初始化机器人难度配置:\n",this.robotDifficultyType);
     }
 
     /**获取机器人初始化时选中的难度配置 */

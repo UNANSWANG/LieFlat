@@ -166,6 +166,8 @@ export class enemyBaseController extends Component {
     private fireKillerSkinId: number = 0;
     /**死亡时的本局经过时间 */
     private survivalTime = 0;
+    /**是否由敌人模式玩家控制 */
+    private isPlayerControlled = false;
 
     ///
     ///节点
@@ -238,6 +240,59 @@ export class enemyBaseController extends Component {
         this.roleNameLab.string = nickname || `感染者${this.roleId + 1}`
     }
 
+    /**设置敌人模式下的玩家控制状态 */
+    setPlayerControlled(isControlled: boolean) {
+        this.isPlayerControlled = isControlled;
+        if (isControlled) {
+            this.clearTarget();
+            this.clearMovePath();
+            this.stopAttackPlayer();
+        }
+    }
+
+    /**敌人模式下按摇杆方向移动；遇到道具或角色时沿用敌人的攻击逻辑 */
+    moveByPlayerInput(direction: Vec3, dt: number) {
+        if (!this.isPlayerControlled || !this.gameComp?.isEnemyCanMove || !direction || this.isCageControlled || this.isNetControlled || this.isSawControlled) {
+            return;
+        }
+        if (this.isAttackingProps || this.isAttackingPlayer) {
+            this.stopAttackPlayer();
+            this.stopAttackProps();
+        }
+
+        let curPos = this.node.position;
+        let moveX = direction.x * enemyCommonConfig.enemyMoveSpeed * dt;
+        let moveY = direction.y * enemyCommonConfig.enemyMoveSpeed * dt;
+        let nextNodePos = new Vec3(curPos.x + moveX, curPos.y + moveY, curPos.z);
+        let nextTilePos = ccTools.getTileIndexByNodePos(nextNodePos);
+        if (!this.canEnemyWalk(nextTilePos.x, nextTilePos.y)) {
+            this.playRoleAnim(enemyAnim.idle, true);
+            return;
+        }
+
+        let targetRole = this.getRoleAtTile(nextTilePos);
+        if (targetRole) {
+            this.targetPlayer = targetRole;
+            this.startAttackPlayer();
+            return;
+        }
+        if (!this.canPassRoomDoorWithoutAttack(nextTilePos) && this.tryAttackTileProps(nextTilePos)) {
+            return;
+        }
+
+        this.refreshRoleAnimDirection(moveX);
+        this.playRoleAnim(enemyAnim.move, true);
+        this.node.setPosition(nextNodePos);
+        this.syncCurrentPosByNode();
+    }
+
+    /**停止敌人模式玩家的移动表现 */
+    stopPlayerInputMove() {
+        if (this.isPlayerControlled && !this.isAttackingProps && !this.isAttackingPlayer) {
+            this.playRoleAnim(enemyAnim.idle, true);
+        }
+    }
+
     /**根据皮肤id刷新敌人spine */
     private async refreshRoleSpine() {
         if (this.roleAnim) {
@@ -276,10 +331,12 @@ export class enemyBaseController extends Component {
         this.resumeRoleAnimAfterGamePause();
         this.updateUpgradeTimer(dt);
         this.updateRageSkill(dt);
-        if (this.updateReturnStartWait(dt)) {
+        if (!this.isPlayerControlled && this.updateReturnStartWait(dt)) {
             return;
         }
-        this.checkRepairHpState();
+        if (!this.isPlayerControlled) {
+            this.checkRepairHpState();
+        }
         this.updateDoorAttackTimeCheck(dt);
         this.updateThornDamage(dt);
         this.updateFireBurn(dt);
@@ -294,7 +351,9 @@ export class enemyBaseController extends Component {
             this.playRoleAnim(enemyAnim.idle, true);
             return;
         }
-        this.moveByPath(dt);
+        if (!this.isPlayerControlled) {
+            this.moveByPath(dt);
+        }
     }
 
     /**是否最大等级 */
@@ -2436,6 +2495,22 @@ export class enemyBaseController extends Component {
     /**目标角色是否有效 */
     private isTargetPlayerValid() {
         return this.isRoleTargetValid(this.targetPlayer);
+    }
+
+    /**获取指定瓦片上的角色，供敌人模式手动攻击使用 */
+    private getRoleAtTile(tilePos: Vec2) {
+        let roles: roleController[] = this.gameComp?.robotArr || [];
+        for (let i = 0; i < roles.length; i++) {
+            let role = roles[i];
+            if (this.isRoleTargetValid(role) && this.isTileSame(role.currentPos, tilePos)) {
+                return role;
+            }
+        }
+
+        let playerRole = playerMgr.playerComp;
+        return this.isRoleTargetValid(playerRole) && this.isTileSame(playerRole.currentPos, tilePos)
+            ? playerRole
+            : null;
     }
 
     /**指定瓦片是否是目标角色所在瓦片 */

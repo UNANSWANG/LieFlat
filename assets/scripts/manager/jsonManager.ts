@@ -10,12 +10,13 @@ import { cannonBuildConfig } from '../json/jsonCannonBuild';
 import { robotDifficultyConfig } from '../json/jsonRobotDifficulty';
 import { veinBuildConfig } from '../json/jsonVeinBuild';
 import { levelConfig } from '../json/jsonLevel';
+import { bossConfig } from '../json/jsonBoss';
 const { ccclass, property } = _decorator;
 
 @ccclass('jsonManager')
 export class jsonManager  {
     /**表格数量 */
-    tableNum = 9;
+    tableNum = 10;
     /**已加载的表格数量 */
     tableLoadNum = 0;
 
@@ -34,6 +35,7 @@ export class jsonManager  {
         cannonBuildConfig.initTable();
         veinBuildConfig.initTable();
         levelConfig.initTable();
+        bossConfig.initTable();
     }
 
     loadCall(name: string){

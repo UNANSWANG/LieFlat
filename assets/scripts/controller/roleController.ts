@@ -818,7 +818,6 @@ export class roleController extends Component {
                 this.robotDifficultyDataIdxMap[mode] = Math.floor(Math.random() * typeDataArr.length);
             }
         }
-        console.warn("-------->初始化机器人难度配置:\n",this.robotDifficultyType);
     }
 
     /**获取机器人初始化时选中的难度配置 */

@@ -38,7 +38,7 @@ export class UIBossMode extends UIBase {
 
     initData() {
         this.debrisNumLab.string = pData.debris.toString();
-        this.debrisTargetLab.string =  "/"+ configData.enemyModeDebrisNum.toString();
+        this.debrisTargetLab.string = "/" + configData.enemyModeDebrisNum.toString();
     }
 
     bindBtn() {
@@ -53,18 +53,18 @@ export class UIBossMode extends UIBase {
 
     /**点击开始按钮 */
     clickStartBtn() {
-        if(pData.debris < configData.enemyModeDebrisNum){
+        if (pData.debris < configData.enemyModeDebrisNum) {
             uiMgr.showTips(`碎片不足${pData.debris}/${configData.enemyModeDebrisNum}`);
             return;
         }
 
         this.onClose();
-        uiMgr.openPage(UIPath.UIMatch);
+        uiMgr.openPage(UIPath.UIMatch, { mode: 1 });
     }
 
     /**点击商店按钮 */
     clickStoreBtn() {
-        uiMgr.openPage(UIPath.UISkinStore);
+        uiMgr.openPage(UIPath.UISkinStore, { type: 1 });
     }
 
     /**点击关闭 */

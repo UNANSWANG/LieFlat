@@ -28,6 +28,8 @@ export class UIStore extends UIBase {
 
     /**当前选中的商城类型 */
     currentTypeIdx: number = 0;
+    /**默认的敌人皮肤id */
+    defaultEnemySkinId: number = 1;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -41,13 +43,16 @@ export class UIStore extends UIBase {
         gm.Event.off(GameEvent.refreshProps, this.refreshList, this);
     }
 
-    onUI_Open() {
+    onUI_Open($data) {
         let anim = this.getComponent(Animation);
         anim.play();
-        this.initData();
+        this.initData($data);
     }
 
-    initData() {
+    initData(data) {
+        if(data && data.mode == 1){
+            
+        }
         this.refreshPage();
         this.SDKAdReport();
         this.refreshList();

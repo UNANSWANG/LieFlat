@@ -62,6 +62,8 @@ export class playerData {
     gameStartTime = 0;
     /**当前匹配模式 0：常规模式 1：敌人模式 */
     matchMode = 0;
+    /**敌人模式的当前敌人皮肤id */
+    enemySkinId = 0;
 
     levelInit() {
         pData.adNum = 0;

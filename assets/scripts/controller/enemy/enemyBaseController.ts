@@ -76,6 +76,8 @@ export class enemyBaseController extends Component {
     private attackingTilePos: Vec2 = null;
     /**是否正在播放攻击道具动画 */
     private isAttackingProps: boolean = false;
+    /**敌人模式下本轮攻击动作锁定的道具坐标 */
+    private playerControlledAttackTargetPos: Vec2 = null;
     /**已通知进入攻击状态的房门坐标 */
     private attackingDoorTilePos: Vec2 = null;
     /**当前连续攻击门期间是否已经触发过震慑 */
@@ -255,9 +257,8 @@ export class enemyBaseController extends Component {
         if (!this.isPlayerControlled || !this.gameComp?.isEnemyCanMove || !direction || this.isCageControlled || this.isNetControlled || this.isSawControlled) {
             return;
         }
-        if (this.isAttackingProps || this.isAttackingPlayer) {
+        if (this.isAttackingPlayer) {
             this.stopAttackPlayer();
-            this.stopAttackProps();
         }
 
         let curPos = this.node.position;
@@ -272,12 +273,16 @@ export class enemyBaseController extends Component {
             this.startAttackPlayer();
             return;
         }
-        if (this.tryAttackTileProps(nextTilePos)) {
-            return;
+        // 敌人模式下，打开的房门只作为可通行格，不触发攻击。
+        // 已到达道具邻格即可开始攻击；攻击动画期间仍允许继续移动。
+        if (!this.isAttackingProps) {
+            this.tryStartPlayerControlledPropsAttack(nextTilePos);
         }
 
         this.refreshRoleAnimDirection(moveX);
-        this.playRoleAnim(enemyAnim.move, true);
+        if (!this.isAttackingProps) {
+            this.playRoleAnim(enemyAnim.move, true);
+        }
         let limitPos = this.gameComp.limitMoveMatrixPos(
             new Vec3(moveX, moveY, 0),
             20,
@@ -288,6 +293,10 @@ export class enemyBaseController extends Component {
         );
         if (limitPos) {
             this.node.setPosition(limitPos);
+        }
+
+        if (!this.isAttackingProps) {
+            this.tryStartPlayerControlledPropsAttack();
         }
     }
 
@@ -1469,6 +1478,60 @@ export class enemyBaseController extends Component {
         return !doorComp.isClose || this.isRoomEmpty(roomIdx);
     }
 
+    /**指定坐标是否为打开的房门 */
+    private isOpenRoomDoor(tilePos: Vec2) {
+        if (!tilePos) {
+            return false;
+        }
+
+        let tileItem = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.item;
+        if (!tileItem || tileItem.tileType != tilePropsType.door) {
+            return false;
+        }
+
+        let doorComp = tileItem.propsComp as doorProps;
+        return !!doorComp && !doorComp.isClose;
+    }
+
+    /**敌人模式下，获取当前所在十字范围内可攻击的道具坐标 */
+    private getPlayerControlledAttackablePropsPos(preferredPos: Vec2 = null) {
+        if (this.isAttackablePropsAtPlayerControlledPos(preferredPos)) {
+            return preferredPos;
+        }
+
+        for (let offsetY = -1; offsetY <= 1; offsetY++) {
+            for (let offsetX = -1; offsetX <= 1; offsetX++) {
+                let tilePos = this.tempPathTilePos;
+                tilePos.set(this.currentPos.x + offsetX, this.currentPos.y + offsetY);
+                if (this.isAttackablePropsAtPlayerControlledPos(tilePos)) {
+                    return new Vec2(tilePos.x, tilePos.y);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**指定坐标是否为敌人模式下当前十字攻击范围内的道具 */
+    private isAttackablePropsAtPlayerControlledPos(tilePos: Vec2) {
+        if (!tilePos || !this.isTileAround(this.currentPos, tilePos) || this.isOpenRoomDoor(tilePos)) {
+            return false;
+        }
+
+        return !!this.getTilePropComp(tilePos);
+    }
+
+    /**尝试开始攻击当前所在十字范围内的道具 */
+    private tryStartPlayerControlledPropsAttack(preferredPos: Vec2 = null) {
+        let tilePos = this.getPlayerControlledAttackablePropsPos(preferredPos);
+        if (!tilePos || !this.tryAttackTileProps(tilePos)) {
+            return false;
+        }
+
+        this.playerControlledAttackTargetPos = new Vec2(tilePos.x, tilePos.y);
+        return true;
+    }
+
     /**被铡刀处决 */
     executeBySaw(killerSkinId?: number) {
         if (this.hp <= 0 || this.isPlayingDeathDisappear) {
@@ -1651,6 +1714,7 @@ export class enemyBaseController extends Component {
         this.notifyDoorAttackStopped();
         this.isAttackingProps = false;
         this.attackingTilePos = null;
+        this.playerControlledAttackTargetPos = null;
         this.hasFearCurAttackDoor = false;
         this.hasVibratedCurAttackDoor = false;
         this.isForceAttackingDoor = false;
@@ -2122,6 +2186,11 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        if (this.isPlayerControlled && this.isAttackingProps) {
+            this.finishPlayerControlledPropsAttack();
+            return;
+        }
+
         this.refreshNextAttackAnimDurationScale();
     }
 
@@ -2137,19 +2206,46 @@ export class enemyBaseController extends Component {
             return;
         }
 
-        if (this.tryStartRageSkill()) {
+        let attackTargetPos = this.isPlayerControlled ? this.playerControlledAttackTargetPos : this.attackingTilePos;
+        if (!attackTargetPos) {
             return;
         }
 
-        let tilePos = new Vec2(this.attackingTilePos.x, this.attackingTilePos.y);
+        let tilePos = new Vec2(attackTargetPos.x, attackTargetPos.y);
         let propComp = this.getTilePropComp(tilePos);
         if (!propComp) {
+            // 敌人模式中，即使目标已被其他效果清除，也要等待本轮攻击动作播放结束后再切换状态。
+            if (this.isPlayerControlled) {
+                return;
+            }
             this.stopAttackProps();
             this.playRoleAnim(enemyAnim.move, true);
             return;
         }
 
+        // 敌人模式下，攻击帧触发时仍在目标所在格或其上下左右四格内，才结算伤害。
+        if (this.isPlayerControlled && !this.isTileAround(this.currentPos, attackTargetPos)) {
+            return;
+        }
+
+        if (this.tryStartRageSkill()) {
+            return;
+        }
+
         this.attackProps(propComp, tilePos);
+    }
+
+    /**敌人模式下，一轮攻击动画结束后决定是否继续攻击相邻道具 */
+    private finishPlayerControlledPropsAttack() {
+        let nextAttackPos = this.getPlayerControlledAttackablePropsPos(this.playerControlledAttackTargetPos);
+        if (!nextAttackPos) {
+            this.stopAttackProps();
+            this.playRoleAnim(enemyAnim.idle, true);
+            return;
+        }
+
+        this.tryStartPlayerControlledPropsAttack(nextAttackPos);
+        this.refreshNextAttackAnimDurationScale();
     }
 
     /**击杀当前目标角色 */
@@ -2531,6 +2627,12 @@ export class enemyBaseController extends Component {
     /**两个瓦片坐标是否相同 */
     private isTileSame(posA: Vec2, posB: Vec2) {
         return posA && posB && posA.x == posB.x && posA.y == posB.y;
+    }
+
+    /**指定瓦片是否位于目标所在格或其上下左右四格 */
+    private isTileAround(tilePos: Vec2, targetPos: Vec2) {
+        return !!tilePos && !!targetPos
+            && Math.abs(tilePos.x - targetPos.x) + Math.abs(tilePos.y - targetPos.y) <= 1;
     }
 
     /**清空移动路径 */

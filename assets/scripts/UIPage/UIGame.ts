@@ -3139,15 +3139,25 @@ export class UIGame extends UIBase {
         return pData.mapHalfSize.y - (tileY + 1) * configData.tileSize;
     }
 
-    /**限制矩形区域移动，默认检测宽20高25且比玩家节点y坐标高8的矩形 */
-    limitMoveMatrixPos(offsetPos: Vec3, matrixWidth = 20, matrixHeight = 25, matrixOffsetPos: Vec2 = this.defaultMoveMatrixOffset) {
+    /**限制矩形区域移动，默认检测宽20高25且比角色节点y坐标高8的矩形 */
+    limitMoveMatrixPos(
+        offsetPos: Vec3,
+        matrixWidth = 20,
+        matrixHeight = 25,
+        matrixOffsetPos: Vec2 = this.defaultMoveMatrixOffset,
+        moveNode: Node = playerMgr.player,
+        moveTilePos: Vec2 = playerMgr.playerComp?.currentPos,
+    ) {
+        if (!moveNode || !moveTilePos) {
+            return null;
+        }
         // 复用成员向量，避免角色移动期间每帧创建临时坐标
         let limitPos = this.tempLimitedPlayerPos;
-        limitPos.set(playerMgr.player.position.x, playerMgr.player.position.y, 0);
+        limitPos.set(moveNode.position.x, moveNode.position.y, 0);
         let halfWidth = matrixWidth / 2;
         let halfHeight = matrixHeight / 2;
         let edgeOffset = 0.001;
-        let currentTilePos = ccTools.getTileIndexByNodePos(playerMgr.player.position, this.tempCurrentMoveTilePos);
+        let currentTilePos = ccTools.getTileIndexByNodePos(moveNode.position, this.tempCurrentMoveTilePos);
 
         if (offsetPos.x != 0) {
             limitPos.x += offsetPos.x;
@@ -3213,7 +3223,7 @@ export class UIGame extends UIBase {
         }
 
         ccTools.getTileIndexByNodePos(limitPos, this.tempCurrentMoveTilePos);
-        playerMgr.playerComp.currentPos.set(this.tempCurrentMoveTilePos);
+        moveTilePos.set(this.tempCurrentMoveTilePos);
         return limitPos;
     }
 

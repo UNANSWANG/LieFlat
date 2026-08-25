@@ -265,10 +265,6 @@ export class enemyBaseController extends Component {
         let moveY = direction.y * enemyCommonConfig.enemyMoveSpeed * dt;
         let nextNodePos = new Vec3(curPos.x + moveX, curPos.y + moveY, curPos.z);
         let nextTilePos = ccTools.getTileIndexByNodePos(nextNodePos);
-        if (!this.canEnemyWalk(nextTilePos.x, nextTilePos.y)) {
-            this.playRoleAnim(enemyAnim.idle, true);
-            return;
-        }
 
         let targetRole = this.getRoleAtTile(nextTilePos);
         if (targetRole) {
@@ -276,14 +272,23 @@ export class enemyBaseController extends Component {
             this.startAttackPlayer();
             return;
         }
-        if (!this.canPassRoomDoorWithoutAttack(nextTilePos) && this.tryAttackTileProps(nextTilePos)) {
+        if (this.tryAttackTileProps(nextTilePos)) {
             return;
         }
 
         this.refreshRoleAnimDirection(moveX);
         this.playRoleAnim(enemyAnim.move, true);
-        this.node.setPosition(nextNodePos);
-        this.syncCurrentPosByNode();
+        let limitPos = this.gameComp.limitMoveMatrixPos(
+            new Vec3(moveX, moveY, 0),
+            20,
+            25,
+            undefined,
+            this.node,
+            this.currentPos,
+        );
+        if (limitPos) {
+            this.node.setPosition(limitPos);
+        }
     }
 
     /**停止敌人模式玩家的移动表现 */

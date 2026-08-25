@@ -41,16 +41,14 @@ export class UIStore extends UIBase {
         gm.Event.off(GameEvent.refreshProps, this.refreshList, this);
     }
 
-    onUI_Open($data) {
+    onUI_Open() {
         let anim = this.getComponent(Animation);
         anim.play();
-        this.initData($data);
+        this.initData();
     }
 
-    initData(data) {
-        if(data && data.mode == 1){
-            
-        }
+    initData() {
+        
         this.refreshPage();
         this.SDKAdReport();
         this.refreshList();

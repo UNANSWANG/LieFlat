@@ -55,14 +55,17 @@ export class UISkinStore extends UIBase {
         this.bindActionBtn();
     }
 
-    onUI_Open() {
+    onUI_Open($data) {
         let anim = this.getComponent(Animation);
         anim.play();
-        this.initData();
+        this.initData($data);
     }
 
     /** 初始化数据 */
-    initData() {
+    initData(data) {
+        if(data && data.mode == 1){
+            
+        }
         if (!this.isInit) {
             this.isInit = true;
             this.loadSkinData();

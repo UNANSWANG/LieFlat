@@ -23,13 +23,23 @@ export class UIDebris extends UIBase {
     exchangeBtn: Node;
 
     @property(Label)
-    numLab: Label;
+    moneyNumLab: Label;
 
+    @property(Label)
+    debrisNumLab1: Label;
+
+    @property(Label)
+    debrisNumLab2: Label;
+
+    /**感染币兑换碎片数量 */
     moneyToDebrisNum: number = 0;
+    /**广告碎片数量 */  
+    adDebrisNum: number = 0;
 
     protected onLoad(): void {
         this.bindBtn();
         this.moneyToDebrisNum = commonConfig.getValueNumber("moneyToDebrisNum");
+        this.adDebrisNum = commonConfig.getValueNumber("adDebrisNum");
     }
 
     onUI_Open() {
@@ -39,7 +49,9 @@ export class UIDebris extends UIBase {
     }
 
     initData() {
-        this.numLab.string = 'x' + this.moneyToDebrisNum;
+        this.moneyNumLab.string = '*' + this.moneyToDebrisNum;
+        this.debrisNumLab1.string = '碎片x' + this.adDebrisNum;
+        this.debrisNumLab2.string = '碎片x1';
         this.SDKAdReport();
         this.refreshRewardBtn();
     }
@@ -58,6 +70,7 @@ export class UIDebris extends UIBase {
     /**领取碎片奖励 */
     private getDebrisReward(num) {
         pData.fixDebris(num);
+        uiMgr.showTips("获得感染者碎片x" + num);
     }
 
     /**广告点上报 */
@@ -88,7 +101,7 @@ export class UIDebris extends UIBase {
     /**点击广告按钮 */
     clickAdBtn() {
         videoMgr.watchVideo(68, () => {
-            this.getDebrisReward(commonConfig.getValueNumber("adDebrisNum"));
+            this.getDebrisReward(this.adDebrisNum);
         }, () => {
            uiMgr.showTips("视频播放失败");
         });

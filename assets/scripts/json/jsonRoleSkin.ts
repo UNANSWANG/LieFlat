@@ -16,26 +16,44 @@ export class jsonRoleSkin extends jsonBase {
 
     isInit = false;
     _defaultSkinId: number = 0;
-    get defaultSkinId() : number{
-        if(!this.isInit){
-            for(let i = 0; i < this.roleSkinAllData.length; i++){
-                let skin = this.roleSkinAllData[i];
-                if(skin.isDefault == 1){
-                    this._defaultSkinId = skin.skinId;
-                    break;
-                }
-            }
-
-            this.isInit = true;
-            return this._defaultSkinId;
-        }else{
-            return this._defaultSkinId;
+    _defaultEnemySkinId: number = 0;
+    get defaultSkinId(): number {
+        if (!this.isInit) {
+            this.calcDefaultSkinIds();
         }
+        return this._defaultSkinId;
+    }
+    /**敌人皮肤默认id（type=1 且 isDefault=1 的那条） */
+    get defaultEnemySkinId(): number {
+        if (!this.isInit) {
+            this.calcDefaultSkinIds();
+        }
+        return this._defaultEnemySkinId;
     }
 
-    /**根据皮肤id获取皮肤数据 */
-    getSkinDataById(skinId: number) : JsonRoleSkinData {
-        return this.roleSkinAllData?.find((item) => item.skinId == skinId) || null;
+    /**根据皮肤id获取皮肤数据（同时支持角色与敌人） */
+    getSkinDataById(skinId: number, mode: number = 0): JsonRoleSkinData {
+        let list = mode == 1 ? this.enemySkinAllData : this.roleSkinAllData;
+        return list?.find((item) => item.skinId == skinId) || null;
+    }
+
+    /**遍历两张表，计算默认皮肤id */
+    private calcDefaultSkinIds() {
+        for (let i = 0; i < this.roleSkinAllData.length; i++) {
+            let skin = this.roleSkinAllData[i];
+            if (skin.isDefault == 1) {
+                this._defaultSkinId = skin.skinId;
+                break;
+            }
+        }
+        for (let i = 0; i < this.enemySkinAllData.length; i++) {
+            let skin = this.enemySkinAllData[i];
+            if (skin.isDefault == 1) {
+                this._defaultEnemySkinId = skin.skinId;
+                break;
+            }
+        }
+        this.isInit = true;
     }
 
     protected processTableData(): void {
@@ -48,12 +66,12 @@ export class jsonRoleSkin extends jsonBase {
                 this.enemySkinAllData.push(item);
             }
         }
-        pData.initSkinData(this.defaultSkinId);
+        pData.initSkinData(this.defaultSkinId, this.defaultEnemySkinId);
     }
 }
 export let roleSkinConfig = new jsonRoleSkin();
 
-interface JsonRoleSkinData {
+export interface JsonRoleSkinData {
     /**类型 */
     type: number;
     /**皮肤id */

@@ -40,6 +40,10 @@ export class playerData {
     skinId = 0;
     /**已解锁角色皮肤 */
     unlockedRoleSkin: { [key: string]: boolean } = {};
+    /**当前敌人皮肤id（敌人模式） */
+    enemySkinId = 0;
+    /**已解锁敌人皮肤 */
+    unlockedEnemySkin: { [key: string]: boolean } = {};
     /**云端限时数据（每日0点重置），格式与 storageTools 一致：{ key: 值, key_time: 记录当天0点时间戳 } */
     limitTimeData: { [key: string]: any } = {};
     /**是否为引导关 */
@@ -50,6 +54,8 @@ export class playerData {
     difficultyIndex = -1;
     /**角色默认皮肤id，角色皮肤表加载后赋值 */
     private defaultSkinId: number = null;
+    /**敌人默认皮肤id，角色皮肤表加载后赋值 */
+    private defaultEnemySkinId: number = null;
     /**是否已经收到登录接口下发的游戏数据 */
     private isGameDataLoaded = false;
     /**游戏数据上报状态，避免连续修改产生乱序覆盖 */
@@ -62,8 +68,6 @@ export class playerData {
     gameStartTime = 0;
     /**当前匹配模式 0：常规模式 1：敌人模式 */
     matchMode = 0;
-    /**敌人模式的当前敌人皮肤id */
-    enemySkinId = 0;
 
     levelInit() {
         pData.adNum = 0;
@@ -483,9 +487,10 @@ export class playerData {
         gm.Event.emit(GameEvent.refreshPlayerMonetary);
     }
 
-    /**初始化当前穿戴皮肤 */
-    initSkinData(defaultSkinId: number) {
+    /**初始化当前穿戴皮肤（角色与敌人） */
+    initSkinData(defaultSkinId: number, defaultEnemySkinId: number = 0) {
         this.defaultSkinId = defaultSkinId;
+        this.defaultEnemySkinId = defaultEnemySkinId;
         if (!this.isGameDataLoaded) {
             return;
         }
@@ -519,10 +524,38 @@ export class playerData {
         this.reportGame();
     }
 
-    /**设置全皮肤拥有 */
+    /**判断敌人皮肤是否已解锁 */
+    isEnemySkinUnlocked(skinId: number) {
+        return !!this.unlockedEnemySkin[skinId + ""];
+    }
+
+    /**设置敌人皮肤解锁状态 */
+    setEnemySkinUnlocked(skinId: number, unlocked = true) {
+        let key = skinId + "";
+        if (!!this.unlockedEnemySkin[key] == unlocked) {
+            return;
+        }
+
+        this.unlockedEnemySkin[key] = unlocked;
+        this.reportGame();
+    }
+
+    /**设置当前穿戴敌人皮肤 */
+    setEnemySkinId(skinId: number) {
+        let isChanged = this.enemySkinId != skinId;
+        this.enemySkinId = skinId;
+        if (isChanged) {
+            this.reportGame();
+        }
+    }
+
+    /**设置全皮肤拥有（角色与敌人） */
     getAllSkin() {
         for (let i = 0; i < configData.roleSkinCount; i++) {
             this.unlockedRoleSkin[i + ""] = true;
+        }
+        for (let i = 0; i < configData.enemySkinCount; i++) {
+            this.unlockedEnemySkin[i + ""] = true;
         }
 
         this.reportGame();
@@ -586,9 +619,15 @@ export class playerData {
         this.unlockedRoleSkin = gameExt.unlockedRoleSkin && typeof gameExt.unlockedRoleSkin == "object"
             ? Object.assign({}, gameExt.unlockedRoleSkin)
             : {};
+        this.unlockedEnemySkin = gameExt.unlockedEnemySkin && typeof gameExt.unlockedEnemySkin == "object"
+            ? Object.assign({}, gameExt.unlockedEnemySkin)
+            : {};
         this.skinId = Number.isInteger(+gameExt.skinId) && +gameExt.skinId >= 0
             ? +gameExt.skinId
             : this.defaultSkinId;
+        this.enemySkinId = Number.isInteger(+gameExt.enemySkinId) && +gameExt.enemySkinId >= 0
+            ? +gameExt.enemySkinId
+            : this.defaultEnemySkinId;
         this.limitTimeData = gameExt.limitTimeData && typeof gameExt.limitTimeData == "object" && !Array.isArray(gameExt.limitTimeData)
             ? Object.assign({}, gameExt.limitTimeData)
             : {};
@@ -617,20 +656,32 @@ export class playerData {
         this.reportGame();
     }
 
-    /**补全新用户的默认皮肤数据 */
+    /**补全新用户的默认皮肤数据（角色与敌人） */
     private completeSkinData() {
-        if (this.defaultSkinId == null) {
+        if (this.defaultSkinId == null && this.defaultEnemySkinId == null) {
             return;
         }
 
         let isChanged = false;
-        if (!Number.isInteger(this.skinId) || this.skinId < 0) {
-            this.skinId = this.defaultSkinId;
-            isChanged = true;
+        if (this.defaultSkinId != null) {
+            if (!Number.isInteger(this.skinId) || this.skinId < 0) {
+                this.skinId = this.defaultSkinId;
+                isChanged = true;
+            }
+            if (!this.isSkinUnlocked(this.defaultSkinId)) {
+                this.unlockedRoleSkin[this.defaultSkinId + ""] = true;
+                isChanged = true;
+            }
         }
-        if (!this.isSkinUnlocked(this.defaultSkinId)) {
-            this.unlockedRoleSkin[this.defaultSkinId + ""] = true;
-            isChanged = true;
+        if (this.defaultEnemySkinId != null) {
+            if (!Number.isInteger(this.enemySkinId) || this.enemySkinId < 0) {
+                this.enemySkinId = this.defaultEnemySkinId;
+                isChanged = true;
+            }
+            if (!this.isEnemySkinUnlocked(this.defaultEnemySkinId)) {
+                this.unlockedEnemySkin[this.defaultEnemySkinId + ""] = true;
+                isChanged = true;
+            }
         }
 
         if (isChanged) {
@@ -674,6 +725,8 @@ export class playerData {
                 ext: {
                     skinId: this.skinId,
                     unlockedRoleSkin: Object.assign({}, this.unlockedRoleSkin),
+                    enemySkinId: this.enemySkinId,
+                    unlockedEnemySkin: Object.assign({}, this.unlockedEnemySkin),
                     debris: this.debris,
                     propsNums: Object.assign({}, this.propsNums),
                     limitTimeData: Object.assign({}, this.limitTimeData),

@@ -288,7 +288,12 @@ export class UIMatch extends UIBase {
         }
 
         if (target.type == "enemy") {
-            this.enemySkinId = ccTools.getRandomNum(0, configData.enemySkinCount);
+            // 敌人模式下使用玩家已穿戴的敌人皮肤，否则随机
+            if (pData.matchMode == 1 && Number.isInteger(pData.enemySkinId)) {
+                this.enemySkinId = pData.enemySkinId;
+            } else {
+                this.enemySkinId = ccTools.getRandomNum(0, configData.enemySkinCount);
+            }
             this.enemyNickname = nickname;
             this.showBossAnim(target.node, this.enemySkinId);
             return;

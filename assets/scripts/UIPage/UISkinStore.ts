@@ -3,7 +3,7 @@ import { UIBase } from './UIBase';
 import { imgPath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { zoomButton } from '../extention/zoomButton';
-import { roleSkinConfig } from '../json/jsonRoleSkin';
+import { roleSkinConfig, JsonRoleSkinData } from '../json/jsonRoleSkin';
 import { roleSkinItemController } from '../controller/item/roleSkinItemController';
 import { ccTools } from '../extention/generalTools';
 import { pData } from '../manager/playerData';
@@ -37,7 +37,11 @@ export class UISkinStore extends UIBase {
     selectId: number = 0;
     /** 是否完成过初始化 */
     isInit = false;
-    /** 已解锁皮肤缓存 */
+    /** 当前界面模式：0=角色皮肤，1=敌人皮肤 */
+    private mode: number = 0;
+    /** 上次初始化时的模式，用于模式切换时重建列表 */
+    private lastMode: number = -1;
+    /** 已解锁皮肤缓存（根据模式读取角色或敌人） */
     private unlockedSkinMap: { [key: string]: boolean } = {};
 
     /** 公共操作区按钮 */
@@ -63,8 +67,16 @@ export class UISkinStore extends UIBase {
 
     /** 初始化数据 */
     initData(data) {
-        if(data && data.mode == 1){
-            
+        if (data && data.type == 1) {
+            this.mode = 1;
+        } else {
+            this.mode = 0;
+        }
+        // 模式切换时需要重建列表与状态
+        if (this.lastMode != this.mode) {
+            this.lastMode = this.mode;
+            this.isInit = false;
+            this.scrol.content && ccTools.destroyAllChild(this.scrol.content);
         }
         if (!this.isInit) {
             this.isInit = true;
@@ -102,6 +114,7 @@ export class UISkinStore extends UIBase {
     initList() {
         if (this.scrol.content.children.length <= 0) {
             let skinList = this.getSortedSkinList();
+            let imgPre = this.mode == 1 ? imgPath.enemyBodyFull : imgPath.roleBodyFull;
             for (let i = 0; i < skinList.length; i++) {
                 let item = instantiate(this.itemPre);
                 this.scrol.content.addChild(item);
@@ -109,7 +122,7 @@ export class UISkinStore extends UIBase {
                 comp.skinId = skinList[i].skinId;
                 let roleImg = item.getChildByName("roleImg")?.getComponent(Sprite);
                 if (roleImg) {
-                    ccTools.loadImg(roleImg, imgPath.roleBodyFull + comp.skinId);
+                    ccTools.loadImg(roleImg, imgPre + comp.skinId);
                 }
                 this.bindItemSelect(item, comp.skinId);
             }
@@ -117,9 +130,16 @@ export class UISkinStore extends UIBase {
         this.refreshList();
     }
 
+    /** 获取当前模式下的皮肤数据列表 */
+    private getCurrentSkinList(): JsonRoleSkinData[] {
+        return this.mode == 1
+            ? roleSkinConfig.enemySkinAllData.concat()
+            : roleSkinConfig.roleSkinAllData.concat();
+    }
+
     /** 获取排序后的皮肤列表：已拥有在前，组内保持表格顺序 */
     private getSortedSkinList() {
-        let skinList = roleSkinConfig.roleSkinAllData.concat();
+        let skinList = this.getCurrentSkinList();
         skinList.sort((a, b) => {
             let aUnlock = this.isSkinUnlocked(a.skinId) ? 1 : 0;
             let bUnlock = this.isSkinUnlocked(b.skinId) ? 1 : 0;
@@ -136,13 +156,24 @@ export class UISkinStore extends UIBase {
 
     /** 读取登录接口下发的皮肤数据 */
     private loadSkinData() {
-        this.unlockedSkinMap = pData.unlockedRoleSkin;
-        this.selectId = pData.skinId;
+        if (this.mode == 1) {
+            this.unlockedSkinMap = pData.unlockedEnemySkin;
+            this.selectId = pData.enemySkinId;
 
-        this.unlockSkin(roleSkinConfig.defaultSkinId, false);
-        if (!this.isSkinUnlocked(pData.skinId)) {
-            pData.setSkinId(roleSkinConfig.defaultSkinId);
+            this.unlockSkin(roleSkinConfig.defaultEnemySkinId, false);
+            if (!this.isSkinUnlocked(pData.enemySkinId)) {
+                pData.setEnemySkinId(roleSkinConfig.defaultEnemySkinId);
+                this.selectId = pData.enemySkinId;
+            }
+        } else {
+            this.unlockedSkinMap = pData.unlockedRoleSkin;
             this.selectId = pData.skinId;
+
+            this.unlockSkin(roleSkinConfig.defaultSkinId, false);
+            if (!this.isSkinUnlocked(pData.skinId)) {
+                pData.setSkinId(roleSkinConfig.defaultSkinId);
+                this.selectId = pData.skinId;
+            }
         }
     }
 
@@ -159,7 +190,8 @@ export class UISkinStore extends UIBase {
         let select = item.getChildByName("select");
         let lockNode = item.getChildByName("lockNode");
 
-        if (gou) gou.active = skinId == pData.skinId;
+        let currentSkinId = this.mode == 1 ? pData.enemySkinId : pData.skinId;
+        if (gou) gou.active = skinId == currentSkinId;
         if (select) select.active = skinId == this.selectId;
         if (lockNode) lockNode.active = !isUnlocked;
     }
@@ -171,14 +203,22 @@ export class UISkinStore extends UIBase {
         }
 
         this.showRoleSkin.skeletonData = null;
-        let isLoaded = await ccTools.loadSpine(this.showRoleSkin, spinePath.role + this.selectId);
+        let spinePre = this.mode == 1 ? spinePath.boss : spinePath.role;
+        let isLoaded = await ccTools.loadSpine(this.showRoleSkin, spinePre + this.selectId);
         if (!isLoaded) {
             return;
         }
 
         this.showRoleSkin.setAnimation(0, roleAnimName.idle, true);
 
-        this.nameLab.string = roleSkinConfig.getSkinDataById(this.selectId)?.name || "";
+        let scale = 4.5;
+        if(this.mode == 1 && this.selectId == 2){
+            scale = 3.5;
+        }
+
+        this.showRoleSkin.node.setScale(scale, scale, 1);
+
+        this.nameLab.string = roleSkinConfig.getSkinDataById(this.selectId, this.mode)?.name || "";
     }
 
     /** 更新提示节点宽度 */
@@ -203,7 +243,7 @@ export class UISkinStore extends UIBase {
 
     /** 刷新公共操作区按钮 */
     private refreshActionNodes() {
-        let skinData = roleSkinConfig.getSkinDataById(this.selectId);
+        let skinData = roleSkinConfig.getSkinDataById(this.selectId, this.mode);
         let isUnlocked = this.isSkinUnlocked(this.selectId);
         let buyLab = this.buyBtn?.getComponentInChildren(Label);
 
@@ -216,8 +256,10 @@ export class UISkinStore extends UIBase {
             return;
         }
 
+        let currentSkinId = this.mode == 1 ? pData.enemySkinId : pData.skinId;
+
         if (isUnlocked) {
-            if (this.selectId == pData.skinId) {
+            if (this.selectId == currentSkinId) {
                 if (this.tipsNode) this.tipsNode.active = true;
                 this.refreshTipsNodeSize("已穿戴");
                 return;
@@ -251,14 +293,20 @@ export class UISkinStore extends UIBase {
         }
     }
 
-    /** 判断皮肤是否已解锁 */
+    /** 判断皮肤是否已解锁（根据模式读取角色或敌人） */
     private isSkinUnlocked(skinId: number) {
-        return !!this.unlockedSkinMap[skinId + ""];
+        return this.mode == 1
+            ? pData.isEnemySkinUnlocked(skinId)
+            : pData.isSkinUnlocked(skinId);
     }
 
     /** 解锁皮肤并上报云端 */
     private unlockSkin(skinId: number, refresh = true) {
-        pData.setSkinUnlocked(skinId);
+        if (this.mode == 1) {
+            pData.setEnemySkinUnlocked(skinId);
+        } else {
+            pData.setSkinUnlocked(skinId);
+        }
         if (refresh) {
             this.rebuildList();
         }
@@ -275,7 +323,7 @@ export class UISkinStore extends UIBase {
 
     /** 按条件解锁皮肤 */
     private clickUnlockBtn(skinId: number, limitType: number) {
-        let skinData = roleSkinConfig.getSkinDataById(skinId);
+        let skinData = roleSkinConfig.getSkinDataById(skinId, this.mode);
         if (!skinData || this.isSkinUnlocked(skinId)) {
             return;
         }
@@ -316,7 +364,11 @@ export class UISkinStore extends UIBase {
         }
 
         this.selectId = skinId;
-        pData.setSkinId(skinId);
+        if (this.mode == 1) {
+            pData.setEnemySkinId(skinId);
+        } else {
+            pData.setSkinId(skinId);
+        }
         this.refreshList();
     }
 

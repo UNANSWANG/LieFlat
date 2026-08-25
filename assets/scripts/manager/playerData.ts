@@ -546,6 +546,7 @@ export class playerData {
         this.enemySkinId = skinId;
         if (isChanged) {
             this.reportGame();
+            gm.Event.emit(GameEvent.refreshBossSkin);
         }
     }
 

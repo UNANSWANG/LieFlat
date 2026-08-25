@@ -56,11 +56,11 @@ export class UIMatch extends UIBase {
     private isGamePreloadComplete = false;
     /**预加载回调序号，用于忽略页面关闭后的旧回调 */
     private gamePreloadVersion = 0;
-    /**待匹配项，包含一个敌人和五个机器人 */
+    /**待匹配项：常规模式为一个敌人和五个机器人，敌人模式为六个机器人 */
     private matchTargets: MatchTarget[] = [];
-    /**五个机器人的皮肤，索引与游戏内机器人顺序一致 */
+    /**机器人的皮肤，索引与游戏内机器人顺序一致 */
     private roleSkinIds: number[] = [];
-    /**五个机器人的昵称，索引与皮肤和游戏内机器人顺序一致 */
+    /**机器人的昵称，索引与皮肤和游戏内机器人顺序一致 */
     private roleNicknames: string[] = [];
     /**敌人皮肤 */
     private enemySkinId = 0;
@@ -152,6 +152,7 @@ export class UIMatch extends UIBase {
         let enemyNameLab = this.enemyItem.getChildByName("nameLab")?.getComponent(Label);
         if (enemyNameLab) {
             enemyNameLab.string = "???";
+            enemyNameLab.color = this.robotNameColor;
         }
 
         if (roleNodes.length <= 0) {
@@ -159,36 +160,53 @@ export class UIMatch extends UIBase {
             return;
         }
 
-        // 玩家进入界面后立即随机到六个位置中的一个。
-        let playerIndex = ccTools.getRandomNum(0, roleNodes.length);
-        let playerNode = roleNodes[playerIndex];
-        let playerImg = playerNode.getChildByName("roleImg")?.getComponent(Sprite);
-        if (playerImg) {
-            playerImg.node.setScale(0.7, 0.7, 1);
-            ccTools.loadImg(playerImg, imgPath.roleBodyFull + pData.skinId);
-        }
-        let playerSelect = playerNode.getChildByName("select");
-        if (playerSelect) {
-            playerSelect.active = true;
-        }
-        let playerNameLab = playerNode.getChildByName("nameLab")?.getComponent(Label);
-        if (playerNameLab) {
-            playerNameLab.string = "你";
-            playerNameLab.color = this.playerNameColor;
-        }
-
-        let roleIndex = 0;
-        for (let i = 0; i < roleNodes.length; i++) {
-            if (i == playerIndex) {
-                continue;
+        if (pData.matchMode == 1) {
+            // 敌人模式中玩家直接占用敌人位置，其余六个位置正常匹配人机。
+            this.enemySkinId = Number.isInteger(pData.enemySkinId)
+                ? pData.enemySkinId
+                : ccTools.getRandomNum(0, configData.enemySkinCount);
+            this.enemyNickname = "你";
+            if (enemyNameLab) {
+                enemyNameLab.string = this.enemyNickname;
+                enemyNameLab.color = this.playerNameColor;
             }
-            this.matchTargets.push({
-                node: roleNodes[i],
-                type: "role",
-                roleIndex: roleIndex++,
-            });
+            this.showBossAnim(this.enemyItem, this.enemySkinId);
+
+            for (let i = 0; i < roleNodes.length; i++) {
+                this.matchTargets.push({ node: roleNodes[i], type: "role", roleIndex: i });
+            }
+        } else {
+            // 常规模式中玩家立即随机到六个角色位置之一。
+            let playerIndex = ccTools.getRandomNum(0, roleNodes.length);
+            let playerNode = roleNodes[playerIndex];
+            let playerImg = playerNode.getChildByName("roleImg")?.getComponent(Sprite);
+            if (playerImg) {
+                playerImg.node.setScale(0.7, 0.7, 1);
+                ccTools.loadImg(playerImg, imgPath.roleBodyFull + pData.skinId);
+            }
+            let playerSelect = playerNode.getChildByName("select");
+            if (playerSelect) {
+                playerSelect.active = true;
+            }
+            let playerNameLab = playerNode.getChildByName("nameLab")?.getComponent(Label);
+            if (playerNameLab) {
+                playerNameLab.string = "你";
+                playerNameLab.color = this.playerNameColor;
+            }
+
+            let roleIndex = 0;
+            for (let i = 0; i < roleNodes.length; i++) {
+                if (i == playerIndex) {
+                    continue;
+                }
+                this.matchTargets.push({
+                    node: roleNodes[i],
+                    type: "role",
+                    roleIndex: roleIndex++,
+                });
+            }
+            this.matchTargets.push({ node: this.enemyItem, type: "enemy" });
         }
-        this.matchTargets.push({ node: this.enemyItem, type: "enemy" });
         ccTools.shuffleArray(this.matchTargets);
         this.initNicknamePool();
 

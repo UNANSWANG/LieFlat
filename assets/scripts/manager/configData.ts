@@ -190,6 +190,8 @@ export enum GameEvent {
     forceStart = "forceStart",
     /**刷新角色皮肤 */
     refreshRoleSkin = "refreshRoleSkin",
+    /**刷新boss皮肤 */
+    refreshBossSkin = "refreshBossSkin",
 }
 
 /**存储的键值 */

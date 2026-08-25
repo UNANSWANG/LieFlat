@@ -29,6 +29,9 @@ export class UISkinStore extends UIBase {
     @property(Node)
     getNode: Node;
 
+    @property(Node)
+    titleNode: Node;
+
     @property(ScrollView)
     scrol: ScrollView;
 
@@ -72,6 +75,8 @@ export class UISkinStore extends UIBase {
         } else {
             this.mode = 0;
         }
+        // 更新标题
+        ccTools.showChildByIdx(this.titleNode, this.mode);
         // 模式切换时需要重建列表与状态
         if (this.lastMode != this.mode) {
             this.lastMode = this.mode;

@@ -11,6 +11,9 @@ export class jsonRoleSkin extends jsonBase {
     protected tableUrl1: string = "";
     protected tableUrl2: string = "";
 
+    roleSkinAllData: JsonRoleSkinData[] = [];
+    enemySkinAllData: JsonRoleSkinData[] = [];
+
     isInit = false;
     _defaultSkinId: number = 0;
     get defaultSkinId() : number{
@@ -30,11 +33,6 @@ export class jsonRoleSkin extends jsonBase {
         }
     }
 
-    /**获取角色皮肤数据 */
-    get roleSkinAllData() : JsonRoleSkinData[]{
-        return this.data;
-    }
-
     /**根据皮肤id获取皮肤数据 */
     getSkinDataById(skinId: number) : JsonRoleSkinData {
         return this.roleSkinAllData?.find((item) => item.skinId == skinId) || null;
@@ -42,12 +40,22 @@ export class jsonRoleSkin extends jsonBase {
 
     protected processTableData(): void {
         super.processTableData();
+        for(let i = 0; i < this.data.length; i++){
+            let item = this.data[i];
+            if(item.type == 0){
+                this.roleSkinAllData.push(item);
+            }else if(item.type == 1){
+                this.enemySkinAllData.push(item);
+            }
+        }
         pData.initSkinData(this.defaultSkinId);
     }
 }
 export let roleSkinConfig = new jsonRoleSkin();
 
 interface JsonRoleSkinData {
+    /**类型 */
+    type: number;
     /**皮肤id */
     skinId: number;
     /**名称 */

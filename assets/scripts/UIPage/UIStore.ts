@@ -28,8 +28,6 @@ export class UIStore extends UIBase {
 
     /**当前选中的商城类型 */
     currentTypeIdx: number = 0;
-    /**默认的敌人皮肤id */
-    defaultEnemySkinId: number = 1;
 
     protected onLoad(): void {
         this.bindBtn();

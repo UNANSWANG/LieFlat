@@ -2423,7 +2423,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "img",
+    "_name": "skeleton",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -2485,8 +2485,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 108,
-      "height": 67
+      "width": 114,
+      "height": 73
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -2497,10 +2497,10 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "c2K3IhXwRDzrvfbTGZnKrM"
+    "fileId": "18+FOskg5EF47eEGC9dy3j"
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "sp.Skeleton",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -2521,28 +2521,28 @@
       "b": 255,
       "a": 255
     },
-    "_spriteFrame": {
-      "__uuid__": "c7a2ca5b-133b-40be-b570-ed18cafc0dd4@f9941",
-      "__expectedType__": "cc.SpriteFrame"
+    "_skeletonData": {
+      "__uuid__": "b3acb3fa-a224-40ec-ad45-28d79cbd3c98",
+      "__expectedType__": "sp.SkeletonData"
     },
-    "_type": 0,
-    "_fillType": 0,
-    "_sizeMode": 1,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_useGrayscale": false,
-    "_atlas": null,
+    "defaultSkin": "default",
+    "defaultAnimation": "animation",
+    "_premultipliedAlpha": false,
+    "_timeScale": 1,
+    "_preCacheMode": 0,
+    "_cacheMode": 0,
+    "_sockets": [],
+    "_useTint": false,
+    "_debugMesh": false,
+    "_debugBones": false,
+    "_debugSlots": false,
+    "_enableBatch": false,
+    "loop": true,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "d2cylKo2dEC79H9Tu19n68"
+    "fileId": "77q7QiQElLSoqdqjJOBkY3"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -2552,7 +2552,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "7dWdaLF1xMbKQdBIKta6u1",
+    "fileId": "fa+ae1mlxHXJorMFG94Iec",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -4535,7 +4535,7 @@
         "__id__": 220
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 230

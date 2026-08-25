@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Animation } from 'cc';
+import { _decorator, Component, Node, Animation, Label } from 'cc';
 import { UIBase } from './UIBase';
 import { UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
@@ -15,7 +15,16 @@ export class UIBossMode extends UIBase {
     closeBtn: Node;
 
     @property(Node)
-    adBtn: Node;
+    startBtn: Node;
+
+    @property(Node)
+    storeBtn: Node;
+
+    @property(Label)
+    debrisNumLab: Label;
+
+    @property(Label)
+    debrisTargetLab: Label;
 
     protected onLoad(): void {
         this.bindBtn();
@@ -28,19 +37,15 @@ export class UIBossMode extends UIBase {
     }
 
     initData() {
-        this.SDKAdReport();
+        this.debrisNumLab.string = pData.debris.toString();
+        this.debrisTargetLab.string =  "/"+ configData.enemyModeDebrisNum.toString();
     }
 
     bindBtn() {
         this.closeBtn.addComponent(zoomButton).onClick = this.clickCloseBtn.bind(this);
-        this.adBtn.addComponent(zoomButton).onClick = this.clickAdBtn.bind(this);
+        this.startBtn.addComponent(zoomButton).onClick = this.clickStartBtn.bind(this);
+        this.storeBtn.addComponent(zoomButton).onClick = this.clickStoreBtn.bind(this);
     }
-
-    /**广告点上报 */
-    SDKAdReport() {
-        videoMgr.SDKAdShow(68);
-    }
-
 
     ///
     ///点击事件
@@ -57,13 +62,9 @@ export class UIBossMode extends UIBase {
         uiMgr.openPage(UIPath.UIMatch);
     }
 
-    /**点击广告 */
-    clickAdBtn() {
-        videoMgr.watchVideo(68, () => {
-            uiMgr.showTips("已催促程序猿加快进度")
-        },()=>{
-            uiMgr.showTips("进度加速失败")
-        });
+    /**点击商店按钮 */
+    clickStoreBtn() {
+        uiMgr.openPage(UIPath.UISkinStore);
     }
 
     /**点击关闭 */

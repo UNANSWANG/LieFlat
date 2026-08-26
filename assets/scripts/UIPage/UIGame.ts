@@ -1755,7 +1755,16 @@ export class UIGame extends UIBase {
         let avatar = roleBtn.getChildByName("mask").getChildByName("avatar").getComponent(Sprite);
         let nameLab = roleBtn.getChildByName("nameLab");
         if (nameLab) {
-            nameLab.active = playerMgr.playerComp?.roleId == roleComp.roleId;
+            if (this.isEnemyMode) {
+                // 敌人模式中所有头像都是幸存者，不显示“自己”，改为显示各自的角色名称。
+                nameLab.active = true;
+                let nameLabel = nameLab.getComponent(Label);
+                if (nameLabel) {
+                    nameLabel.string = roleComp.roleNameLab?.string || `人机${roleComp.roleId}`;
+                }
+            } else {
+                nameLab.active = playerMgr.playerComp?.roleId == roleComp.roleId;
+            }
         }
 
         ccTools.loadImg(avatar, imgPath.roleAvatar + roleComp.skinId);

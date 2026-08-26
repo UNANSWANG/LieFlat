@@ -197,6 +197,10 @@ export class enemyBaseController extends Component {
     baseHp: Sprite = null;
     /**特效动画节点 */
     effectNode: Node = null;
+    /**经验条节点 */
+    expNode: Node = null;
+    /**经验条图片 */
+    expBar: Sprite = null;
     /**血量虚影追赶动画时长 */
     private hpShadowDuration: number = 0.3;
 
@@ -210,6 +214,8 @@ export class enemyBaseController extends Component {
         this.roleAnim.setEventListener(this.onRoleAnimEvent.bind(this));
         this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
         this.effectNode = this.node.getChildByName("effectNode");
+        this.expNode = this.node.getChildByName("expBg");
+        this.expBar = this.expNode.getChildByName("expBar").getComponent(Sprite);
     }
 
     protected onDestroy(): void {

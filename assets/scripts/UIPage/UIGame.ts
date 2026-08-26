@@ -2063,8 +2063,14 @@ export class UIGame extends UIBase {
         this.playGameAnim(this.gameUINode, clip, worldPos, roleAnimHeight / 2);
     }
 
+    /**在敌人上方播放一次升级动画，结束后自动销毁 */
+    playEnemyUpgradeAnim(worldPos: Vec3, roleAnimNode: Node = null) {
+        let roleAnimHeight = roleAnimNode?.getComponent(UITransform)?.height || 0;
+        this.playGameAnim(this.gameUINode, uiMgr.upgradeAnimClip, worldPos, roleAnimHeight / 2, true);
+    }
+
     /**在指定游戏层按世界坐标播放一次动画，完成后回收 */
-    private playGameAnim(parent: Node, clip: AnimationClip, worldPos: Vec3, localOffsetY: number = 0) {
+    private playGameAnim(parent: Node, clip: AnimationClip, worldPos: Vec3, localOffsetY: number = 0, destroyOnFinish: boolean = false) {
         if (!uiMgr.gameAnimItemPrefab || !parent || !clip || !worldPos) {
             return false;
         }
@@ -2086,7 +2092,13 @@ export class UIGame extends UIBase {
             return false;
         }
 
-        animComp.startAnim(clip, () => poolMgr.putGameAnimNode(animNode));
+        animComp.startAnim(clip, () => {
+            if (destroyOnFinish) {
+                animNode.destroy();
+            } else {
+                poolMgr.putGameAnimNode(animNode);
+            }
+        });
         return true;
     }
 

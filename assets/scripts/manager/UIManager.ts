@@ -22,6 +22,7 @@ export class UIManager {
     airYellowAnimClip: AnimationClip = null;
     fogAnimClip: AnimationClip = null;
     guideArrowAnimClip: AnimationClip = null;
+    upgradeAnimClip: AnimationClip = null;
 
     private gamePage: Node = null;
     private uiPage: Node = null;
@@ -129,6 +130,7 @@ export class UIManager {
             ccResTools.loadAnimationClip(this.resBundle, animPath.airYellow, false),
             ccResTools.loadAnimationClip(this.resBundle, animPath.fog, false),
             ccResTools.loadAnimationClip(this.resBundle, animPath.guideArrow, false),
+            ccResTools.loadAnimationClip(this.resBundle, animPath.upgrade, false),
         ]);
 
         if (clips.some((clip) => !clip)) {
@@ -139,6 +141,7 @@ export class UIManager {
         this.airYellowAnimClip = clips[1];
         this.fogAnimClip = clips[2];
         this.guideArrowAnimClip = clips[3];
+        this.upgradeAnimClip = clips[4];
     }
 
     /**显示提示 */

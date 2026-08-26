@@ -502,6 +502,7 @@ export class enemyBaseController extends Component {
         this.resetAttackDamage();
         this.resetUpgradeTimer();
 
+        this.gameComp?.playEnemyUpgradeAnim(this.node.worldPosition, this.roleAnim?.node);
         audioMgr.playEffect(audioPath.shangshikaichang);
         uiMgr.showTips(`感染者升级，当前等级${this.level + 1}`);
     }

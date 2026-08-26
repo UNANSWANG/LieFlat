@@ -482,6 +482,10 @@ export class enemyBaseController extends Component {
 
     /**刷新狂怒技能状态 */
     private updateRageSkill(dt: number) {
+        if (this.isPlayerControlled) {
+            return;
+        }
+
         this.updateRageUseTimer(dt);
         this.updateRageTimer(dt);
     }
@@ -514,7 +518,7 @@ export class enemyBaseController extends Component {
 
     /**尝试在攻击动画结束后释放狂怒 */
     private tryStartRageSkill() {
-        if (!this.isRageReady || this.isRaging || enemyCommonConfig.rageTime <= 0) {
+        if (this.isPlayerControlled || !this.isRageReady || this.isRaging || enemyCommonConfig.rageTime <= 0) {
             return false;
         }
 
@@ -891,11 +895,13 @@ export class enemyBaseController extends Component {
             return true;
         }
 
-        if (this.tryHandleDoorAttackHpThreshold(hpPercentBeforeDamage)) {
-            return false;
-        }
+        if (!this.isPlayerControlled) {
+            if (this.tryHandleDoorAttackHpThreshold(hpPercentBeforeDamage)) {
+                return false;
+            }
 
-        this.checkRepairHpState();
+            this.checkRepairHpState();
+        }
         return false;
     }
 
@@ -945,7 +951,7 @@ export class enemyBaseController extends Component {
 
     /**房门升级后，主动检测正在攻击该门的低血量敌人是否需要逃离 */
     checkDoorUpgradeEscape(doorPos: Vec2) {
-        if (this.hpPercent > enemyCommonConfig.enemyHpAttackPercent || !this.isTileSame(this.attackingTilePos, doorPos)) {
+        if (this.isPlayerControlled || this.hpPercent > enemyCommonConfig.enemyHpAttackPercent || !this.isTileSame(this.attackingTilePos, doorPos)) {
             return false;
         }
 
@@ -954,7 +960,7 @@ export class enemyBaseController extends Component {
 
     /**敌人强制离开门重新选择目标 */
     forceChooseTarget(propsPos: Vec2) {
-        if (!this.isTileSame(this.attackingTilePos, propsPos)) {
+        if (this.isPlayerControlled || !this.isTileSame(this.attackingTilePos, propsPos)) {
             return;
         }
 
@@ -963,7 +969,7 @@ export class enemyBaseController extends Component {
 
     /**敌人强制离开当前攻击房间，重新选择其他房间目标 */
     forceChooseTargetExcludeRoom(excludeRoomIdx: number) {
-        if (excludeRoomIdx <= 0 || this.getCurAttackRoomIdx() != excludeRoomIdx) {
+        if (this.isPlayerControlled || excludeRoomIdx <= 0 || this.getCurAttackRoomIdx() != excludeRoomIdx) {
             return false;
         }
 
@@ -995,7 +1001,7 @@ export class enemyBaseController extends Component {
 
     /**检测攻击门时是否需要逃离 */
     private checkDoorAttackEscape() {
-        if (!this.isAttackingDoor()) {
+        if (this.isPlayerControlled || !this.isAttackingDoor()) {
             return false;
         }
 
@@ -1055,7 +1061,7 @@ export class enemyBaseController extends Component {
 
     /**进入房门攻击时血量检测中间区间时，判断是否需要逃回出生点 */
     private tryHandleDoorHpAttackPercentRange(doorComp: gamePropsBase) {
-        if (this.hpPercent > enemyCommonConfig.enemyHpAttackPercent) {
+        if (this.isPlayerControlled || this.hpPercent > enemyCommonConfig.enemyHpAttackPercent) {
             return false;
         }
 
@@ -1086,7 +1092,7 @@ export class enemyBaseController extends Component {
 
     /**随机选择一个可到达的玩家，并移动到该玩家身边 */
     chooseTargetAndFindPath(excludeRoomIdx: number = 0) {
-        if (gm.isGamePause) {
+        if (this.isPlayerControlled || gm.isGamePause) {
             return false;
         }
 
@@ -1755,7 +1761,7 @@ export class enemyBaseController extends Component {
 
     /**检测是否需要回出生点回血 */
     private checkRepairHpState() {
-        if (!this.gameComp?.isEnemyCanMove || this.isRepairingHp || this.hp <= 0 || this.hp > this.maxHp * enemyCommonConfig.enemyEscapeHpPercent) {
+        if (this.isPlayerControlled || !this.gameComp?.isEnemyCanMove || this.isRepairingHp || this.hp <= 0 || this.hp > this.maxHp * enemyCommonConfig.enemyEscapeHpPercent) {
             return;
         }
 
@@ -1778,7 +1784,7 @@ export class enemyBaseController extends Component {
 
     /**刷新高血量攻击门秒伤循环检测 */
     private updateDoorAttackTimeCheck(dt: number) {
-        if (!this.isAttackingDoor()) {
+        if (this.isPlayerControlled || !this.isAttackingDoor()) {
             this.resetDoorAttackTimeCheck();
             return;
         }
@@ -1889,6 +1895,10 @@ export class enemyBaseController extends Component {
 
     /**离开当前门并重新寻找其他目标 */
     private leaveCurrentDoorAndChooseTarget() {
+        if (this.isPlayerControlled) {
+            return;
+        }
+
         let attackRoomIdx = this.getCurAttackRoomIdx();
         this.tryTriggerRoomNet(attackRoomIdx);
 
@@ -1941,7 +1951,7 @@ export class enemyBaseController extends Component {
 
     /**开始回出生点回血 */
     private startRepairHp(waitReturnStart: boolean = false) {
-        if (this.getForceAttackRoomTarget()) {
+        if (this.isPlayerControlled || this.getForceAttackRoomTarget()) {
             return;
         }
 
@@ -2380,6 +2390,10 @@ export class enemyBaseController extends Component {
 
     /**触发当前攻击房间内的蛛网 */
     private tryTriggerRoomNet(roomIdx: number) {
+        if (this.isPlayerControlled) {
+            return false;
+        }
+
         return netProps.tryTriggerRoomNet(this.gameComp, roomIdx, this);
     }
 
@@ -2403,10 +2417,12 @@ export class enemyBaseController extends Component {
         }
         if (isAttackDoor) {
             if (actualDamage > 0) {
-                this.recordDoorAttackTimeDamage(actualDamage);
+                if (!this.isPlayerControlled) {
+                    this.recordDoorAttackTimeDamage(actualDamage);
+                }
                 this.gameComp?.onDoorAttackedByEnemy(tilePos, actualDamagePercent);
                 this.tryVibratePlayerRoomDoorLowHp(propComp, tilePos, isDestroyed);
-                if (this.tryHandleDoorHpAttackPercentRange(propComp)) {
+                if (!this.isPlayerControlled && this.tryHandleDoorHpAttackPercentRange(propComp)) {
                     return;
                 }
                 if (!isDestroyed && this.tryTriggerAttackRoomAlarm()) {
@@ -2414,7 +2430,7 @@ export class enemyBaseController extends Component {
                 }
             }
         }
-        if (!isDestroyed) {
+        if (!isDestroyed && !this.isPlayerControlled) {
             this.tryReleaseFearSkill(propComp, tilePos, isAttackDoor);
         }
         if (isDestroyed) {
@@ -2428,14 +2444,14 @@ export class enemyBaseController extends Component {
 
             this.clearDestroyedProps(tilePos);
 
-            if (isAttackDoor) {
+            if (isAttackDoor && !this.isPlayerControlled) {
                 this.forceAttackRoomIdx = destroyedRoomIdx;
                 this.clearMovePath();
                 this.chooseTargetAndFindPath();
                 return;
             }
 
-            if (this.movePathIdx >= this.movePath.length - 1) {
+            if (!this.isPlayerControlled && this.movePathIdx >= this.movePath.length - 1) {
                 this.clearMovePath();
                 this.chooseTargetAndFindPath();
             }
@@ -2523,7 +2539,7 @@ export class enemyBaseController extends Component {
     }
 
     private tryReleaseFearSkill(propComp: gamePropsBase, tilePos: Vec2, isAttackDoor: boolean) {
-        if (this.hasFearCurAttackDoor || !isAttackDoor) {
+        if (this.isPlayerControlled || this.hasFearCurAttackDoor || !isAttackDoor) {
             return;
         }
 

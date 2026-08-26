@@ -424,10 +424,10 @@ export class enemyBaseController extends Component {
 
     /**重置伤害 */
     resetAttackDamage() {
-        //TODO 伤害临时秒杀
-        // this.attackDamage = enemyMgr.enemyAllData[this.level].attack * 3;
         let bossData = this.getCurrentLevelBossData();
         this.attackDamage = bossData?.attack || 0;
+        //TODO 伤害临时秒杀
+        // this.attackDamage *= 3;
     }
 
     /**获取当前等级的属性配置 */

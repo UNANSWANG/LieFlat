@@ -113,7 +113,7 @@ export class UIMatch extends UIBase {
         this.readyedBtn.active = false;
         if (this.titleLab) {
             //直接使用当前选择模式的下一关名称，如“初学-1”
-            this.titleLab.string = pData.getSelectedModeLevelName();
+            this.titleLab.string = pData.matchMode == 1 ? "感染者模式" : pData.getSelectedModeLevelName();
         }
         this.refreshTimeLab();
 

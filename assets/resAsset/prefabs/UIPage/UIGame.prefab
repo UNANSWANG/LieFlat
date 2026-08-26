@@ -3785,7 +3785,7 @@
       "x": 0.5,
       "y": 0.5
     },
-    "_fillStart": 0,
+    "_fillStart": 0.25,
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
@@ -4209,7 +4209,7 @@
       "x": 0.5,
       "y": 0.5
     },
-    "_fillStart": 0,
+    "_fillStart": 0.25,
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
@@ -4738,7 +4738,7 @@
       "x": 0.5,
       "y": 0.5
     },
-    "_fillStart": 0,
+    "_fillStart": 0.25,
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_useGrayscale": false,

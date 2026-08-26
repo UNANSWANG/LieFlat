@@ -97,6 +97,9 @@ export class UIGame extends UIBase {
     @property(Node)
     roleBtnLayout: Node;
 
+    @property(Node)
+    skillNode: Node;
+
     ///
     ///需要获取的节点
     ///

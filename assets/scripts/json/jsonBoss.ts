@@ -16,6 +16,21 @@ export class jsonBoss extends jsonBase {
         super.processTableData();
     }
 
+    /**Boss等级配置 */
+    get tableData(): JsonBossData[] {
+        return this.data || [];
+    }
+
+    /**根据等级获取Boss配置，等级从1开始 */
+    getBossData(level: number): JsonBossData {
+        let targetLevel = Math.floor(Number(level));
+        if (!Number.isFinite(targetLevel) || targetLevel <= 0) {
+            return null;
+        }
+
+        return this.tableData.find(data => Number(data?.quantity) == targetLevel) || null;
+    }
+
 }
 export let bossConfig = new jsonBoss();
 

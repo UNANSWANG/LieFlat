@@ -21,6 +21,7 @@ import { alarmProps } from '../props/alarmProps';
 import { poolMgr } from '../../manager/poolManager';
 import { doorProps } from '../props/doorProps';
 import { audioMgr } from '../../manager/audioManager';
+import { bossConfig, JsonBossData } from '../../json/jsonBoss';
 const { ccclass, property } = _decorator;
 
 enum enemyAnim {
@@ -136,6 +137,8 @@ export class enemyBaseController extends Component {
     private upgradeTimer: number = 0;
     /**本次升级需要时间 */
     private upgradeTime: number = 0;
+    /**敌人模式下当前等级已获得的攻击经验 */
+    private attackExp: number = 0;
     /**最近受到的伤害记录 */
     private damageRecords: { time: number, damage: number }[] = [];
     /**当前攻击房门是否已完成本次血量区间判定 */
@@ -211,6 +214,7 @@ export class enemyBaseController extends Component {
     /**初始化 */
     init(comp: UIGame, id: number, skinId: number, nickname = "") {
         this.level = 0;
+        this.attackExp = 0;
         this.forceAttackRoomIdx = 0;
         this.damageRecords = [];
         this.isForceAttackingDoor = false;
@@ -375,6 +379,11 @@ export class enemyBaseController extends Component {
         return this.level >= this.maxLevel - 1;
     }
 
+    /**是否处于敌人模式 */
+    private get isEnemyMode() {
+        return pData.matchMode == 1;
+    }
+
     /**生命值百分比 */
     get hpPercent() {
         return this.hp / this.maxHp;
@@ -387,12 +396,12 @@ export class enemyBaseController extends Component {
 
     /**初始化最大等级 */
     initMaxLevel() {
-        this.maxLevel = enemyMgr.enemyAllData?.length || 1;
+        this.maxLevel = this.isEnemyMode ? (bossConfig.tableData?.length || 1) : (enemyMgr.enemyAllData?.length || 1);
     }
 
     /**重置血量 */
     resetHp() {
-        let bossData = enemyMgr.enemyAllData?.[this.level];
+        let bossData = this.getCurrentLevelBossData();
         this.maxHp = bossData?.hp || 0;
         this.hp = this.maxHp;
         this.refreshHp();
@@ -402,8 +411,13 @@ export class enemyBaseController extends Component {
     resetAttackDamage() {
         //TODO 伤害临时秒杀
         // this.attackDamage = enemyMgr.enemyAllData[this.level].attack * 3;
-        let bossData = enemyMgr.enemyAllData?.[this.level];
+        let bossData = this.getCurrentLevelBossData();
         this.attackDamage = bossData?.attack || 0;
+    }
+
+    /**获取当前等级的属性配置 */
+    private getCurrentLevelBossData(): JsonBossData | any {
+        return this.isEnemyMode ? bossConfig.getBossData(this.level + 1) : enemyMgr.enemyAllData?.[this.level];
     }
 
     /**刷新等级 */
@@ -435,6 +449,7 @@ export class enemyBaseController extends Component {
         }
 
         this.level++;
+        this.attackExp = 0;
         this.refreshLevel();
         this.resetHp();
         this.resetAttackDamage();
@@ -447,6 +462,11 @@ export class enemyBaseController extends Component {
     /**重置升级计时 */
     private resetUpgradeTimer() {
         this.upgradeTimer = 0;
+        if (this.isEnemyMode) {
+            this.upgradeTime = 0;
+            return;
+        }
+
         this.upgradeTime = this.getRandomUpgradeTime();
     }
 
@@ -787,7 +807,7 @@ export class enemyBaseController extends Component {
 
     /**刷新升级计时 */
     private updateUpgradeTimer(dt: number) {
-        if (this.gameComp?.isRoleDisappearPlaying || this.isMaxLevel
+        if (this.isEnemyMode || this.gameComp?.isRoleDisappearPlaying || this.isMaxLevel
             || !Number.isFinite(this.upgradeTime) || this.upgradeTime <= 0) {
             return;
         }
@@ -806,7 +826,7 @@ export class enemyBaseController extends Component {
             return 0;
         }
 
-        let bossData = enemyMgr.enemyAllData?.[this.level];
+        let bossData = this.getCurrentLevelBossData();
         if (!bossData) {
             return 0;
         }
@@ -2399,6 +2419,9 @@ export class enemyBaseController extends Component {
         let actualDamage = isDestroyed ? hpBeforeDamage : Math.max(0, hpBeforeDamage - propComp.hp);
         let actualDamagePercent = maxHpBeforeDamage > 0 ? actualDamage / maxHpBeforeDamage : 0;
         if (actualDamage > 0) {
+            this.addAttackExp();
+        }
+        if (actualDamage > 0) {
             this.gameComp?.playSceneEffect(audioPath.bossAttack, this.node.worldPosition);
             this.playScratchEffectAtWorldPos(scratchWorldPos);
         }
@@ -2440,6 +2463,26 @@ export class enemyBaseController extends Component {
                 this.clearMovePath();
                 this.chooseTargetAndFindPath();
             }
+        }
+    }
+
+    /**敌人模式下，攻击造成有效伤害后按当前等级配置增加经验 */
+    private addAttackExp() {
+        if (!this.isEnemyMode || this.isMaxLevel) {
+            return;
+        }
+
+        let bossData = this.getCurrentLevelBossData() as JsonBossData;
+        let attackExp = Number(bossData?.attackExp);
+        let upgradeExp = Number(bossData?.upgradeExp);
+        // 满级及未配置经验的等级不参与经验处理。
+        if (!Number.isFinite(attackExp) || attackExp <= 0 || !Number.isFinite(upgradeExp) || upgradeExp <= 0) {
+            return;
+        }
+
+        this.attackExp += attackExp;
+        if (this.attackExp >= upgradeExp) {
+            this.upgrade();
         }
     }
 

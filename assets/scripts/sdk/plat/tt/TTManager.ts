@@ -278,7 +278,7 @@ export class TTManager extends BasePlat {
                 // channel: "invite", //分享渠道
                 title: "标题", //分享标题
                 desc: "快来跟我一起玩吧！", //分享描述
-                imageUrl: "", //分享图标
+                templateId: "2d93vpnsmbfb23c6a0", //分享图标
                 query: "",
                 success(res) {
                     successFuc && successFuc();
@@ -302,7 +302,7 @@ export class TTManager extends BasePlat {
                 channel: "video", //分享渠道
                 title: "标题", //分享标题
                 desc: "快来跟我一起玩吧！", //分享描述
-                imageUrl: "", //分享图标
+                templateId: "2d93vpnsmbfb23c6a0", //分享图标
                 query: "",
                 extra: {
                     videoPath: this._videoPath, // 替换成录屏得到的视频地址

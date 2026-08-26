@@ -117,7 +117,10 @@ export class roleController extends Component {
         return this._state;
     }
     public set state(value: roleState) {
-        if (value == roleState.dead && this._state != roleState.dead && this.roleId == playerMgr.playerComp?.roleId) {
+        if (value == roleState.dead && this._state != roleState.dead && pData.matchMode == 1) {
+            // 当前 state 会在本次 setter 末尾更新，延后一帧检测才能包含最后被击败的幸存者。
+            this.scheduleOnce(() => this.gameComp?.onEnemyModeRoleDefeated(), 0);
+        } else if (value == roleState.dead && this._state != roleState.dead && this.roleId == playerMgr.playerComp?.roleId) {
             ccTools.vibrate(2);
             this.failSurvivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
             if (this._state == roleState.bed) {

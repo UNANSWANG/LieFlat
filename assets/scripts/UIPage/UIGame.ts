@@ -285,6 +285,8 @@ export class UIGame extends UIBase {
     private isEnemyCameraFollowing = false;
     /**敌人模式中六个机器人的难度类型，每种被抽中的类型恰好分配两人 */
     private enemyModeRobotDifficultyTypes: number[] = [];
+    /**敌人模式是否已进入结算，防止最后一次击杀重复弹窗 */
+    private isEnemyModeGameOver = false;
 
     private get isEnemyMode() {
         return pData.matchMode == 1;
@@ -564,6 +566,7 @@ export class UIGame extends UIBase {
 
         playerMgr.player = null;
         this.controlledEnemy = null;
+        this.isEnemyModeGameOver = false;
         this.isEnemyCameraFollowing = false;
         this.enemyModeRobotDifficultyTypes = [];
         enemyMgr.enemyArr = [];
@@ -1939,6 +1942,40 @@ export class UIGame extends UIBase {
         }
 
         return null;
+    }
+
+    /**敌人模式下幸存者被击败后，全部六人死亡即获得胜利 */
+    onEnemyModeRoleDefeated() {
+        if (!this.isEnemyMode || this.isEnemyModeGameOver || this.robotArr.length < 6) {
+            return;
+        }
+
+        for (let i = 0; i < this.robotArr.length; i++) {
+            if (this.robotArr[i]?.state != roleState.dead) {
+                return;
+            }
+        }
+
+        this.isEnemyModeGameOver = true;
+        uiMgr.openPage(UIPath.UISuccess, {
+            isEnemyMode: true,
+            skinId: this.controlledEnemy?.skinId ?? pData.enemySkinId,
+            survivalTime: this.getGameStartElapsedTime(),
+        });
+    }
+
+    /**敌人模式下玩家控制的敌人被击败，展示击败它的角色动画 */
+    onEnemyModeEnemyDefeated(killerSkinId: number, survivalTime: number) {
+        if (!this.isEnemyMode || this.isEnemyModeGameOver) {
+            return;
+        }
+
+        this.isEnemyModeGameOver = true;
+        uiMgr.openPage(UIPath.UIFail, {
+            isEnemyMode: true,
+            skinId: Number.isInteger(killerSkinId) && killerSkinId >= 0 ? killerSkinId : 0,
+            survivalTime,
+        });
     }
 
     /**初始化敌人 */

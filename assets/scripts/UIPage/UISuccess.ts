@@ -45,6 +45,9 @@ export class UISuccess extends UIBase {
     @property(Node)
     titleLogo: Node;
 
+    /**是否为敌人模式结算 */
+    private isEnemyMode = false;
+
     /**奖励污染币数量 */
     moneyNum = 0;
     /**奖励魔盒数量 */
@@ -93,8 +96,16 @@ export class UISuccess extends UIBase {
     }
 
     initData(data?) {
-        let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : pData.skinId;
-        this.refreshRoleSpine(skinId);
+        this.isEnemyMode = data?.isEnemyMode === true;
+        let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0
+            ? data.skinId
+            : this.isEnemyMode ? pData.enemySkinId : pData.skinId;
+        this.refreshTitleImage();
+        if (this.isEnemyMode) {
+            this.refreshEnemySpine(skinId);
+        } else {
+            this.refreshRoleSpine(skinId);
+        }
 
         ccStorageTools.setData(SaveKey.guide, 1);
 
@@ -132,7 +143,36 @@ export class UISuccess extends UIBase {
             return;
         }
 
+        this.roleSk.timeScale = 1;
         this.roleSk.setAnimation(0, roleAnimName.idle, true);
+    }
+
+    /**加载敌人模式胜利时玩家使用的敌人动画 */
+    private async refreshEnemySpine(skinId: number) {
+        if (!this.roleSk) {
+            return;
+        }
+
+        this.roleSk.skeletonData = null;
+        let isLoaded = await ccTools.loadSpine(this.roleSk, spinePath.boss + skinId);
+        if (!isLoaded) {
+            return;
+        }
+
+        this.roleSk.timeScale = 0.5;
+        this.roleSk.setAnimation(0, "idle", true);
+    }
+
+    /**常规模式显示 img1，敌人模式显示 img2 */
+    private refreshTitleImage() {
+        let img1 = this.title?.getChildByName("img1");
+        let img2 = this.title?.getChildByName("img2");
+        if (img1) {
+            img1.active = !this.isEnemyMode;
+        }
+        if (img2) {
+            img2.active = this.isEnemyMode;
+        }
     }
 
     bindBtn() {

@@ -246,7 +246,7 @@ export class enemyBaseController extends Component {
         this.roleId = id;
         this.skinId = skinId;
         this.killerSkinId = pData.skinId;
-        this.isVictoryEnemy = this.roleId == 0;
+        this.isVictoryEnemy = this.roleId == 0 && !this.isEnemyMode;
         this.fireKillerSkinId = pData.skinId;
         this.survivalTime = 0;
         this.refreshRoleSpine();
@@ -986,7 +986,9 @@ export class enemyBaseController extends Component {
             if (this.node && this.node.isValid) {
                 this.node.destroy();
             }
-            if (this.isVictoryEnemy) {
+            if (this.isPlayerControlled) {
+                this.gameComp?.onEnemyModeEnemyDefeated(this.killerSkinId, this.survivalTime);
+            } else if (this.isVictoryEnemy) {
                 this.openSuccessPage();
             }
             return;
@@ -1004,7 +1006,9 @@ export class enemyBaseController extends Component {
                 if (this.node && this.node.isValid) {
                     this.node.destroy();
                 }
-                if (this.isVictoryEnemy) {
+                if (this.isPlayerControlled) {
+                    this.gameComp?.onEnemyModeEnemyDefeated(this.killerSkinId, this.survivalTime);
+                } else if (this.isVictoryEnemy) {
                     this.openSuccessPage();
                 }
             })

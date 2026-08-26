@@ -101,6 +101,9 @@ export class UIGame extends UIBase {
     @property(Node)
     skillNode: Node;
 
+    @property(Node)
+    monetaryNode: Node;
+
     ///
     ///需要获取的节点
     ///
@@ -483,6 +486,7 @@ export class UIGame extends UIBase {
 
         this.rockerTouchNode.active = !this.isEnemyMode;
         this.slideTouchNode.active = this.isEnemyMode;
+        this.monetaryNode.active = !this.isEnemyMode;
         this.refreshMonetaryLab();
 
         this.initMapLayer();

@@ -285,6 +285,7 @@ export class UILoading extends Component {
         enemyCommonConfig.doorAttackTimeDamagePercent = commonConfig.getValueNumber("doorAttackTimeDamagePercent") / 100;
         enemyCommonConfig.returnStartTime = commonConfig.getValueNumber("returnStartTime");
         enemyCommonConfig.enemyAttackInterval = JSON.parse(commonConfig.getValue("enemyAttackInterval"));
+        enemyCommonConfig.enemyFearTime = commonConfig.getValueNumber("enemyFearTime");
         //人机
         robotCommonConfig.generatorBuildBedLevel = commonConfig.getValueNumber("generatorBuildBedLevel");
         robotCommonConfig.generatorBuildLevel = commonConfig.getValueNumber("generatorBuildLevel");

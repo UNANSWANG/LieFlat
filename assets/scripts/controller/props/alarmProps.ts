@@ -32,7 +32,7 @@ export class alarmProps extends gamePropsBase {
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.alarmDoorHpThreshold = commonConfig.getValueNumber("alarmThresholdHealth") / 100;
+        this.alarmDoorHpThreshold = 0.9//commonConfig.getValueNumber("alarmThresholdHealth") / 100;
     }
 
     /**创建警示铃spine节点 */
@@ -93,7 +93,8 @@ export class alarmProps extends gamePropsBase {
             return false;
         }
 
-        if (!target.forceChooseTargetExcludeRoom(roomIdx)) {
+        let doorPos = gameComp?.roomMap?.[roomIdx]?.doorPos;
+        if (!target.handleRoomAlarm(doorPos, roomIdx)) {
             return false;
         }
 

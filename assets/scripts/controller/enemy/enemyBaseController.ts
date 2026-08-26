@@ -157,6 +157,14 @@ export class enemyBaseController extends Component {
     private isNetControlled: boolean = false;
     /**是否被铡刀控制 */
     private isSawControlled: boolean = false;
+    /**是否正被警示铃击退控制 */
+    private isAlarmFearControlled: boolean = false;
+    /**警示铃击退剩余时间 */
+    private alarmFearTimer: number = 0;
+    /**警示铃击退移动方向 */
+    private alarmFearDirection: Vec3 = new Vec3();
+    /**警示铃击退时头顶眩晕动画 */
+    private alarmFearDizzinessNode: Node = null;
     /**攻击寒冰房门时挂在身上的寒冰动画节点 */
     private attackIceNode: Node = null;
     /**是否正在播放死亡消失动画 */
@@ -207,6 +215,7 @@ export class enemyBaseController extends Component {
     protected onDestroy(): void {
         Tween.stopAllByTarget(this.baseHp);
         this.unlockTargetPlayerMove();
+        this.clearAlarmFearDizzinessNode();
     }
 
     /**初始化 */
@@ -231,6 +240,7 @@ export class enemyBaseController extends Component {
         this.stopCageControl();
         this.stopNetControl();
         this.stopSawControl();
+        this.stopAlarmFearControl();
 
         this.gameComp = comp;
         this.roleId = id;
@@ -256,7 +266,7 @@ export class enemyBaseController extends Component {
 
     /**敌人模式下按摇杆方向移动；遇到道具或角色时沿用敌人的攻击逻辑 */
     moveByPlayerInput(direction: Vec3, dt: number) {
-        if (!this.isPlayerControlled || !this.gameComp?.isEnemyCanMove || !direction || this.isCageControlled || this.isNetControlled || this.isSawControlled) {
+        if (!this.isPlayerControlled || !this.gameComp?.isEnemyCanMove || !direction || this.isCageControlled || this.isNetControlled || this.isSawControlled || this.isAlarmFearControlled) {
             return;
         }
         if (this.isAttackingPlayer) {
@@ -304,7 +314,7 @@ export class enemyBaseController extends Component {
 
     /**停止敌人模式玩家的移动表现 */
     stopPlayerInputMove() {
-        if (this.isPlayerControlled && !this.isAttackingProps && !this.isAttackingPlayer) {
+        if (this.isPlayerControlled && !this.isAlarmFearControlled && !this.isAttackingProps && !this.isAttackingPlayer) {
             this.playRoleAnim(enemyAnim.idle, true);
         }
     }
@@ -358,6 +368,9 @@ export class enemyBaseController extends Component {
         this.updateFireBurn(dt);
         if (!this.isRepairingHp) {
             this.recoverHpAtEnemyBornPos(dt);
+        }
+        if (this.updateAlarmFearControl(dt)) {
+            return;
         }
         if (this.isCageControlled) {
             return;
@@ -607,6 +620,128 @@ export class enemyBaseController extends Component {
         this.playRoleAnim(enemyAnim.idle, true);
         this.unschedule(this.stopNetControl);
         this.scheduleOnce(this.stopNetControl, time);
+    }
+
+    /**敌人模式下被警示铃击退，朝房门的相反方向自动移动 */
+    private startAlarmFearControl(doorPos: Vec2) {
+        let controlTime = Number(enemyCommonConfig.enemyFearTime);
+        if (!doorPos || !Number.isFinite(controlTime) || controlTime <= 0) {
+            return false;
+        }
+
+        let targetNodePos = ccTools.getPosByTileIndex(doorPos, this.tempTargetNodePos);
+        let offsetX = this.node.position.x - targetNodePos.x;
+        let offsetY = this.node.position.y - targetNodePos.y;
+        if (Math.abs(offsetX) <= 0.001 && Math.abs(offsetY) <= 0.001) {
+            return false;
+        }
+
+        this.syncCurrentPosByNode();
+        this.alarmFearDirection.set(0, 0, 0);
+        if (Math.abs(offsetX) >= Math.abs(offsetY)) {
+            this.alarmFearDirection.x = offsetX > 0 ? 1 : -1;
+        } else {
+            this.alarmFearDirection.y = offsetY > 0 ? 1 : -1;
+        }
+
+        this.isAlarmFearControlled = true;
+        this.alarmFearTimer = controlTime;
+        this.stopAttackPlayer();
+        this.stopAttackProps();
+        this.createAlarmFearDizzinessNode();
+        uiMgr.showTips("您已被震慑");
+        return true;
+    }
+
+    /**刷新警示铃击退；返回是否仍在控制中 */
+    private updateAlarmFearControl(dt: number) {
+        if (!this.isAlarmFearControlled) {
+            return false;
+        }
+
+        let moveDt = Math.min(dt, this.alarmFearTimer);
+        this.alarmFearTimer = Math.max(0, this.alarmFearTimer - dt);
+        let moveX = this.alarmFearDirection.x * enemyCommonConfig.enemyMoveSpeed * moveDt;
+        let moveY = this.alarmFearDirection.y * enemyCommonConfig.enemyMoveSpeed * moveDt;
+        if (moveX != 0 || moveY != 0) {
+            this.refreshRoleAnimDirection(moveX);
+            this.playRoleAnim(enemyAnim.move, true);
+            let limitPos = this.gameComp?.limitMoveMatrixPos(
+                new Vec3(moveX, moveY, 0),
+                20,
+                25,
+                undefined,
+                this.node,
+                this.currentPos,
+            );
+            if (limitPos) {
+                this.node.setPosition(limitPos);
+            }
+        }
+
+        if (this.alarmFearTimer > 0) {
+            return true;
+        }
+
+        this.stopAlarmFearControl();
+        this.playRoleAnim(enemyAnim.idle, true);
+        return false;
+    }
+
+    /**结束警示铃击退控制 */
+    private stopAlarmFearControl() {
+        this.isAlarmFearControlled = false;
+        this.alarmFearTimer = 0;
+        this.alarmFearDirection.set(0, 0, 0);
+        this.clearAlarmFearDizzinessNode();
+    }
+
+    /**创建警示铃击退时的眩晕动画 */
+    private createAlarmFearDizzinessNode() {
+        if (this.alarmFearDizzinessNode?.isValid && this.alarmFearDizzinessNode.parent == this.effectNode) {
+            return;
+        }
+
+        this.clearAlarmFearDizzinessNode();
+        if (!uiMgr.gameSpineItemPrefab || !this.effectNode) {
+            return;
+        }
+
+        this.alarmFearDizzinessNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+        this.alarmFearDizzinessNode.name = "alarmFearDizzinessSpine";
+        this.effectNode.addChild(this.alarmFearDizzinessNode);
+        this.alarmFearDizzinessNode.setPosition(0, this.getRoleHeadEffectPosY(), 0);
+
+        let skeleton = poolMgr.getGameNodeSkeleton(this.alarmFearDizzinessNode);
+        if (skeleton) {
+            this.playAlarmFearDizzinessAnim(skeleton, this.alarmFearDizzinessNode);
+        }
+    }
+
+    /**播放警示铃击退眩晕循环动画 */
+    private async playAlarmFearDizzinessAnim(skeleton: sp.Skeleton, node: Node) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.dizziness);
+        if (!isLoaded || !skeleton || !skeleton.isValid || this.alarmFearDizzinessNode != node) {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
+    }
+
+    /**回收警示铃击退眩晕动画 */
+    private clearAlarmFearDizzinessNode() {
+        if (this.alarmFearDizzinessNode?.isValid) {
+            poolMgr.putGameSpineNode(this.alarmFearDizzinessNode);
+        }
+
+        this.alarmFearDizzinessNode = null;
+    }
+
+    /**获取敌人头顶特效的本地Y坐标，适配不同体型的敌人 */
+    private getRoleHeadEffectPosY() {
+        let roleAnimNode = this.roleAnim?.node;
+        let roleHeight = roleAnimNode?.getComponent(UITransform)?.height || 0;
+        return (roleAnimNode?.position.y || 0) + roleHeight;
     }
 
     /**铡刀控制，等待铡刀落下期间敌人不可移动和攻击 */
@@ -983,6 +1118,15 @@ export class enemyBaseController extends Component {
 
         this.startRepairHp(true);
         return this.isRepairingHp;
+    }
+
+    /**处理房间警示铃：敌人模式击退，常规模式改为强制更换目标 */
+    handleRoomAlarm(doorPos: Vec2, roomIdx: number) {
+        if (this.isPlayerControlled) {
+            return this.startAlarmFearControl(doorPos);
+        }
+
+        return this.forceChooseTargetExcludeRoom(roomIdx);
     }
 
     /**尝试触发当前攻击房间内的警示铃 */

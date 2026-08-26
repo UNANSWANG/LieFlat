@@ -94,6 +94,8 @@ export const enemyCommonConfig = {
     returnStartTime: 10,
     /**敌人攻击间隔倍率区间 */
     enemyAttackInterval: [1.25, 1.75],
+    /**敌人模式下，被恐惧的时间（秒） */
+    enemyFearTime: 2,
 }
 
 /**人机通用配置 */

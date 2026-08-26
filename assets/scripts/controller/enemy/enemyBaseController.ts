@@ -302,6 +302,7 @@ export class enemyBaseController extends Component {
             undefined,
             this.node,
             this.currentPos,
+            true,
         );
         if (limitPos) {
             this.node.setPosition(limitPos);
@@ -496,6 +497,7 @@ export class enemyBaseController extends Component {
     /**刷新狂怒技能状态 */
     private updateRageSkill(dt: number) {
         if (this.isPlayerControlled) {
+            this.updateRageTimer(dt);
             return;
         }
 
@@ -549,6 +551,23 @@ export class enemyBaseController extends Component {
         let roleAnimNode = this.roleAnim?.node;
         this.gameComp?.playEnemyAirAnim(uiMgr.airRedAnimClip, roleAnimNode?.worldPosition || this.node.worldPosition, roleAnimNode);
         this.refreshRoleAnimTimeScale();
+    }
+
+    /**玩家控制感染者主动释放狂暴技能 */
+    usePlayerRageSkill() {
+        if (!this.isPlayerControlled || this.isRaging || enemyCommonConfig.rageTime <= 0) {
+            return false;
+        }
+
+        uiMgr.showTips("感染者释放狂怒技能");
+        this.gameComp?.playSceneEffect(audioPath.bossSkill, this.node.worldPosition);
+        this.gameComp?.playSceneEffect(audioPath.shangshikaichang, this.node.worldPosition);
+        this.isRaging = true;
+        this.rageTimer = 0;
+        let roleAnimNode = this.roleAnim?.node;
+        this.gameComp?.playEnemyAirAnim(uiMgr.airRedAnimClip, roleAnimNode?.worldPosition || this.node.worldPosition, roleAnimNode);
+        this.refreshRoleAnimTimeScale();
+        return true;
     }
 
     /**结束狂怒技能 */
@@ -2703,6 +2722,21 @@ export class enemyBaseController extends Component {
         let roleAnimNode = this.roleAnim?.node;
         this.gameComp?.playEnemyAirAnim(uiMgr.airYellowAnimClip, roleAnimNode?.worldPosition || this.node.worldPosition, roleAnimNode);
         this.fearCannonsAround(tilePos);
+    }
+
+    /**玩家控制感染者主动释放震慑技能，震慑自身周围范围内的炮台 */
+    usePlayerFearSkill() {
+        if (!this.isPlayerControlled) {
+            return false;
+        }
+
+        uiMgr.showTips("感染者释放震慑技能");
+        this.gameComp?.playSceneEffect(audioPath.bossSkill, this.node.worldPosition);
+        this.gameComp?.playSceneEffect(audioPath.shangshikaichang, this.node.worldPosition);
+        let roleAnimNode = this.roleAnim?.node;
+        this.gameComp?.playEnemyAirAnim(uiMgr.airYellowAnimClip, roleAnimNode?.worldPosition || this.node.worldPosition, roleAnimNode);
+        this.fearCannonsAround(ccTools.getTileIndexByNodePos(this.node.position));
+        return true;
     }
 
     /**震慑门周围的炮台 */

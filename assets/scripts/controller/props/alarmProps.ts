@@ -32,7 +32,7 @@ export class alarmProps extends gamePropsBase {
     /**初始化专属数据 */
     initPropsData() {
         super.initPropsData();
-        this.alarmDoorHpThreshold = 0.9//commonConfig.getValueNumber("alarmThresholdHealth") / 100;
+        this.alarmDoorHpThreshold = commonConfig.getValueNumber("alarmThresholdHealth") / 100;
     }
 
     /**创建警示铃spine节点 */

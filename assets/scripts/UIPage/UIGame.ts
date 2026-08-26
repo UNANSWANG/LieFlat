@@ -28,6 +28,7 @@ import { sawController } from '../controller/sawController';
 import { gameAnimController } from '../controller/gameAnimController';
 import { coverProps } from '../controller/props/coverProps';
 import { audioMgr } from '../manager/audioManager';
+import { bossConfig, JsonBossData } from '../json/jsonBoss';
 const { ccclass, property } = _decorator;
 const GUIDE_MAP_NAME = "map05";
 const GUIDE_ROOM_IDX = 8;
@@ -258,6 +259,8 @@ export class UIGame extends UIBase {
     private repairCoolDownTime = 0;
     /**修复按钮冷却遮罩 */
     private repairMask: Sprite = null;
+    /**技能按钮冷却剩余时间，索引与 skillNode 子节点保持一致 */
+    private skillCoolDownTimes: number[] = [];
     /**各机器人开始找房间剩余时间 */
     private robotSuchRoomDelayMap: Map<roleController, number> = new Map();
     /**玩家上一帧所在房间 */
@@ -441,6 +444,10 @@ export class UIGame extends UIBase {
         this.setBtn.addComponent(zoomButton).onClick = this.clickSetBtn.bind(this);
         this.oprateBtn.on(NodeEventType.TOUCH_END, this.clickOprateBtn, this);
         this.repairBtn.addComponent(zoomButton).onClick = this.clickRepairBtn.bind(this);
+        for(let i = 0; i < this.skillNode.children.length; i++){
+            let btn = this.skillNode.children[i];
+            btn.addComponent(zoomButton).onClick = this.clickSkillBtn.bind(this, i);
+        }
     }
 
     initCamera() {
@@ -487,6 +494,7 @@ export class UIGame extends UIBase {
         this.initRoleBtnList();
 
         this.initEnemy();
+        this.refreshSkillNode();
 
         this.startGameCountDown();
 
@@ -510,6 +518,8 @@ export class UIGame extends UIBase {
         this.isGameStartCountDownEnd = false;
         this.isGamePause = false;
         this.repairCoolDownTime = 0;
+        this.skillCoolDownTimes = [];
+        this.refreshSkillNode();
         this.isRoleDisappearPlaying = false;
         this.robotSuchRoomDelayMap.clear();
         this.playerLastRoomIdx = 0;
@@ -2983,6 +2993,57 @@ export class UIGame extends UIBase {
         this.repairBtn.active = this.isGameStartCountDownEnd && playerMgr.playerComp?.roomIdx > 0;
     }
 
+    /**获取技能对应的 Boss 配置；第 0 个按钮对应 skillUnlock = 1 */
+    private getSkillConfig(idx: number): JsonBossData {
+        return bossConfig.tableData.find(data => Number(data?.skillUnlock) == idx + 1) || null;
+    }
+
+    /**刷新技能节点的显隐、解锁和冷却状态 */
+    private refreshSkillNode(dt: number = 0) {
+        if (!this.skillNode) {
+            return;
+        }
+
+        this.skillNode.active = this.isEnemyMode;
+        if (!this.isEnemyMode) {
+            return;
+        }
+
+        let enemyLevel = (this.controlledEnemy?.level || 0) + 1;
+        for (let idx = 0; idx < this.skillNode.children.length; idx++) {
+            let skillBtn = this.skillNode.children[idx];
+            let skillConfig = this.getSkillConfig(idx);
+            let unlockLevel = Number(skillConfig?.quantity) || 0;
+            let isUnlocked = !!skillConfig && enemyLevel >= unlockLevel;
+            let cooldownTime = Math.max(0, this.skillCoolDownTimes[idx] || 0);
+            if (dt > 0 && cooldownTime > 0) {
+                cooldownTime = Math.max(0, cooldownTime - dt);
+                this.skillCoolDownTimes[idx] = cooldownTime;
+            }
+
+            let img = skillBtn.getChildByName("img")?.getComponent(Sprite);
+            if (img) {
+                img.grayscale = !isUnlocked;
+            }
+
+            let labelNode = skillBtn.getChildByName("Label");
+            if (labelNode) {
+                labelNode.active = !isUnlocked;
+                let label = labelNode.getComponent(Label);
+                if (label) {
+                    label.string = `${unlockLevel}级解锁`;
+                }
+            }
+
+            let mask = skillBtn.getChildByName("mask")?.getComponent(Sprite);
+            if (mask) {
+                let totalCooldown = Math.max(0, Number(skillConfig?.skillCooldownTime) || 0);
+                mask.node.active = isUnlocked && cooldownTime > 0;
+                mask.fillRange = totalCooldown > 0 ? cooldownTime / totalCooldown : 0;
+            }
+        }
+    }
+
     /**游戏开始倒计时是否已结束 */
     get isEnemyCanMove() {
         return this.isGameStartCountDownEnd && !this.isGamePause && !this.isRoleDisappearPlaying;
@@ -3115,12 +3176,32 @@ export class UIGame extends UIBase {
     }
 
     /**检测单个瓦片是否不可走，角色脚下当前瓦片即使被关门改成block也允许离开 */
-    private isBlockTileForMove(tileX: number, tileY: number, currentTilePos: Vec2) {
+    private isBlockTileForMove(tileX: number, tileY: number, currentTilePos: Vec2, blockRoomProps = false) {
         if (tileX == currentTilePos.x && tileY == currentTilePos.y) {
             return false;
         }
 
-        return this.isBlockTile(tileX, tileY);
+        if (this.isBlockTile(tileX, tileY)) {
+            return true;
+        }
+
+        if (!blockRoomProps) {
+            return false;
+        }
+
+        let tileData = this.tileMap[tileX]?.[tileY];
+        let tileItem = tileData?.item;
+        if (!tileData?.roomIdx || !tileItem?.propsComp) {
+            return false;
+        }
+
+        // 未关闭的房门是感染者进入房间时唯一可直接通行的道具格。
+        if (tileItem.tileType == tilePropsType.door) {
+            let doorComp = tileItem.propsComp as doorProps;
+            return !doorComp || doorComp.isClose;
+        }
+
+        return true;
     }
 
     /**玩家移动碰撞矩形是否仍与指定瓦片重叠 */
@@ -3187,6 +3268,7 @@ export class UIGame extends UIBase {
         matrixOffsetPos: Vec2 = this.defaultMoveMatrixOffset,
         moveNode: Node = playerMgr.player,
         moveTilePos: Vec2 = playerMgr.playerComp?.currentPos,
+        blockRoomProps = false,
     ) {
         if (!moveNode || !moveTilePos) {
             return null;
@@ -3215,7 +3297,7 @@ export class UIGame extends UIBase {
                 let checkTileX = this.getTileXByNodeX(right - edgeOffset);
                 for (let y = startTileY; y <= endTileY; y++) {
                     //为true就是不可走
-                    if (this.isBlockTileForMove(checkTileX, y, currentTilePos)) {
+                    if (this.isBlockTileForMove(checkTileX, y, currentTilePos, blockRoomProps)) {
                         limitPos.x = this.getTileLeftByTileX(checkTileX) - halfWidth - matrixOffsetPos.x;
                         break;
                     }
@@ -3223,7 +3305,7 @@ export class UIGame extends UIBase {
             } else {
                 let checkTileX = this.getTileXByNodeX(left);
                 for (let y = startTileY; y <= endTileY; y++) {
-                    if (this.isBlockTileForMove(checkTileX, y, currentTilePos)) {
+                    if (this.isBlockTileForMove(checkTileX, y, currentTilePos, blockRoomProps)) {
                         limitPos.x = this.getTileRightByTileX(checkTileX) + halfWidth - matrixOffsetPos.x;
                         break;
                     }
@@ -3246,7 +3328,7 @@ export class UIGame extends UIBase {
             if (offsetPos.y > 0) {
                 let checkTileY = this.getTileYByNodeY(top);
                 for (let x = startTileX; x <= endTileX; x++) {
-                    if (this.isBlockTileForMove(x, checkTileY, currentTilePos)) {
+                    if (this.isBlockTileForMove(x, checkTileY, currentTilePos, blockRoomProps)) {
                         limitPos.y = this.getTileBottomByTileY(checkTileY) - halfHeight - matrixOffsetPos.y;
                         break;
                     }
@@ -3254,7 +3336,7 @@ export class UIGame extends UIBase {
             } else {
                 let checkTileY = this.getTileYByNodeY(bottom + edgeOffset);
                 for (let x = startTileX; x <= endTileX; x++) {
-                    if (this.isBlockTileForMove(x, checkTileY, currentTilePos)) {
+                    if (this.isBlockTileForMove(x, checkTileY, currentTilePos, blockRoomProps)) {
                         limitPos.y = this.getTileTopByTileY(checkTileY) + halfHeight - matrixOffsetPos.y;
                         break;
                     }
@@ -3547,6 +3629,7 @@ export class UIGame extends UIBase {
         this.refreshGameStartElapsedTime(dt);
         this.refreshRobotSuchRoomDelay(dt);
         this.refreshRepairMask(dt);
+        this.refreshSkillNode(dt);
         this.refreshRoleBtnAttackStateByInterval(dt);
 
         // 移动玩家（不使用vec3计算）
@@ -4243,6 +4326,43 @@ export class UIGame extends UIBase {
         this.repairCoolDownTime = configData.repairCoolDown;
         this.repairMask.node.active = true;
         this.repairMask.fillRange = 1;
+    }
+
+    /**点击技能按钮 */
+    clickSkillBtn(idx: number) {
+        if (!this.isEnemyMode || !this.controlledEnemy) {
+            return;
+        }
+
+        let skillConfig = this.getSkillConfig(idx);
+        let enemyLevel = this.controlledEnemy.level + 1;
+        if (!skillConfig) {
+            return;
+        }
+
+        let unlockLevel = Number(skillConfig.quantity) || 0;
+        if (enemyLevel < unlockLevel) {
+            uiMgr.showTips(`等级达到${unlockLevel}后解锁`);
+            return;
+        }
+
+        if (!this.isEnemyCanMove) {
+            return;
+        }
+
+        if ((this.skillCoolDownTimes[idx] || 0) > 0) {
+            return;
+        }
+
+        let isReleased = idx == 0
+            ? this.controlledEnemy.usePlayerRageSkill()
+            : idx == 1 && this.controlledEnemy.usePlayerFearSkill();
+        if (!isReleased) {
+            return;
+        }
+
+        this.skillCoolDownTimes[idx] = Math.max(0, Number(skillConfig.skillCooldownTime) || 0);
+        this.refreshSkillNode();
     }
 }
 

@@ -111,7 +111,7 @@ export class UISuccess extends UIBase {
 
         let survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
         this.initRewardNum(survivalTime);
-        this.timeLab.string = `存活时间：${Math.floor(survivalTime)}s`;
+        this.timeLab.string = (pData.matchMode == 1 ? "击破时间" : "存活时间") + `：${Math.floor(survivalTime)}s`;
         this.isRewardClaimed = false;
         this.refreshRewardNum();
         this.refreshBoxNum();

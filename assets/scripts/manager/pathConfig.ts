@@ -208,4 +208,6 @@ export enum animPath {
     fog = "animation/game/fog",
     /**引导箭头动画 */
     guideArrow = "animation/game/guideArrow",
+    /**升级动画 */
+    upgrade = "animation/game/upgrade",
 }

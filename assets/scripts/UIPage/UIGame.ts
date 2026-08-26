@@ -4396,7 +4396,10 @@ export class UIGame extends UIBase {
             return;
         }
 
-        if ((this.skillCoolDownTimes[idx] || 0) > 0) {
+        let cooldownTime = Math.max(0, this.skillCoolDownTimes[idx] || 0);
+        if (cooldownTime > 0) {
+            let skillName = idx == 0 ? "狂暴" : idx == 1 ? "震慑" : "技能";
+            uiMgr.showTips(`${skillName}技能冷却中，剩余${Math.ceil(cooldownTime)}秒`);
             return;
         }
 

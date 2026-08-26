@@ -1678,6 +1678,22 @@ export class enemyBaseController extends Component {
 
     /**敌人模式下，获取当前所在十字范围内可攻击的道具坐标 */
     private getPlayerControlledAttackablePropsPos(preferredPos: Vec2 = null) {
+        // 每次判定下一攻击目标时，范围内存在床则优先选择床。
+        for (let offsetY = -1; offsetY <= 1; offsetY++) {
+            for (let offsetX = -1; offsetX <= 1; offsetX++) {
+                let tilePos = this.tempPathTilePos;
+                tilePos.set(this.currentPos.x + offsetX, this.currentPos.y + offsetY);
+                if (!this.isAttackablePropsAtPlayerControlledPos(tilePos)) {
+                    continue;
+                }
+
+                if (this.getTilePropComp(tilePos)?.propsType == tilePropsType.bed) {
+                    return new Vec2(tilePos.x, tilePos.y);
+                }
+            }
+        }
+
+        // 除床以外的目标，保持原有的本轮目标优先与遍历顺序。
         if (this.isAttackablePropsAtPlayerControlledPos(preferredPos)) {
             return preferredPos;
         }

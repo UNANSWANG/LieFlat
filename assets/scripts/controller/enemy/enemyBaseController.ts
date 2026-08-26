@@ -215,7 +215,10 @@ export class enemyBaseController extends Component {
         this.roleAnim.setCompleteListener(this.onRoleAnimComplete.bind(this));
         this.effectNode = this.node.getChildByName("effectNode");
         this.expNode = this.node.getChildByName("expBg");
-        this.expBar = this.expNode.getChildByName("expBar").getComponent(Sprite);
+        this.expBar = this.expNode?.getChildByName("expBar")?.getComponent(Sprite);
+        if (this.expNode) {
+            this.expNode.active = false;
+        }
     }
 
     protected onDestroy(): void {
@@ -256,6 +259,7 @@ export class enemyBaseController extends Component {
         this.fireKillerSkinId = pData.skinId;
         this.survivalTime = 0;
         this.refreshRoleSpine();
+        this.refreshExp();
 
         this.roleNameLab.string = nickname || `感染者${this.roleId + 1}`
     }
@@ -446,6 +450,27 @@ export class enemyBaseController extends Component {
         this.levelLab.string = `LV${this.level + 1}`;
     }
 
+    /**刷新敌人模式攻击经验条；常规模式不显示 */
+    private refreshExp() {
+        if (this.expNode) {
+            this.expNode.active = this.isEnemyMode;
+        }
+        if (!this.isEnemyMode || !this.expBar) {
+            return;
+        }
+
+        if (this.isMaxLevel) {
+            this.expBar.fillRange = 1;
+            return;
+        }
+
+        let upgradeExp = Number((this.getCurrentLevelBossData() as JsonBossData)?.upgradeExp);
+        let expPercent = Number.isFinite(upgradeExp) && upgradeExp > 0
+            ? this.attackExp / upgradeExp
+            : 0;
+        this.expBar.fillRange = Math.max(0, Math.min(1, expPercent));
+    }
+
     /**刷新血量 */
     refreshHp(isImmediate: boolean = false) {
         let hpPercent = Math.max(0, Math.min(1, this.hpPercent));
@@ -472,6 +497,7 @@ export class enemyBaseController extends Component {
         this.level++;
         this.attackExp = 0;
         this.refreshLevel();
+        this.refreshExp();
         this.resetHp();
         this.resetAttackDamage();
         this.resetUpgradeTimer();
@@ -2646,6 +2672,7 @@ export class enemyBaseController extends Component {
         }
 
         this.attackExp += attackExp;
+        this.refreshExp();
         if (this.attackExp >= upgradeExp) {
             this.upgrade();
         }

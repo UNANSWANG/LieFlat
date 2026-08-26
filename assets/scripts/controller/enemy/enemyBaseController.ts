@@ -159,8 +159,6 @@ export class enemyBaseController extends Component {
     private isSawControlled: boolean = false;
     /**攻击寒冰房门时挂在身上的寒冰动画节点 */
     private attackIceNode: Node = null;
-    /**回出生点回血时挂在身上的回血动画节点 */
-    private repairBloodNode: Node = null;
     /**是否正在播放死亡消失动画 */
     private isPlayingDeathDisappear: boolean = false;
     /**最后完成击杀的角色皮肤 */
@@ -358,6 +356,9 @@ export class enemyBaseController extends Component {
         this.updateDoorAttackTimeCheck(dt);
         this.updateThornDamage(dt);
         this.updateFireBurn(dt);
+        if (!this.isRepairingHp) {
+            this.recoverHpAtEnemyBornPos(dt);
+        }
         if (this.isCageControlled) {
             return;
         }
@@ -689,49 +690,6 @@ export class enemyBaseController extends Component {
         this.attackIceNode = null;
     }
 
-    /**刷新回出生点回血时挂在身上的回血动画 */
-    private refreshRepairBloodEffect() {
-        if (!this.isRepairingHp || !uiMgr.gameSpineItemPrefab || !this.effectNode) {
-            this.clearRepairBloodEffect();
-            return;
-        }
-
-        if (this.repairBloodNode && this.repairBloodNode.isValid && this.repairBloodNode.parent == this.effectNode) {
-            return;
-        }
-
-        this.clearRepairBloodEffect();
-        this.repairBloodNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
-        this.repairBloodNode.name = "repairBloodSpine";
-        this.effectNode.addChild(this.repairBloodNode);
-        this.repairBloodNode.setScale(3, 3, 1);
-        this.repairBloodNode.setPosition(0, 50, 0);
-
-        let skeleton = poolMgr.getGameNodeSkeleton(this.repairBloodNode);
-        if (skeleton) {
-            this.playRepairBloodAnim(skeleton, this.repairBloodNode);
-        }
-    }
-
-    /**播放回出生点回血循环动画 */
-    private async playRepairBloodAnim(skeleton: sp.Skeleton, node: Node) {
-        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.blood);
-        if (!isLoaded || !skeleton || !skeleton.isValid || this.repairBloodNode != node) {
-            return;
-        }
-
-        skeleton.setAnimation(0, "animation", true);
-    }
-
-    /**清理回出生点回血时挂在身上的回血动画 */
-    private clearRepairBloodEffect() {
-        if (this.repairBloodNode && this.repairBloodNode.isValid) {
-            poolMgr.putGameSpineNode(this.repairBloodNode);
-        }
-
-        this.repairBloodNode = null;
-    }
-
     /**获取当前攻击目标所在房间 */
     private getCurAttackRoomIdx() {
         if (this.isAttackingProps && this.attackingTilePos) {
@@ -858,7 +816,6 @@ export class enemyBaseController extends Component {
         this.survivalTime = this.gameComp?.getGameStartElapsedTime() || 0;
         this.clearFireBurn();
         this.clearAttackIceEffect();
-        this.clearRepairBloodEffect();
         enemyMgr.removeEnemy(this.roleId);
         this.playRoleAnim(enemyAnim.idle, true);
         this.playDeathDisappearAnim();
@@ -2010,7 +1967,6 @@ export class enemyBaseController extends Component {
             this.isRepairingHp = false;
             this.repairBornPos = null;
             this.needWaitReturnStart = false;
-            this.clearRepairBloodEffect();
             this.chooseTargetAndFindPath();
             return;
         }
@@ -2045,14 +2001,11 @@ export class enemyBaseController extends Component {
     /**出生点回血 */
     private repairHp(dt: number) {
         if (!this.isRepairingHp) {
-            this.clearRepairBloodEffect();
             return;
         }
 
         this.playRoleAnim(enemyAnim.idle, true);
-        this.refreshRepairBloodEffect();
-        this.hp = Math.min(this.maxHp, this.hp + this.maxHp * enemyCommonConfig.enemyHpRepairSpeed / 100 * dt);
-        this.refreshHp();
+        this.recoverHpAtEnemyBornPos(dt);
 
         if (this.hp < this.maxHp) {
             return;
@@ -2060,7 +2013,6 @@ export class enemyBaseController extends Component {
 
         this.isRepairingHp = false;
         this.repairBornPos = null;
-        this.clearRepairBloodEffect();
         this.clearMovePath();
         if (this.needWaitReturnStart) {
             this.needWaitReturnStart = false;
@@ -2071,6 +2023,30 @@ export class enemyBaseController extends Component {
         }
 
         this.chooseTargetAndFindPath();
+    }
+
+    /**敌人位于任意出生点时，按常规回血速度持续回血 */
+    private recoverHpAtEnemyBornPos(dt: number) {
+        if (dt <= 0 || this.hp >= this.maxHp || !this.isAtEnemyBornPos()) {
+            return false;
+        }
+
+        this.hp = Math.min(this.maxHp, this.hp + this.maxHp * enemyCommonConfig.enemyHpRepairSpeed / 100 * dt);
+        this.refreshHp();
+        return true;
+    }
+
+    /**敌人节点当前所在瓦片是否为出生点 */
+    private isAtEnemyBornPos() {
+        let currentTilePos = ccTools.getTileIndexByNodePos(this.node.position, this.tempPathTilePos);
+        let bornPosArr = enemyMgr.enemyBornPosArr || [];
+        for (let i = 0; i < bornPosArr.length; i++) {
+            if (this.isTileSame(currentTilePos, bornPosArr[i])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**刷新出生点等待重新出发状态 */

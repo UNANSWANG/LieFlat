@@ -688,6 +688,7 @@ export class UIGame extends UIBase {
                 }
             }
         }
+        this.createEnemyBornBloodEffects();
         // console.warn("随机道具点位", this.randomPropsPosArr);
 
         //处理房间数据
@@ -1655,6 +1656,42 @@ export class UIGame extends UIBase {
             let skinId = this.matchRoleSkinIds[i];
             robotComp.init(this, i + 1, skinId, this.matchRoleNicknames[i], this.enemyModeRobotDifficultyTypes[i]);
         }
+    }
+
+    /**在所有敌人出生点创建常驻回血动画 */
+    private createEnemyBornBloodEffects() {
+        if (!uiMgr.gameSpineItemPrefab || !this.gameBottomUINode) {
+            return;
+        }
+
+        let bornPosArr = enemyMgr.enemyBornPosArr || [];
+        for (let i = 0; i < bornPosArr.length; i++) {
+            let bornPos = bornPosArr[i];
+            let bloodNode = poolMgr.getGameSpineNode(uiMgr.gameSpineItemPrefab);
+            bloodNode.name = "enemyBornBloodSpine";
+            bloodNode.setScale(3, 3, 1);
+            this.getTileCenterWorldPos(bornPos, this.tempTileCenterWorldPos);
+            if (!this.addGameBottomUINodeChild(bloodNode, this.tempTileCenterWorldPos)) {
+                poolMgr.putGameSpineNode(bloodNode);
+                continue;
+            }
+
+            let skeleton = poolMgr.getGameNodeSkeleton(bloodNode);
+            if (skeleton) {
+                this.playEnemyBornBloodAnim(skeleton, bloodNode);
+            }
+        }
+    }
+
+    /**播放敌人出生点常驻回血动画 */
+    private async playEnemyBornBloodAnim(skeleton: sp.Skeleton, node: Node) {
+        let isLoaded = await ccTools.loadSpine(skeleton, spinePath.blood);
+        if (!isLoaded || !skeleton || !skeleton.isValid || !node || !node.isValid
+            || node.parent != this.gameBottomUINode || node.name != "enemyBornBloodSpine") {
+            return;
+        }
+
+        skeleton.setAnimation(0, "animation", true);
     }
 
     /**敌人模式随机三种难度，并将每种难度各分配给两名机器人 */

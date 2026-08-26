@@ -273,28 +273,23 @@ export class TTManager extends BasePlat {
     }
 
     shareAppMessage(successFuc?) {
-        if (gm.hgSdk) {
-            gm.hgSdk.share({
+        return new Promise<Boolean>($resolve => {
+            window["tt"].shareAppMessage({
+                // channel: "invite", //分享渠道
+                title: "标题", //分享标题
+                desc: "快来跟我一起玩吧！", //分享描述
+                imageUrl: "", //分享图标
+                query: "",
+                success(res) {
+                    successFuc && successFuc();
+                    console.log("分享成功", res);
+                },
+                fail(e) {
+                    uiMgr.showTips("分享失败");
+                    console.log("分享失败");
+                },
             })
-        } else {
-            return new Promise<Boolean>($resolve => {
-                window["tt"].shareAppMessage({
-                    // channel: "invite", //分享渠道
-                    title: "标题", //分享标题
-                    desc: "快来跟我一起玩吧！", //分享描述
-                    imageUrl: "", //分享图标
-                    query: "",
-                    success(res) {
-                        successFuc && successFuc();
-                        console.log("分享成功", res);
-                    },
-                    fail(e) {
-                        uiMgr.showTips("分享失败");
-                        console.log("分享失败");
-                    },
-                })
-            })
-        }
+        })
     }
 
     shareAppvideo() {

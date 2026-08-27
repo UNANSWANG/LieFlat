@@ -96,7 +96,7 @@ export class UISuccess extends UIBase {
     }
 
     initData(data?) {
-        this.isEnemyMode = data?.isEnemyMode === true;
+        this.isEnemyMode = pData.matchMode == 1;
         let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0
             ? data.skinId
             : this.isEnemyMode ? pData.enemySkinId : pData.skinId;

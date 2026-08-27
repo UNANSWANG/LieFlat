@@ -2032,7 +2032,6 @@ export class UIGame extends UIBase {
 
         this.isEnemyModeGameOver = true;
         uiMgr.openPage(UIPath.UISuccess, {
-            isEnemyMode: true,
             skinId: this.controlledEnemy?.skinId ?? pData.enemySkinId,
             survivalTime: this.getGameStartElapsedTime(),
         });
@@ -2046,7 +2045,6 @@ export class UIGame extends UIBase {
 
         this.isEnemyModeGameOver = true;
         uiMgr.openPage(UIPath.UIFail, {
-            isEnemyMode: true,
             skinId: Number.isInteger(killerSkinId) && killerSkinId >= 0 ? killerSkinId : 0,
             survivalTime,
         });

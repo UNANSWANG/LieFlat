@@ -99,7 +99,7 @@ export class UIFail extends UIBase {
     }
 
     initData(data?) {
-        this.isEnemyMode = data?.isEnemyMode === true;
+        this.isEnemyMode = pData.matchMode == 1;
         let skinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : 0;
         this.refreshTitleImage();
         if (this.isEnemyMode) {

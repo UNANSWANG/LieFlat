@@ -98,6 +98,8 @@ export class UIManager {
             this.preLoadPage(UIPath.UISuccess),
             this.preLoadPage(UIPath.UIFail),
             this.preLoadPage(UIPath.UIResurrection),
+            this.preLoadPage(UIPath.UIDoorRecover),
+            this.preLoadPage(UIPath.UIDebris),
             this.loadGamePrefab(),
             this.loadGameAnim(),
         ]);

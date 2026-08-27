@@ -50,6 +50,8 @@ export enum UIPath {
     UIDebris = "prefabs/UIPage/UIDebris",
     /**复活页面 */
     UIResurrection = "prefabs/UIPage/UIResurrection",
+    /**血量回复卡页面 */
+    UIDoorRecover = "prefabs/UIPage/UIDoorRecover",
 }
 
 /**物品路径 */

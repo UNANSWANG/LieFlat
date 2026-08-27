@@ -6,7 +6,7 @@ import { propsConfig } from '../json/jsonProps';
 import { gamePropsBase } from '../controller/props/gamePropsBase';
 import { tilePropsType } from '../controller/tileItemController';
 import { zoomButton } from '../extention/zoomButton';
-import { configData, GameEvent } from '../manager/configData';
+import { configData, GameEvent, SaveKey } from '../manager/configData';
 import { ccTools } from '../extention/generalTools';
 import { gm } from '../manager/gm';
 import { pData } from '../manager/playerData';
@@ -15,6 +15,7 @@ import { videoMgr } from '../manager/videoManager';
 import { doorProps } from '../controller/props/doorProps';
 import { poolMgr } from '../manager/poolManager';
 import { bedProps } from '../controller/props/bedProps';
+import { ccStorageTools } from '../extention/storageTools';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIProps')
@@ -188,6 +189,7 @@ export class UIProps extends UIBase {
             let grayBg = buyBg.getChildByName("gray");
             let normalBg = buyBg.getChildByName("normal");
             let adBg = buyBg.getChildByName("ad");
+            let shareBg = buyBg.getChildByName("share");
             let buyLayout = buyBtn.getChildByName("layout");
             let coinLayout = buyLayout.getChildByName("coinNumLayout");
             let powerLayout = buyLayout.getChildByName("powerNumLayout");
@@ -243,6 +245,7 @@ export class UIProps extends UIBase {
                 grayBg.active = true;
                 normalBg.active = false;
                 adBg.active = false;
+                shareBg && (shareBg.active = false);
                 //第二个默认是拆除
                 desLab.string = "回收当前建筑，并返回一定的资源。";
                 coinNumLab.string = "+" + coinNum;
@@ -250,10 +253,12 @@ export class UIProps extends UIBase {
                 nameLab.string = "回收";
                 ccTools.loadImg(propsImg, imgPath.gamePpropsPreview + "remove");
             } else if (i == 2) {
-                //广告回复房门血量
+                //每日首次分享回复房门血量，之后使用广告回复
                 grayBg.active = false;
                 normalBg.active = false;
-                adBg.active = true;
+                let hasSharedRecoverToday = this.hasSharedDoorRecoverToday();
+                adBg.active = hasSharedRecoverToday;
+                shareBg && (shareBg.active = !hasSharedRecoverToday);
 
                 //满级时无下一级数据，回退使用当前级数据
                 let cardPropsData = nextPropsData || propsData;
@@ -452,10 +457,12 @@ export class UIProps extends UIBase {
         let grayBg = buyBg.getChildByName("gray");
         let normalBg = buyBg.getChildByName("normal");
         let adBg = buyBg.getChildByName("ad");
+        let shareBg = buyBg.getChildByName("share");
         let canBuy = this.propsComp?.checkCanUpgrade(propsData) || false;
         grayBg.active = !canBuy;
         normalBg.active = canBuy;
         adBg.active = false;
+        shareBg && (shareBg.active = false);
     }
 
     ///
@@ -557,7 +564,12 @@ export class UIProps extends UIBase {
         return (Number(propsData?.power) || 0) / 2;
     }
 
-    /**广告回复房门血量（不限次数） */
+    /**今日是否已通过分享使用血量回复卡 */
+    private hasSharedDoorRecoverToday() {
+        return ccStorageTools.getLimitTimeData(SaveKey.isGetDoorRecoverShare) == 1;
+    }
+
+    /**血量回复卡：每日首次分享，之后使用广告 */
     clickAdRecoverDoorHp() {
         if (!this.isPropsAvailable()) {
             this.onClose();
@@ -574,15 +586,48 @@ export class UIProps extends UIBase {
             return;
         }
 
+        if (!this.hasSharedDoorRecoverToday()) {
+            this.shareRecoverDoorHp();
+            return;
+        }
+
         videoMgr.watchVideo(68, () => {
-            if (!this.isPropsAvailable()) {
-                this.onClose();
+            this.recoverDoorHpByCard();
+        });
+    }
+
+    /**分享成功后记录每日状态并回复房门血量 */
+    private shareRecoverDoorHp() {
+        if (!gm.API) {
+            uiMgr.showTips("当前平台暂不支持分享");
+            return;
+        }
+
+        gm.API.shareAppMessage(() => {
+            if (this.hasSharedDoorRecoverToday()) {
                 return;
             }
 
-            (this.propsComp as doorProps).recoverHpAd();
-            this.onClose();
+            ccStorageTools.setLimitTimeData(SaveKey.isGetDoorRecoverShare, 1);
+            this.recoverDoorHpByCard();
         });
+    }
+
+    /**完成分享或广告奖励后回复房门血量 */
+    private recoverDoorHpByCard() {
+        if (!this.isPropsAvailable()) {
+            this.onClose();
+            return;
+        }
+
+        let doorComp = this.propsComp as doorProps;
+        if (doorComp.propsType != tilePropsType.door || doorComp.isHpFull) {
+            this.onClose();
+            return;
+        }
+
+        doorComp.recoverHpAd();
+        this.onClose();
     }
 
     onClose() {

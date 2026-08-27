@@ -240,6 +240,8 @@ export enum SaveKey {
     useJsonLocal = "useJsonLocal",
     /**今日是否通过分享复活过游戏 */
     isGetResurrectionShare = "isGetResurrectionShare",
+    /**今日是否通过分享使用过血量回复卡 */
+    isGetDoorRecoverShare = "isGetDoorRecoverShare",
 }
 
 /**道具索引 */

@@ -1012,16 +1012,19 @@ export class enemyBaseController extends Component {
         this.playDeathDisappearAnim();
     }
 
-    /**播放死亡消失动画，结束后销毁节点并检测成功 */
+    /**播放死亡消失动画，玩家控制的敌人会保留节点等待复活 */
     private playDeathDisappearAnim() {
         let animNode = this.roleAnim?.node || this.node.getChildByName("roleAnim");
         if (!animNode) {
+            if (this.isPlayerControlled) {
+                this.node.active = false;
+                this.gameComp?.onEnemyModeEnemyDefeated(this.killerSkinId, this.survivalTime);
+                return;
+            }
             if (this.node && this.node.isValid) {
                 this.node.destroy();
             }
-            if (this.isPlayerControlled) {
-                this.gameComp?.onEnemyModeEnemyDefeated(this.killerSkinId, this.survivalTime);
-            } else if (this.isVictoryEnemy) {
+            if (this.isVictoryEnemy) {
                 this.openSuccessPage();
             }
             return;
@@ -1036,16 +1039,57 @@ export class enemyBaseController extends Component {
         tween(opacity)
             .to(duration, { opacity: 0 })
             .call(() => {
+                if (this.isPlayerControlled) {
+                    this.node.active = false;
+                    this.gameComp?.onEnemyModeEnemyDefeated(this.killerSkinId, this.survivalTime);
+                    return;
+                }
                 if (this.node && this.node.isValid) {
                     this.node.destroy();
                 }
-                if (this.isPlayerControlled) {
-                    this.gameComp?.onEnemyModeEnemyDefeated(this.killerSkinId, this.survivalTime);
-                } else if (this.isVictoryEnemy) {
+                if (this.isVictoryEnemy) {
                     this.openSuccessPage();
                 }
             })
             .start();
+    }
+
+    /**敌人模式下原地复活，保留当前等级与攻击经验 */
+    resurrect() {
+        if (!this.isPlayerControlled || !this.isPlayingDeathDisappear || !this.node?.isValid) {
+            return false;
+        }
+
+        this.isPlayingDeathDisappear = false;
+        this.node.active = true;
+        let animNode = this.roleAnim?.node || this.node.getChildByName("roleAnim");
+        let opacity = animNode?.getComponent(UIOpacity);
+        Tween.stopAllByTarget(animNode);
+        Tween.stopAllByTarget(opacity);
+        if (opacity) {
+            opacity.opacity = 255;
+        }
+
+        this.hp = this.maxHp;
+        this.refreshHp(true);
+        this.stopCageControl();
+        this.stopNetControl();
+        this.stopSawControl();
+        this.stopAlarmFearControl();
+        this.stopAttackPlayer();
+        this.stopAttackProps();
+        if (enemyMgr.enemyArr.indexOf(this) < 0) {
+            enemyMgr.enemyArr.push(this);
+        }
+        this.playRoleAnim(enemyAnim.idle, true);
+        return true;
+    }
+
+    /**未选择复活时，销毁等待中的玩家控制敌人 */
+    destroyAfterResurrectionRejected() {
+        if (this.isPlayerControlled && this.node?.isValid) {
+            this.node.destroy();
+        }
     }
 
     /**打开胜利界面 */

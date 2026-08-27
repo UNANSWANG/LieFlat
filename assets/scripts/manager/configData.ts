@@ -166,6 +166,8 @@ export enum GameEvent {
     refreshGameLevel = "refreshGameLevel",
     /**复活游戏 */
     resurrectionGame = "resurrectionGame",
+    /**放弃复活，结束当前敌人模式对局 */
+    giveUpResurrection = "giveUpResurrection",
     /**刷新道具 */
     refreshProps = "refreshProps",
     /**关闭奖励界面 */

@@ -302,6 +302,8 @@ export class UIGame extends UIBase {
     private enemyModeRobotDifficultyTypes: number[] = [];
     /**敌人模式是否已进入结算，防止最后一次击杀重复弹窗 */
     private isEnemyModeGameOver = false;
+    /**本局敌人模式是否已经弹出过复活界面 */
+    private hasShownEnemyModeResurrection = false;
 
     private get isEnemyMode() {
         return pData.matchMode == 1;
@@ -419,6 +421,8 @@ export class UIGame extends UIBase {
         gm.Event.on(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.on(GameEvent.gameResume, this.onGameResume, this);
         gm.Event.on(GameEvent.addGameMonetary, this.addGameMonetary, this);
+        gm.Event.on(GameEvent.resurrectionGame, this.resurrectEnemyMode, this);
+        gm.Event.on(GameEvent.giveUpResurrection, this.giveUpEnemyModeResurrection, this);
         gm.Event.on(GameEvent.forceStart, this.forceStartGame, this);
         // 监听键盘按下
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
@@ -444,6 +448,8 @@ export class UIGame extends UIBase {
         gm.Event.off(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.off(GameEvent.gameResume, this.onGameResume, this);
         gm.Event.off(GameEvent.addGameMonetary, this.addGameMonetary, this);
+        gm.Event.off(GameEvent.resurrectionGame, this.resurrectEnemyMode, this);
+        gm.Event.off(GameEvent.giveUpResurrection, this.giveUpEnemyModeResurrection, this);
         gm.Event.off(GameEvent.forceStart, this.forceStartGame, this);
         // 监听键盘按下
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
@@ -586,6 +592,7 @@ export class UIGame extends UIBase {
         playerMgr.player = null;
         this.controlledEnemy = null;
         this.isEnemyModeGameOver = false;
+        this.hasShownEnemyModeResurrection = false;
         this.isEnemyCameraFollowing = false;
         this.enemyModeRobotDifficultyTypes = [];
         enemyMgr.enemyArr = [];
@@ -2044,10 +2051,38 @@ export class UIGame extends UIBase {
         }
 
         this.isEnemyModeGameOver = true;
-        uiMgr.openPage(UIPath.UIFail, {
+        if (this.hasShownEnemyModeResurrection) {
+            this.controlledEnemy?.destroyAfterResurrectionRejected();
+            uiMgr.openPage(UIPath.UIFail, {
+                skinId: Number.isInteger(killerSkinId) && killerSkinId >= 0 ? killerSkinId : 0,
+                survivalTime,
+            });
+            return;
+        }
+
+        this.hasShownEnemyModeResurrection = true;
+        uiMgr.openPage(UIPath.UIResurrection, {
             skinId: Number.isInteger(killerSkinId) && killerSkinId >= 0 ? killerSkinId : 0,
+            enemySkinId: this.controlledEnemy?.skinId ?? pData.enemySkinId,
             survivalTime,
         });
+    }
+
+    /**敌人模式复活：保留死亡前等级和经验，仅恢复当前等级的满血 */
+    private resurrectEnemyMode() {
+        if (!this.isEnemyMode || !this.isEnemyModeGameOver || !this.controlledEnemy?.resurrect()) {
+            return;
+        }
+
+        this.isEnemyModeGameOver = false;
+        this.isEnemyCameraFollowing = true;
+    }
+
+    /**关闭复活界面后销毁已隐藏的敌人，再进入失败结算 */
+    private giveUpEnemyModeResurrection() {
+        if (this.isEnemyMode && this.isEnemyModeGameOver) {
+            this.controlledEnemy?.destroyAfterResurrectionRejected();
+        }
     }
 
     /**初始化敌人 */
@@ -4395,8 +4430,7 @@ export class UIGame extends UIBase {
                 });
                 break;
             case KeyCode.KEY_G:
-                //复活
-                uiMgr.openPage(UIPath.UIResurrection);
+                //复活界面仅由敌人模式死亡流程打开。
                 break;
             case KeyCode.KEY_L:
                 //增加游戏内货币

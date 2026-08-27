@@ -128,7 +128,7 @@ export class UISuccess extends UIBase {
         this.moneyNum = 20 + (3 + pData.difficultyIndex) * Math.max(1, Math.ceil(survivalTime / 300));
         let boxRewardWeight = JSON.parse(commonConfig.getValue("boxRewardWeight"));
         let randomIdx = ccTools.getWeightedRandomIndex(boxRewardWeight);
-        this.boxNum = randomIdx;
+        this.boxNum = pData.matchMode == 1 ? 0 : randomIdx;
     }
 
     /**加载胜利角色并循环播放待机动画 */

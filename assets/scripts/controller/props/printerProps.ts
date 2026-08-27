@@ -60,7 +60,7 @@ export class printerProps extends gamePropsBase {
 
     /**炮台攻击时，通过房间内印钞机产出金币 */
     static produceCoinByCannonLevel(gameComp: any, roomIdx: number, cannonLevel: number) {
-        if (roomIdx != playerMgr.playerComp?.roomIdx) {
+        if (pData.matchMode == 1 || roomIdx != playerMgr.playerComp?.roomIdx) {
             return;
         }
 

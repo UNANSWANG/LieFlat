@@ -84,7 +84,7 @@ export class bedProps extends gamePropsBase {
         this.produceItem(produceType.coin, this.addNum);
 
         //是当前游戏玩家的床则增加游戏金币
-        if (this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
+        if (pData.matchMode != 1 && this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
             pData.fixGameCoin(this.addNum);
         }
     }

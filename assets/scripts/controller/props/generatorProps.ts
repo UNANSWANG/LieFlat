@@ -100,7 +100,7 @@ export class generatorProps extends gamePropsBase {
         this.produceItem(produceType.power, this.addNum);
 
         //是当前游戏玩家的发电机则增加游戏电能
-        if (this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
+        if (pData.matchMode != 1 && this.roomIdx == playerMgr.playerComp.roomIdx && playerMgr.playerComp.state == roleState.bed) {
             pData.fixGamePower(this.addNum);
         }
     }

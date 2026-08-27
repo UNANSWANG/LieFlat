@@ -414,8 +414,8 @@ export class UIGame extends UIBase {
         gm.Event.on(GameEvent.refreshGameCamera, this.refreshGameCamera, this);
         gm.Event.on(GameEvent.refreshGameMonetary, this.refreshMonetaryLab, this);
         gm.Event.on(GameEvent.refreshPlayerPos, this.checkPlayerPos, this);
-        gm.Event.on(GameEvent.createProps, this.createProps, this);
-        gm.Event.on(GameEvent.upgradeProps, this.upgradeProps, this);
+        gm.Event.on(GameEvent.createProps, this.createPropsByPlayer, this);
+        gm.Event.on(GameEvent.upgradeProps, this.upgradePropsByPlayer, this);
         gm.Event.on(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.on(GameEvent.gameResume, this.onGameResume, this);
         gm.Event.on(GameEvent.addGameMonetary, this.addGameMonetary, this);
@@ -439,8 +439,8 @@ export class UIGame extends UIBase {
         gm.Event.off(GameEvent.refreshGameCamera, this.refreshGameCamera, this);
         gm.Event.off(GameEvent.refreshGameMonetary, this.refreshMonetaryLab, this);
         gm.Event.off(GameEvent.refreshPlayerPos, this.checkPlayerPos, this);
-        gm.Event.off(GameEvent.createProps, this.createProps, this);
-        gm.Event.off(GameEvent.upgradeProps, this.upgradeProps, this);
+        gm.Event.off(GameEvent.createProps, this.createPropsByPlayer, this);
+        gm.Event.off(GameEvent.upgradeProps, this.upgradePropsByPlayer, this);
         gm.Event.off(GameEvent.gamePause, this.onGamePause, this);
         gm.Event.off(GameEvent.gameResume, this.onGameResume, this);
         gm.Event.off(GameEvent.addGameMonetary, this.addGameMonetary, this);
@@ -2661,6 +2661,20 @@ export class UIGame extends UIBase {
         propComp.upgradeProps();
     }
 
+    /**处理常规模式玩家发起的建造事件 */
+    private createPropsByPlayer(tilePos, propsType: tilePropsType, level: number = 0) {
+        if (!this.isEnemyMode) {
+            this.createProps(tilePos, propsType, level);
+        }
+    }
+
+    /**处理常规模式玩家发起的道具升级事件 */
+    private upgradePropsByPlayer(tilePos) {
+        if (!this.isEnemyMode) {
+            this.upgradeProps(tilePos);
+        }
+    }
+
     /**升级指定房间内的指定类型道具 */
     upgradeRoomPropsByType(roomIdx: number, propsType: string, maxLevel: number = -1) {
         if (roomIdx <= 0 || !propsType) {
@@ -3474,6 +3488,14 @@ export class UIGame extends UIBase {
 
     /**检测人物坐标事件 */
     checkPlayerPos() {
+        // 敌人模式下 playerMgr.player 复用为机器人，不能据此显示玩家的操作按钮或道具交互。
+        if (this.isEnemyMode) {
+            this.opratePos = null;
+            this.oprateBtn.active = false;
+            this.refreshBedGuideVisible(false);
+            return;
+        }
+
         if (playerMgr.playerComp?.state == roleState.bed) {
             this.recycleAllGuideArrows();
             this.refreshBedGuideVisible(false);
@@ -4132,6 +4154,11 @@ export class UIGame extends UIBase {
 
     /**刷新游戏货币显示 */
     refreshMonetaryLab() {
+        if (this.isEnemyMode) {
+            this.monetaryNode.active = false;
+            return;
+        }
+
         this.coinLab.string = pData.gameCoin.toString();
         this.powerLab.string = pData.gamePower.toString();
         this.refreshGuideUpgradeGuide();
@@ -4218,6 +4245,11 @@ export class UIGame extends UIBase {
 
     /**滑动区域点击结束 */
     onTouchSlideEnd(event: EventTouch) {
+        if (this.isEnemyMode) {
+            this.closeTouchSelect();
+            return;
+        }
+
         if (!this.isSlideMoving) {
             if (playerMgr.playerComp?.state != roleState.bed) {
                 return;
@@ -4370,6 +4402,10 @@ export class UIGame extends UIBase {
 
     /**点击操作按钮 */
     clickOprateBtn() {
+        if (this.isEnemyMode) {
+            return;
+        }
+
         if (!this.opratePos) {
             console.warn("没有操作目标");
             return;
@@ -4431,6 +4467,10 @@ export class UIGame extends UIBase {
 
     /**点击修复按钮 */
     clickRepairBtn() {
+        if (this.isEnemyMode) {
+            return;
+        }
+
         if (playerMgr.playerComp.roomIdx <= 0) {
             console.warn("没有进入房间");
             return;

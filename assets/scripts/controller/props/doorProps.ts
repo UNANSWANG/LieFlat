@@ -399,6 +399,7 @@ export class doorProps extends gamePropsBase {
             if (coverProps.tryStartShieldByDoorHp(this.gameComp, this.roomIdx, this.hpPercent)) {
                 this.refreshCoverShieldEffect();
             }
+            this.gameComp?.tryShowDoorRecover(this);
         }
 
         return isDestroyed;

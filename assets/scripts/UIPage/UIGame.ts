@@ -304,6 +304,8 @@ export class UIGame extends UIBase {
     private isEnemyModeGameOver = false;
     /**本局敌人模式是否已经弹出过复活界面 */
     private hasShownEnemyModeResurrection = false;
+    /**本局是否已经弹出过房门血量恢复界面 */
+    private hasShownDoorRecover = false;
 
     private get isEnemyMode() {
         return pData.matchMode == 1;
@@ -593,6 +595,7 @@ export class UIGame extends UIBase {
         this.controlledEnemy = null;
         this.isEnemyModeGameOver = false;
         this.hasShownEnemyModeResurrection = false;
+        this.hasShownDoorRecover = false;
         this.isEnemyCameraFollowing = false;
         this.enemyModeRobotDifficultyTypes = [];
         enemyMgr.enemyArr = [];
@@ -4083,6 +4086,22 @@ export class UIGame extends UIBase {
         let doorPos = roomData.doorPos;
         let tileComp = this.tileMap[doorPos.x]?.[doorPos.y]?.item;
         return tileComp?.propsComp as doorProps;
+    }
+
+    /**
+     * 常规模式中，玩家所在房间的门血量低于阈值时，仅在本局首次弹出恢复界面。
+     * 由 doorProps 在实际扣血后调用，确保按本次伤害后的血量判断。
+     */
+    tryShowDoorRecover(doorComp: doorProps) {
+        let playerComp = playerMgr.playerComp;
+        if (this.isEnemyMode || this.hasShownDoorRecover || !doorComp || doorComp.maxHp <= 0
+            || doorComp.hpPercent >= configData.doorHpShowThreshold
+            || !playerComp || playerComp.roomIdx <= 0 || playerComp.roomIdx != doorComp.roomIdx) {
+            return;
+        }
+
+        this.hasShownDoorRecover = true;
+        uiMgr.openPage(UIPath.UIDoorRecover, { doorComp });
     }
 
     /**玩家上床回调 */

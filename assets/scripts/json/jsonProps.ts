@@ -31,6 +31,8 @@ export class jsonProps extends jsonBase {
                 data.desc = data.desc.replace(/\\r\\n|\\n|\/n/g, "\n");
             }
             data.level -= 1;
+            //四舍五入生命值
+            data.hp = Math.round(data.hp);
             if (data.level == 0 && data.buildType > 0) {
                 if (!this.buildTypePropsData[data.buildType]) {
                     this.buildTypePropsData[data.buildType] = [];

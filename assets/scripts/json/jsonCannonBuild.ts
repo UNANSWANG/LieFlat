@@ -25,9 +25,6 @@ export class jsonCannonBuild extends jsonBase {
             }
             this.modeData[data.mode].push(data);
         }
-        if(gm.isDebug){
-            console.warn("-------->初始化炮台建造数据:\n",this.modeData);
-        }
     }
 
     /**按模式和当前炮台数量获取对应的建造配置 */

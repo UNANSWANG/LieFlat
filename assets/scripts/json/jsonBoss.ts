@@ -14,6 +14,15 @@ export class jsonBoss extends jsonBase {
     /**表格处理 */
     protected processTableData() {
         super.processTableData();
+        for(let i = 0; i < this.data.length; i++){
+            let data : JsonBossData = this.data[i];
+            if(data.attack){
+                data.attack = Math.round(data.attack);
+            }
+            if(data.attackExp){
+                data.attackExp = Math.round(data.attackExp);
+            }
+        }
     }
 
     /**Boss等级配置 */

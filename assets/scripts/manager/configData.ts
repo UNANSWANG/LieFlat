@@ -55,7 +55,7 @@ export const configData = {
     /**敌人模式触发低血量提醒阈值 */
     enemyHpLowThreshold: 0.2,
     /**门血量弹出窗口阈值（不读表） */
-    doorHpShowThreshold: 0.9,
+    doorHpShowThreshold: 0.1,
 }
 
 /**敌人通用配置 */

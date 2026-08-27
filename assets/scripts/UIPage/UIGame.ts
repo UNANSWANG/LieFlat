@@ -107,6 +107,15 @@ export class UIGame extends UIBase {
     @property(Node)
     maksNode: Node;
 
+    /**常驻的灰色屏幕遮罩 */
+    private maskGrayNode: Node = null;
+    /**敌人低血量时显示的红色屏幕遮罩 */
+    private maskRedNode: Node = null;
+    /**红色遮罩闪烁所用透明度组件 */
+    private maskRedOpacity: UIOpacity = null;
+    /**当前是否处于低血量红色遮罩状态 */
+    private isLowHpMaskShown: boolean = null;
+
     ///
     ///需要获取的节点
     ///
@@ -309,6 +318,7 @@ export class UIGame extends UIBase {
         this.oprateBtn = this.UINode.getChildByName('oprateBtn');
         this.touchSelect = this.UINode.getChildByName('touchSelect');
         this.repairMask = this.repairBtn.getChildByName("mask").getComponent(Sprite);
+        this.initHpMask();
         this.bedGuideNode = this.oprateBtn.getChildByName("guideNode");
         this.bedGuideSkeleton = this.bedGuideNode?.getComponent(sp.Skeleton);
         this.refreshBedGuideVisible(false);
@@ -503,6 +513,7 @@ export class UIGame extends UIBase {
         this.initRoleBtnList();
 
         this.initEnemy();
+        this.refreshHpMask();
         this.refreshSkillNode();
 
         this.startGameCountDown();
@@ -540,6 +551,7 @@ export class UIGame extends UIBase {
         Tween.stopAllByTarget(this.repairMask);
         this.repairMask.fillRange = 0;
         this.repairMask.node.active = false;
+        this.refreshHpMask(false);
 
         this.stopGameCountDown();
 
@@ -589,6 +601,52 @@ export class UIGame extends UIBase {
         this.clearCarriedRandomProps();
         this.tileMap = [];
         this.rockerReset();
+    }
+
+    /**初始化游戏页血量遮罩节点 */
+    private initHpMask() {
+        this.maskGrayNode = this.maksNode?.getChildByName("mask_gray") || null;
+        this.maskRedNode = this.maksNode?.getChildByName("mask_red") || null;
+        this.maskRedOpacity = this.maskRedNode
+            ? (this.maskRedNode.getComponent(UIOpacity) || this.maskRedNode.addComponent(UIOpacity))
+            : null;
+        this.refreshHpMask(false);
+    }
+
+    /**刷新敌人模式低血量遮罩 */
+    private refreshHpMask(checkEnemyHp: boolean = true) {
+        if (!this.maksNode) {
+            return;
+        }
+
+        this.maksNode.active = true;
+        let enemy = this.controlledEnemy;
+        let isLowHp = checkEnemyHp
+            && this.isEnemyMode
+            && !!enemy
+            && enemy.maxHp > 0
+            && enemy.hp / enemy.maxHp < configData.enemyHpLowThreshold;
+        if (this.isLowHpMaskShown == isLowHp) {
+            return;
+        }
+
+        this.isLowHpMaskShown = isLowHp;
+        this.maskGrayNode && (this.maskGrayNode.active = !isLowHp);
+        this.maskRedNode && (this.maskRedNode.active = isLowHp);
+        if (!this.maskRedOpacity) {
+            return;
+        }
+
+        Tween.stopAllByTarget(this.maskRedOpacity);
+        this.maskRedOpacity.opacity = 255;
+        if (isLowHp) {
+            tween(this.maskRedOpacity)
+                .to(0.35, { opacity: 80 })
+                .to(0.35, { opacity: 255 })
+                .union()
+                .repeatForever()
+                .start();
+        }
     }
 
     /**回收全部瓦片节点 */
@@ -3695,6 +3753,7 @@ export class UIGame extends UIBase {
         this.refreshRobotSuchRoomDelay(dt);
         this.refreshRepairMask(dt);
         this.refreshSkillNode(dt);
+        this.refreshHpMask();
         this.refreshRoleBtnAttackStateByInterval(dt);
 
         // 移动玩家（不使用vec3计算）

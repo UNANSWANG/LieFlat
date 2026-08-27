@@ -55,17 +55,17 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 236
-      },
-      {
         "__id__": 238
       },
       {
         "__id__": 240
+      },
+      {
+        "__id__": 242
       }
     ],
     "_prefab": {
-      "__id__": 242
+      "__id__": 244
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -5066,14 +5066,14 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 231
+        "__id__": 233
       },
       {
-        "__id__": 233
+        "__id__": 235
       }
     ],
     "_prefab": {
-      "__id__": 235
+      "__id__": 237
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -5298,10 +5298,13 @@
       },
       {
         "__id__": 228
+      },
+      {
+        "__id__": 230
       }
     ],
     "_prefab": {
-      "__id__": 230
+      "__id__": 232
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -5442,6 +5445,25 @@
     "fileId": "f26be9z/lCdJko270We0zY"
   },
   {
+    "__type__": "cc.UIOpacity",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 223
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 231
+    },
+    "_opacity": 255,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "eahLDKy9dFyZFEAGfwYPok"
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -5464,7 +5486,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 232
+      "__id__": 234
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -5492,7 +5514,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 234
+      "__id__": 236
     },
     "_alignFlags": 45,
     "_target": null,
@@ -5541,7 +5563,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 237
+      "__id__": 239
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -5569,7 +5591,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 239
+      "__id__": 241
     },
     "_alignFlags": 45,
     "_target": null,
@@ -5605,7 +5627,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 241
+      "__id__": 243
     },
     "setBtn": {
       "__id__": 51

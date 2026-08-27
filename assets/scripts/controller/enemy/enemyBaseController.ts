@@ -2690,6 +2690,7 @@ export class enemyBaseController extends Component {
 
         this.attackExp += attackExp;
         this.refreshExp();
+        this.gameComp?.addEnemyExpAnim(attackExp, this.node, this.expNode);
         if (this.attackExp >= upgradeExp) {
             this.upgrade();
         }

@@ -43,6 +43,18 @@ export class produceTips extends Component {
             this.coinImg.active = false;
         }
 
-        this.animNode.getChildByName('numLab').getComponent(Label).string = `+${num}`;
+        let numLab = this.animNode.getChildByName('numLab').getComponent(Label);
+        numLab.fontSize = 20;
+        numLab.string = `+${num}`;
+    }
+
+    /**初始化敌人经验飘字，只显示经验文本，不显示资源图标 */
+    initExpNum(num: number) {
+        this.animation.play();
+        this.powerImg.active = false;
+        this.coinImg.active = false;
+        let numLab = this.animNode.getChildByName('numLab').getComponent(Label);
+        numLab.fontSize = 15;
+        numLab.string = `exp+${num}`;
     }
 }

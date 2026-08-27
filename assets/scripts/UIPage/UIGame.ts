@@ -4152,6 +4152,25 @@ export class UIGame extends UIBase {
         comp.initNum(type, num);
     }
 
+    /**在敌人自身节点的经验条右侧播放经验飘字 */
+    addEnemyExpAnim(num: number, enemyNode: Node, expNode: Node) {
+        if (num <= 0 || !enemyNode?.isValid || !expNode?.isValid) {
+            return;
+        }
+
+        let expTransform = expNode.getComponent(UITransform);
+        let enemyTransform = enemyNode.getComponent(UITransform);
+        if (!expTransform || !enemyTransform) {
+            return;
+        }
+
+        let worldPos = expTransform.convertToWorldSpaceAR(new Vec3(expTransform.width / 2 + 100, -10, 0));
+        let tipsNode = poolMgr.getProduceTipsNode(uiMgr.produceTipsPrefab);
+        enemyNode.addChild(tipsNode);
+        tipsNode.position = enemyTransform.convertToNodeSpaceAR(worldPos);
+        tipsNode.getComponent(produceTips).initExpNum(num);
+    }
+
     /**刷新游戏货币显示 */
     refreshMonetaryLab() {
         if (this.isEnemyMode) {

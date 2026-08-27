@@ -23,9 +23,6 @@ export class UIDoorRecover extends UIBase {
     @property(Node)
     adBtn: Node;
 
-    private killerSkinId = 0;
-    private survivalTime = 0;
-    private isWaitingResurrection = false;
     private shareBtnAnimation: loopAnimation = null;
     private adBtnAnimation: loopAnimation = null;
 
@@ -44,9 +41,6 @@ export class UIDoorRecover extends UIBase {
     }
 
     initData(data?: any) {
-        this.killerSkinId = Number.isInteger(data?.skinId) && data.skinId >= 0 ? data.skinId : 0;
-        this.survivalTime = Math.max(0, Number(data?.survivalTime) || 0);
-        this.isWaitingResurrection = false;
         this.refreshResurrectionBtn();
         this.SDKAdReport();
     }
@@ -93,7 +87,6 @@ export class UIDoorRecover extends UIBase {
 
     /**点击广告按钮 */
     clickAdBtn() {
-        this.isWaitingResurrection = true;
         videoMgr.watchVideo(68, () => {
             
         }, () => {

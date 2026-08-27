@@ -68,6 +68,8 @@ export class playerData {
     gameStartTime = 0;
     /**当前匹配模式 0：常规模式 1：敌人模式 */
     matchMode = 0;
+    /**是否弹出过血量恢复界面 */
+    isShowDoorRecover = false;
 
     levelInit() {
         pData.adNum = 0;
@@ -79,6 +81,7 @@ export class playerData {
         enemyMgr.enemyAllData = levelConfig.getBossAllData(levelTableIndex);
         this.AIdifficultyTypes = levelConfig.getAIDifficultyTypes(levelTableIndex);
         this.gameStartTime = ccTimeTools.getTime();
+        this.isShowDoorRecover = false;
 
         if(gm.isDebug){
             console.warn("--------------->当前关卡敌人全等级数据\n", enemyMgr.enemyAllData);

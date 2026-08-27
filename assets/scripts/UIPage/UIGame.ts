@@ -4394,6 +4394,10 @@ export class UIGame extends UIBase {
                     survivalTime: this.getGameStartElapsedTime(),
                 });
                 break;
+            case KeyCode.KEY_G:
+                //复活
+                uiMgr.openPage(UIPath.UIResurrection);
+                break;
             case KeyCode.KEY_L:
                 //增加游戏内货币
                 this.addGameMonetary();

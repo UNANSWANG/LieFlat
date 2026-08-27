@@ -236,6 +236,8 @@ export enum SaveKey {
     isShowDailyGift = "isShowDailyGift",
     /**是否使用本地json（gm配置） */
     useJsonLocal = "useJsonLocal",
+    /**今日是否通过分享复活过游戏 */
+    isGetResurrectionShare = "isGetResurrectionShare",
 }
 
 /**道具索引 */

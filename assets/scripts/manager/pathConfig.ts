@@ -48,6 +48,8 @@ export enum UIPath {
     UIDailyGift = "prefabs/UIPage/UIDailyGift",
     /**碎片页面 */
     UIDebris = "prefabs/UIPage/UIDebris",
+    /**复活页面 */
+    UIResurrection = "prefabs/UIPage/UIResurrection",
 }
 
 /**物品路径 */

@@ -104,6 +104,9 @@ export class UIGame extends UIBase {
     @property(Node)
     monetaryNode: Node;
 
+    @property(Node)
+    maksNode: Node;
+
     ///
     ///需要获取的节点
     ///

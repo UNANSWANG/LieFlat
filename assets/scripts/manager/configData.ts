@@ -52,6 +52,8 @@ export const configData = {
     rankModeFactor: 100000,
     /**敌人模式开始所需碎片数 */
     enemyModeDebrisNum: 20,
+    /**敌人模式触发低血量提醒阈值 */
+    enemyHpLowThreshold: 0.2,
 }
 
 /**敌人通用配置 */

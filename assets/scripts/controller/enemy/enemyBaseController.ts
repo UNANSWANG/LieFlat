@@ -437,7 +437,7 @@ export class enemyBaseController extends Component {
         let bossData = this.getCurrentLevelBossData();
         this.attackDamage = bossData?.attack || 0;
         //TODO 伤害临时秒杀
-        this.attackDamage *= 5;
+        // this.attackDamage *= 5;
     }
 
     /**获取当前等级的属性配置 */

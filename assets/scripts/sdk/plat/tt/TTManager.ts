@@ -276,7 +276,7 @@ export class TTManager extends BasePlat {
         return new Promise<Boolean>($resolve => {
             window["tt"].shareAppMessage({
                 // channel: "invite", //分享渠道
-                title: "标题", //分享标题
+                title: "你能躺赢吗", //分享标题
                 desc: "快来跟我一起玩吧！", //分享描述
                 templateId: "2d93vpnsmbfb23c6a0", //分享图标
                 query: "",
@@ -300,7 +300,7 @@ export class TTManager extends BasePlat {
             }
             window["tt"].shareAppMessage({
                 channel: "video", //分享渠道
-                title: "标题", //分享标题
+                title: "你能躺赢吗", //分享标题
                 desc: "快来跟我一起玩吧！", //分享描述
                 templateId: "2d93vpnsmbfb23c6a0", //分享图标
                 query: "",

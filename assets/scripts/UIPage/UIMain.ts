@@ -36,6 +36,9 @@ export class UIMain extends UIBase {
     revisitBtn: Node = null;
 
     @property(Node)
+    gameCircleBtn: Node = null;
+
+    @property(Node)
     addMoneyBtn: Node = null;
 
     @property(Node)
@@ -104,6 +107,7 @@ export class UIMain extends UIBase {
     initData() {
         this.refreshRed();
         this.checkRevisitBtn();
+        this.checkGameCircleBtn();
         this.refreshRoleAnim();
         gm.Event.emit(GameEvent.refreshPlayerMonetary);
     }
@@ -114,6 +118,7 @@ export class UIMain extends UIBase {
         this.setBtn.addComponent(zoomButton).onClick = this.cliskSetBtn.bind(this);
         this.rankBtn.addComponent(zoomButton).onClick = this.clickRankBtn.bind(this);
         this.revisitBtn.addComponent(zoomButton).onClick = this.clickRevisitBtn.bind(this);
+        this.gameCircleBtn.addComponent(zoomButton).onClick = this.clickGameCircleBtn.bind(this);
         this.storeBtn.addComponent(zoomButton).onClick = this.clickStoreBtn.bind(this);
         this.skinStoreBtn.addComponent(zoomButton).onClick = this.clickSkinStoreBtn.bind(this);
         this.addMoneyBtn.addComponent(zoomButton).onClick = this.clickAddMoneyBtn.bind(this);
@@ -246,6 +251,11 @@ export class UIMain extends UIBase {
         }
     }
 
+    /**检测游戏圈按钮 */
+    checkGameCircleBtn() {
+        this.gameCircleBtn.active = gm.platType == PlatType.wx;
+    }
+
     ///
     ///点击事件
     ///
@@ -290,6 +300,11 @@ export class UIMain extends UIBase {
     /**点击复访 */
     clickRevisitBtn() {
         uiMgr.openPage(UIPath.UIRevisit);
+    }
+
+    /**点击游戏圈 */
+    clickGameCircleBtn() {
+        
     }
 
     /**点击排行榜 */

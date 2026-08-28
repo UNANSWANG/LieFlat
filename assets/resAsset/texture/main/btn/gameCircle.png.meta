@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c38ec223-af2a-47c9-a6ed-de157ed49637",
+  "uuid": "47290f30-60ea-417b-be16-cd7f281eb72d",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c38ec223-af2a-47c9-a6ed-de157ed49637@6c48a",
-      "displayName": "rank",
+      "uuid": "47290f30-60ea-417b-be16-cd7f281eb72d@6c48a",
+      "displayName": "gameCircle",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c38ec223-af2a-47c9-a6ed-de157ed49637",
+        "imageUuidOrDatabaseUri": "47290f30-60ea-417b-be16-cd7f281eb72d",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c38ec223-af2a-47c9-a6ed-de157ed49637@f9941",
-      "displayName": "rank",
+      "uuid": "47290f30-60ea-417b-be16-cd7f281eb72d@f9941",
+      "displayName": "gameCircle",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c38ec223-af2a-47c9-a6ed-de157ed49637@6c48a",
+        "imageUuidOrDatabaseUri": "47290f30-60ea-417b-be16-cd7f281eb72d@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,10 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "c38ec223-af2a-47c9-a6ed-de157ed49637@6c48a",
-    "compressSettings": {
-      "useCompressTexture": true,
-      "presetId": "60ZiqfUpZLWYVoaiuYJMD0"
-    }
+    "redirect": "47290f30-60ea-417b-be16-cd7f281eb72d@6c48a"
   }
 }

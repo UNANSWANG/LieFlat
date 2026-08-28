@@ -373,7 +373,10 @@ export class UIMatch extends UIBase {
     }
 
     openGame() {
-        pData.fixDebris(-configData.enemyModeDebrisNum);
+        if (pData.matchMode == 1) {
+            // 敌人模式下，不消耗资源
+            pData.fixDebris(-configData.enemyModeDebrisNum);
+        }
         uiMgr.startGame({
             roleSkinIds: this.roleSkinIds.concat(),
             roleNicknames: this.roleNicknames.concat(),

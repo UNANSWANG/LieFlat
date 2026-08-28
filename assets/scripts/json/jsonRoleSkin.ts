@@ -8,7 +8,7 @@ export class jsonRoleSkin extends jsonBase {
     /** 表格名称 */
     tableName: string = "roleSkin";
     protected jsonPath: string = "json/roleSkin";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/roleSkin.json";
     protected tableUrl2: string = "";
 
     roleSkinAllData: JsonRoleSkinData[] = [];

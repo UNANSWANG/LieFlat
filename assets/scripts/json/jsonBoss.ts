@@ -8,7 +8,7 @@ export class jsonBoss extends jsonBase {
     /** 表格名称 */
     tableName: string = "boss";
     protected jsonPath: string = "json/boss";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/boss.json";
     protected tableUrl2: string = "";
 
     /**表格处理 */

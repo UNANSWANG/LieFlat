@@ -1,6 +1,6 @@
 import { ccResTools } from "../extention/resTools";
 import { ccStorageTools } from "../extention/storageTools";
-import { GameEvent, SaveKey } from "../manager/configData";
+import { GameEvent, gmConfig, SaveKey } from "../manager/configData";
 import { gm } from "../manager/gm";
 import { uiMgr } from "../manager/UIManager";
 
@@ -21,7 +21,7 @@ export class jsonBase {
     async initTable() {
         //登录回调检测表格提前加载完成
         gm.Event.on(GameEvent.checkLoginLoad, this.checkAdvanceComplete, this);
-        if (this.tableUrl1) {
+        if (!gmConfig.useJsonLocal && this.tableUrl1) {
             //线上表格
             let tempData = await ccResTools.loadJsonByUrl(this.tableUrl1);
             //还需要转化成数组

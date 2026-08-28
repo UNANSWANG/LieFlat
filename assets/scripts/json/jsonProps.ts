@@ -7,7 +7,7 @@ export class jsonProps extends jsonBase {
     /** 表格名称 */
     tableName: string = "props";
     protected jsonPath: string = "json/props";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/props.json";
     protected tableUrl2: string = "";
 
     private propsData: JsonPropsData[][] = [];

@@ -7,7 +7,7 @@ export class jsonRobotUpgrade extends jsonBase {
     /** 表格名称 */
     tableName: string = "robotUpgrade";
     protected jsonPath: string = "json/robotUpgrade";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/robotUpgrade.json";
     protected tableUrl2: string = "";
     
     /**获取机器人升级数据 */

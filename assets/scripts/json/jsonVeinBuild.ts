@@ -7,7 +7,7 @@ export class jsonVeinBuild extends jsonBase {
     /** 表格名称 */
     tableName: string = "veinBuild";
     protected jsonPath: string = "json/veinBuild";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/veinBuild.json";
     protected tableUrl2: string = "";
 
     /**表格处理 */

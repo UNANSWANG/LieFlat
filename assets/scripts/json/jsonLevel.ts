@@ -8,7 +8,7 @@ export class jsonLevel extends jsonBase {
     /** 表格名称 */
     tableName: string = "levelTable";
     protected jsonPath: string = "json/levelTable";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/levelTable.json";
     protected tableUrl2: string = "";
 
     get tableData() : JsonLevelData[]{

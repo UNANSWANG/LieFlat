@@ -8,7 +8,7 @@ export class jsonRobotDifficulty extends jsonBase {
     /** 表格名称 */
     tableName: string = "robotDifficulty";
     protected jsonPath: string = "json/robotDifficulty";
-    protected tableUrl1: string = "";
+    protected tableUrl1: string = "https://cdn.taozigame.com/lt/config/8/robotDifficulty.json";
     protected tableUrl2: string = "";
 
     /**根据模式分数据 */

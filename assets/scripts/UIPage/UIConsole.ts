@@ -104,6 +104,7 @@ export class UIConsole extends UIBase {
     /**点击增加玩家货币 */
     clickAddPlayerMonetaryBtn() {
         pData.fixMoney(100000);
+        pData.fixDebris(100000);
     }
 
     /**点击强制开始 */

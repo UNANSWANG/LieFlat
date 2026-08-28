@@ -6007,7 +6007,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 326.7919921875,
+      "width": 443.4130859375,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -6043,7 +6043,7 @@
       "b": 0,
       "a": 255
     },
-    "_string": "增加100000污染币：",
+    "_string": "增加10w污染币和10w碎片：",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,

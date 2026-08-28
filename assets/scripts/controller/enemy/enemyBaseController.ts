@@ -437,7 +437,7 @@ export class enemyBaseController extends Component {
         let bossData = this.getCurrentLevelBossData();
         this.attackDamage = bossData?.attack || 0;
         //TODO 伤害临时秒杀
-        // this.attackDamage *= 3;
+        this.attackDamage *= 5;
     }
 
     /**获取当前等级的属性配置 */
@@ -2895,7 +2895,8 @@ export class enemyBaseController extends Component {
         tileItem.tileType = tilePropsType.none;
         tileData.block = 0;
         this.stopAttackProps();
-        this.playRoleAnim(enemyAnim.move, true);
+        // 敌人模式由玩家继续输入时才移动；道具被摧毁后无输入时保持待机。
+        this.playRoleAnim(this.isPlayerControlled ? enemyAnim.idle : enemyAnim.move, true);
     }
 
     /**根据节点位置同步当前瓦片坐标 */

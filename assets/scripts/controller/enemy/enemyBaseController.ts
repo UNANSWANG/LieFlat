@@ -298,7 +298,7 @@ export class enemyBaseController extends Component {
         // 敌人模式下，打开的房门只作为可通行格，不触发攻击。
         // 已到达道具邻格即可开始攻击；攻击动画期间仍允许继续移动。
         if (!this.isAttackingProps) {
-            this.tryStartPlayerControlledPropsAttack(nextTilePos);
+            this.tryStartPlayerControlledPropsAttack();
         }
 
         this.refreshRoleAnimDirection(moveX);
@@ -1720,39 +1720,32 @@ export class enemyBaseController extends Component {
         return !!doorComp && !doorComp.isClose;
     }
 
-    /**敌人模式下，获取当前所在十字范围内可攻击的道具坐标 */
-    private getPlayerControlledAttackablePropsPos(preferredPos: Vec2 = null) {
-        // 每次判定下一攻击目标时，范围内存在床则优先选择床。
-        for (let offsetY = -1; offsetY <= 1; offsetY++) {
-            for (let offsetX = -1; offsetX <= 1; offsetX++) {
-                let tilePos = this.tempPathTilePos;
-                tilePos.set(this.currentPos.x + offsetX, this.currentPos.y + offsetY);
-                if (!this.isAttackablePropsAtPlayerControlledPos(tilePos)) {
-                    continue;
-                }
+    /**敌人模式下，从自身及上下左右格中选择最近的可攻击道具 */
+    private getPlayerControlledAttackablePropsPos() {
+        // 玩家控制移动后当前格可能已经变化，检索前以节点位置为准同步一次。
+        this.syncCurrentPosByNode();
+        // 检索自身及上下左右五格，按敌人当前位置到道具所在格中心的实际距离选择目标。
+        let offsets = [[0, 0], [0, 1], [0, -1], [-1, 0], [1, 0]];
+        let nearestPos: Vec2 = null;
+        let minDistanceSqr = Number.MAX_VALUE;
+        for (let i = 0; i < offsets.length; i++) {
+            let tilePos = this.tempPathTilePos;
+            tilePos.set(this.currentPos.x + offsets[i][0], this.currentPos.y + offsets[i][1]);
+            if (!this.isAttackablePropsAtPlayerControlledPos(tilePos)) {
+                continue;
+            }
 
-                if (this.getTilePropComp(tilePos)?.propsType == tilePropsType.bed) {
-                    return new Vec2(tilePos.x, tilePos.y);
-                }
+            let propNodePos = ccTools.getPosByTileIndex(tilePos, this.tempTargetNodePos);
+            let offsetX = propNodePos.x - this.node.position.x;
+            let offsetY = propNodePos.y - this.node.position.y;
+            let distanceSqr = offsetX * offsetX + offsetY * offsetY;
+            if (distanceSqr < minDistanceSqr) {
+                minDistanceSqr = distanceSqr;
+                nearestPos = new Vec2(tilePos.x, tilePos.y);
             }
         }
 
-        // 除床以外的目标，保持原有的本轮目标优先与遍历顺序。
-        if (this.isAttackablePropsAtPlayerControlledPos(preferredPos)) {
-            return preferredPos;
-        }
-
-        for (let offsetY = -1; offsetY <= 1; offsetY++) {
-            for (let offsetX = -1; offsetX <= 1; offsetX++) {
-                let tilePos = this.tempPathTilePos;
-                tilePos.set(this.currentPos.x + offsetX, this.currentPos.y + offsetY);
-                if (this.isAttackablePropsAtPlayerControlledPos(tilePos)) {
-                    return new Vec2(tilePos.x, tilePos.y);
-                }
-            }
-        }
-
-        return null;
+        return nearestPos;
     }
 
     /**指定坐标是否为敌人模式下当前十字攻击范围内的道具 */
@@ -1765,8 +1758,8 @@ export class enemyBaseController extends Component {
     }
 
     /**尝试开始攻击当前所在十字范围内的道具 */
-    private tryStartPlayerControlledPropsAttack(preferredPos: Vec2 = null) {
-        let tilePos = this.getPlayerControlledAttackablePropsPos(preferredPos);
+    private tryStartPlayerControlledPropsAttack() {
+        let tilePos = this.getPlayerControlledAttackablePropsPos();
         if (!tilePos || !this.tryAttackTileProps(tilePos)) {
             return false;
         }
@@ -2472,6 +2465,11 @@ export class enemyBaseController extends Component {
             return;
         }
 
+        // 敌人模式下每次攻击事件都重新选择，保证格子内移动后仍攻击最近的道具。
+        if (this.isPlayerControlled && !this.tryStartPlayerControlledPropsAttack()) {
+            return;
+        }
+
         let attackTargetPos = this.isPlayerControlled ? this.playerControlledAttackTargetPos : this.attackingTilePos;
         if (!attackTargetPos) {
             return;
@@ -2503,14 +2501,14 @@ export class enemyBaseController extends Component {
 
     /**敌人模式下，一轮攻击动画结束后决定是否继续攻击相邻道具 */
     private finishPlayerControlledPropsAttack() {
-        let nextAttackPos = this.getPlayerControlledAttackablePropsPos(this.playerControlledAttackTargetPos);
+        let nextAttackPos = this.getPlayerControlledAttackablePropsPos();
         if (!nextAttackPos) {
             this.stopAttackProps();
             this.playRoleAnim(enemyAnim.idle, true);
             return;
         }
 
-        this.tryStartPlayerControlledPropsAttack(nextAttackPos);
+        this.tryStartPlayerControlledPropsAttack();
         this.refreshNextAttackAnimDurationScale();
     }
 

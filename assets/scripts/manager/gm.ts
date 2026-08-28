@@ -29,6 +29,8 @@ export class gm extends Component {
     static isLogin: boolean = false;
     /**游戏是否全局暂停 */
     static isGamePause: boolean = false;
+    /**当前全局暂停来源数量；每次暂停都必须有对应的一次继续 */
+    private static gamePauseCount: number = 0;
 
     static Event: EventTarget;
     protected onLoad(): void {
@@ -95,21 +97,37 @@ export class gm extends Component {
 
     /**游戏暂停 */
     static gamePause(){
+        gm.gamePauseCount++;
         if (gm.isGamePause) {
             return;
         }
-
         gm.isGamePause = true;
         gm.Event.emit(GameEvent.gamePause);
     }
 
     /**游戏继续 */
     static gameResume(){
-        if (!gm.isGamePause) {
+        if (gm.gamePauseCount <= 0) {
+            gm.gamePauseCount = 0;
+            return;
+        }
+
+        gm.gamePauseCount--;
+        if (gm.gamePauseCount > 0) {
             return;
         }
 
         gm.isGamePause = false;
         gm.Event.emit(GameEvent.gameResume);
+    }
+
+    /**强制清空所有暂停来源并继续游戏，仅用于开始新对局时清理残留暂停状态 */
+    static forceGameResume() {
+        let wasPaused = gm.isGamePause || gm.gamePauseCount > 0;
+        gm.gamePauseCount = 0;
+        gm.isGamePause = false;
+        if (wasPaused) {
+            gm.Event.emit(GameEvent.gameResume);
+        }
     }
 }

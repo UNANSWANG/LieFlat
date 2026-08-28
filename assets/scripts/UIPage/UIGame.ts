@@ -504,6 +504,8 @@ export class UIGame extends UIBase {
     initData() {
         /**清除数据 */
         this.clearData();
+        // 新对局不继承上一局界面、广告等留下的暂停引用。
+        gm.forceGameResume();
 
         this.rockerTouchNode.active = !this.isEnemyMode;
         this.slideTouchNode.active = this.isEnemyMode;

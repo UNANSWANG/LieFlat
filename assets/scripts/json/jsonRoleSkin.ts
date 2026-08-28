@@ -58,8 +58,11 @@ export class jsonRoleSkin extends jsonBase {
 
     protected processTableData(): void {
         super.processTableData();
+        this.roleSkinAllData = [];
+        this.enemySkinAllData = [];
+        this.isInit = false;
         for(let i = 0; i < this.data.length; i++){
-            let item = this.data[i];
+            let item: JsonRoleSkinData = this.data[i];
             if(item.type == 0){
                 this.roleSkinAllData.push(item);
             }else if(item.type == 1){

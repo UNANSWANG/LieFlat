@@ -52,9 +52,61 @@ export class jsonBase {
         }
     }
 
-    /**表格处理 */
+    /**
+     * 表格处理。
+     * 在线表格会把数值字段下发为字符串，这里统一将所有数据转换为运行时类型：
+     * 数字优先，其次布尔值；其余数据保持 JSON 原始值。
+     */
     protected processTableData() {
+        this.data = this.normalizeTableValue(this.data);
+    }
 
+    /**
+     * 递归转换表格值。数组和对象保留原有结构，内部值遵循相同转换规则。
+     *
+     * 转换优先级：number > boolean，其他值不处理。
+     */
+    private normalizeTableValue(value: any): any {
+        if (Array.isArray(value)) {
+            return value.map(item => this.normalizeTableValue(item));
+        }
+
+        if (value && typeof value == "object") {
+            let normalizedData: Record<string, any> = {};
+            for (let key in value) {
+                normalizedData[key] = this.normalizeTableValue(value[key]);
+            }
+            return normalizedData;
+        }
+
+        if (typeof value == "number") {
+            return value;
+        }
+
+        if (typeof value == "boolean") {
+            return value;
+        }
+
+        if (typeof value == "string") {
+            let trimmedValue = value.trim();
+            if (trimmedValue) {
+                let numberValue = Number(trimmedValue);
+                if (Number.isFinite(numberValue)) {
+                    return numberValue;
+                }
+
+                let lowerCaseValue = trimmedValue.toLowerCase();
+                if (lowerCaseValue == "true") {
+                    return true;
+                }
+                if (lowerCaseValue == "false") {
+                    return false;
+                }
+            }
+            return value;
+        }
+
+        return value;
     }
 
     /**检测表格是否提前回调（适用于有2表的） */

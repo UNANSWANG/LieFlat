@@ -373,6 +373,7 @@ export class UIMatch extends UIBase {
     }
 
     openGame() {
+        pData.fixDebris(-configData.enemyModeDebrisNum);
         uiMgr.startGame({
             roleSkinIds: this.roleSkinIds.concat(),
             roleNicknames: this.roleNicknames.concat(),

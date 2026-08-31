@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Vec3 } from 'cc';
+import { _decorator, UITransform, Vec2, Vec3 } from 'cc';
 import { gamePropsBase } from './gamePropsBase';
 import { commonConfig } from '../../json/jsonCommon';
 import type { enemyBaseController } from '../enemy/enemyBaseController';
@@ -7,6 +7,7 @@ import { netController } from '../netController';
 import { imgPath } from '../../manager/pathConfig';
 import { tilePropsType } from '../tileItemController';
 import { poolMgr } from '../../manager/poolManager';
+import { ccTools } from '../../extention/generalTools';
 const { ccclass, property } = _decorator;
 
 @ccclass('netProps')
@@ -17,6 +18,10 @@ export class netProps extends gamePropsBase {
     private targetEnemy: enemyBaseController = null;
     /**是否已经触发 */
     private hasTriggered: boolean = false;
+    /**敌人模式下是否已锁定目标，等待其离开当前格子后发射 */
+    private isWaitingTargetLeave: boolean = false;
+    /**锁定目标时所在的格子 */
+    private lockedTargetTilePos: Vec2 = null;
     /**临时本地坐标 */
     private tempLocalPos: Vec3 = new Vec3();
 
@@ -36,6 +41,8 @@ export class netProps extends gamePropsBase {
         super.endProps();
         this.targetEnemy = null;
         this.hasTriggered = false;
+        this.isWaitingTargetLeave = false;
+        this.lockedTargetTilePos = null;
     }
 
     /**消失时向敌人发射蛛网 */
@@ -53,6 +60,24 @@ export class netProps extends gamePropsBase {
         netComp.hasTriggered = true;
         netComp.targetEnemy = target;
         netComp.playDisappearAnim();
+        return true;
+    }
+
+    /**
+     * 敌人模式下锁定指定房间内的蛛网。
+     * 锁定本身不消耗蛛网；目标离开锁定时所在格子后才会发射。
+     */
+    static tryLockRoomNet(gameComp: any, roomIdx: number, target: enemyBaseController) {
+        let netComp = netProps.getRoomNetComp(gameComp, roomIdx);
+        if (!netComp || netComp.hasTriggered || !target || !target.node || !target.node.isValid) {
+            return false;
+        }
+
+        netComp.hasTriggered = true;
+        netComp.targetEnemy = target;
+        netComp.isWaitingTargetLeave = true;
+        let targetTilePos = ccTools.getTileIndexByNodePos(target.node.position);
+        netComp.lockedTargetTilePos = new Vec2(targetTilePos.x, targetTilePos.y);
         return true;
     }
 
@@ -101,5 +126,22 @@ export class netProps extends gamePropsBase {
 
         netComp.init(this.targetEnemy, this.netDuration, imgPath.gamePprops + this.propsType + "_" + this.level);
         this.targetEnemy = null;
+    }
+
+    protected update(): void {
+        if (!this.isWaitingTargetLeave || !this.targetEnemy || !this.targetEnemy.node || !this.targetEnemy.node.isValid) {
+            return;
+        }
+
+        let currentTilePos = ccTools.getTileIndexByNodePos(this.targetEnemy.node.position);
+        if (this.lockedTargetTilePos
+            && currentTilePos.x == this.lockedTargetTilePos.x
+            && currentTilePos.y == this.lockedTargetTilePos.y) {
+            return;
+        }
+
+        this.isWaitingTargetLeave = false;
+        this.lockedTargetTilePos = null;
+        this.playDisappearAnim();
     }
 }

@@ -2672,6 +2672,7 @@ export class enemyBaseController extends Component {
         if (actualDamage > 0) {
             this.gameComp?.playSceneEffect(audioPath.bossAttack, this.node.worldPosition);
             this.playScratchEffectAtWorldPos(scratchWorldPos);
+            this.tryLockRoomNetAfterPlayerAttack(tilePos);
         }
         if (isAttackDoor) {
             if (actualDamage > 0) {
@@ -2736,6 +2737,20 @@ export class enemyBaseController extends Component {
         if (this.attackExp >= upgradeExp) {
             this.upgrade();
         }
+    }
+
+    /**敌人模式下，玩家对房间内道具造成伤害时锁定该房间的蛛网 */
+    private tryLockRoomNetAfterPlayerAttack(tilePos: Vec2) {
+        if (!this.isPlayerControlled) {
+            return;
+        }
+
+        let roomIdx = this.gameComp?.tileMap?.[tilePos.x]?.[tilePos.y]?.roomIdx || 0;
+        if (roomIdx <= 0) {
+            return;
+        }
+
+        netProps.tryLockRoomNet(this.gameComp, roomIdx, this);
     }
 
     /**玩家房门在本轮连续攻击中首次低于阈值时震动 */

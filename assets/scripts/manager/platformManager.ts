@@ -73,6 +73,7 @@ export class platformManager extends Component {
             userMgr.params.uid = +data.uid || 0;
             pData.modeLevels = data.level_values || [];
             pData.level = pData.getLevelNums();
+            pData.bossLevel = pData.getLevelNums(true);
             pData.initGameData(data.gold, data.ext);
 
             // console.warn("------------->用户关卡数:", pData.level);

@@ -14,9 +14,11 @@ const { ccclass, property } = _decorator;
 //用户游戏内数据
 @ccclass('playerData')
 export class playerData {
-    /**当前已通关关卡数 */
+    /**当前常规模式已通关关卡数 */
     level = 0;
-    /**关卡模式通关数据，格式 [[模式ID, 该模式已通关关卡数], ...]，模式ID从1开始 */
+    /**当前敌人模式已通关关卡数 */
+    bossLevel = 0;
+    /**关卡模式通关数据，格式 [[模式ID, 该模式已通关关卡数], ...]；敌人模式的模式ID为 -1，常规模式的模式ID从 1 开始 */
     modeLevels: number[][] = [];
     /**道具集合 */
     propsNums = {};
@@ -89,11 +91,17 @@ export class playerData {
         this.SDKReportLevelStart();
     }
 
-    /**通关关卡模式数据获取当前关卡数 */
-    getLevelNums(): number {
+    /**
+     * 从关卡模式通关数据中获取通关数。
+     * @param isEnemyMode true 获取敌人模式（模式ID为 -1），false 获取常规模式（模式ID大于 0）
+     */
+    getLevelNums(isEnemyMode = false): number {
         let nums = 0;
         for (let i = 0; i < this.modeLevels.length; i++) {
-            nums += this.modeLevels[i][1];
+            let modeId = this.modeLevels[i][0];
+            if ((isEnemyMode && modeId == -1) || (!isEnemyMode && modeId > 0)) {
+                nums += this.modeLevels[i][1];
+            }
         }
         return nums;
     }
@@ -103,7 +111,7 @@ export class playerData {
         return this.getUnlockedModeIndex();
     }
 
-    /**获取指定模式（模式ID从1开始）已通关关卡数 */
+    /**获取指定模式已通关关卡数（敌人模式ID为 -1，常规模式ID从 1 开始） */
     getModePassCount(modeId: number): number {
         for (let i = 0; i < this.modeLevels.length; i++) {
             if (this.modeLevels[i][0] == modeId) {
@@ -113,7 +121,7 @@ export class playerData {
         return 0;
     }
 
-    /**设置指定模式（模式ID从1开始）已通关关卡数 */
+    /**设置指定模式已通关关卡数（敌人模式ID为 -1，常规模式ID从 1 开始） */
     private setModePassCount(modeId: number, count: number) {
         if (count < 0) {
             count = 0;
@@ -129,7 +137,7 @@ export class playerData {
         this.modeLevels.sort((a, b) => a[0] - b[0]);
     }
 
-    /**增加指定模式（模式ID从1开始）的通关数并存储 */
+    /**增加指定模式的通关数并存储 */
     addModePass(modeId: number) {
         let count = this.getModePassCount(modeId) + 1;
         this.setModePassCount(modeId, count);
@@ -198,10 +206,11 @@ export class playerData {
     /**
      * 获取当前所在关卡的模式进度数据（即下一关的 modeLevels），供上报 level_values 使用。
      * modeLevels 存的是已通关数，当前正在玩的这一关需要 +1（与上报 level 用 level+1 表示当前关一致）。
-     * 例：存储 [[1,10]] 且选择一模式 => [[1,11]]；存储 [[1,10]] 且选择二模式 => [[1,10],[2,1]]。
+     * 例：存储 [[1,10]] 且选择一模式 => [[1,11]]；存储 [[1,10]] 且选择二模式 => [[1,10],[2,1]]；
+     * 敌人模式使用模式ID -1，例如 [] => [[-1,1]]。
      */
     getNextModeLevels(): number[][] {
-        let playingModeId = this.getPlayingModeIndex() + 1;
+        let playingModeId = this.matchMode == 1 ? -1 : this.getPlayingModeIndex() + 1;
         //深拷贝，避免污染已存储的通关数据
         let result: number[][] = this.modeLevels.map(item => [item[0], item[1]]);
         let isFound = false;
@@ -250,7 +259,7 @@ export class playerData {
             }
             let modeId = Math.floor(Number(item[0]));
             let count = Math.floor(Number(item[1]));
-            if (!Number.isFinite(modeId) || modeId <= 0 || !Number.isFinite(count) || count < 0) {
+            if (!Number.isFinite(modeId) || (modeId != -1 && modeId <= 0) || !Number.isFinite(count) || count < 0) {
                 continue;
             }
             result.push([modeId, count]);
@@ -294,7 +303,7 @@ export class playerData {
         if (gm.hgSdk) {
             gm.hgSdk.track('LEVEL_ENTER', {
                 enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
-                level_id: (pData.level + 1),    	//关卡ID，数值
+                level_id: this.getCurrentModeLevel() + 1,    	//关卡ID，数值
             });
         }
     }
@@ -305,7 +314,7 @@ export class playerData {
             gm.hgSdk.track('LEVEL_EXIT', {
                 ad_cnt: pData.adNum,
                 enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
-                level_id: (pData.level + 1),    	//关卡ID，数值
+                level_id: this.getCurrentModeLevel() + 1,    	//关卡ID，数值
             });
         }
     }
@@ -316,7 +325,7 @@ export class playerData {
             gm.hgSdk.track('LEVEL_LOSE', {
                 ad_cnt: pData.adNum,
                 enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
-                level_id: (pData.level + 1),    	//关卡ID，数值
+                level_id: this.getCurrentModeLevel() + 1,    	//关卡ID，数值
             });
         }
     }
@@ -327,7 +336,7 @@ export class playerData {
             gm.hgSdk.track('LEVEL_PASS', {
                 ad_cnt: pData.adNum,
                 enter_level_id: 0,	    //进入的关卡进度（ 0 ~ 1 之间的数值），需保留两位小数
-                level_id: (pData.level + 1),    	//关卡ID，数值
+                level_id: this.getCurrentModeLevel() + 1,    	//关卡ID，数值
             });
         }
     }
@@ -348,7 +357,7 @@ export class playerData {
         let modeLevels = this.getNextModeLevels();
         let levelReprotData = {
             is_pass: isPass ? 1 : 0,
-            level: this.level + 1,
+            level: this.getCurrentModeLevel() + 1,
             level_id: this.difficultyIndex + 1,
             level_progress: progress,
             time_used: gameAllTime,
@@ -360,24 +369,36 @@ export class playerData {
         // console.warn("上报关卡给后端", levelReprotData);
         httpMgr.post(urlConfig.levelReport, levelReprotData);
         if(gm.platType === PlatType.tt && isPass){
-            (gm.API as TTManager).setRankData(this.level + 1);
+            (gm.API as TTManager).setRankData(this.getCurrentModeLevel() + 1);
         }
     }
 
-    /**增加用户关卡数 */
+    /**获取当前匹配模式的已通关关卡数 */
+    private getCurrentModeLevel(): number {
+        return this.matchMode == 1 ? this.bossLevel : this.level;
+    }
+
+    /**增加当前匹配模式的通关数 */
     addLevel() {
         //上报关卡完成
         this.reportLevel(true);
-        let previousDifficultyIndex = this.getEnemyLevelTableIndex();
-        //当前正在玩的模式ID（1基）
-        let playingModeIndex = this.getPlayingModeIndex();
-        this.addModePass(playingModeIndex + 1);
-
-        this.level++;
-        ccStorageTools.setData(SaveKey.level, this.level);
-        let unlockedDifficultyIndex = this.getEnemyLevelTableIndex();
-        if (unlockedDifficultyIndex > previousDifficultyIndex) {
-            this.setSelectedDifficultyIndex(unlockedDifficultyIndex);
+        if (this.matchMode == 1) {
+            this.addModePass(-1);
+            this.bossLevel++;
+            ccStorageTools.setData(SaveKey.bossLevel, this.bossLevel);
+            return;
+        }else{
+            let previousDifficultyIndex = this.getEnemyLevelTableIndex();
+            //当前正在玩的模式ID（1基）
+            let playingModeIndex = this.getPlayingModeIndex();
+            this.addModePass(playingModeIndex + 1);
+    
+            this.level++;
+            ccStorageTools.setData(SaveKey.level, this.level);
+            let unlockedDifficultyIndex = this.getEnemyLevelTableIndex();
+            if (unlockedDifficultyIndex > previousDifficultyIndex) {
+                this.setSelectedDifficultyIndex(unlockedDifficultyIndex);
+            }
         }
 
         //上传微信好友榜
@@ -385,7 +406,7 @@ export class playerData {
             const kvDataList = [];
             kvDataList.push({
                 key: `level`,
-                value: `${this.level}`
+                value: `${this.level + this.bossLevel}`
             });
             gm.API.setUserCloudStorage(kvDataList);
         }

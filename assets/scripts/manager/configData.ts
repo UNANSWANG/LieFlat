@@ -208,6 +208,8 @@ export enum GameEvent {
 export enum SaveKey {
     /**关卡数据 */
     level = "level",
+    /**敌人模式关卡数据 */
+    bossLevel = "bossLevel",
     /**关卡模式通关数据，格式 [[模式ID, 该模式已通关关卡数], ...] */
     modeLevels = "modeLevels",
     /**难度选择 */

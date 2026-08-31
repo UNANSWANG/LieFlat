@@ -503,7 +503,6 @@ export class WXManager extends BasePlat {
      * 微信原生按钮的坐标以屏幕左上角为原点、单位为像素。
      */
     createGameClubButton(node: Node) {
-        console.warn("--------------->创建游戏圈按钮");
         if (!this.PLAT || !this.PLAT.createGameClubButton) {
             console.error("创建游戏圈按钮失败：当前微信基础库不支持 createGameClubButton");
             return;

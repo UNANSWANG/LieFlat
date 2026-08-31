@@ -7,6 +7,7 @@ import { httpMgr } from "../../network/httpManager";
 import { urlConfig } from "../../network/netConfig";
 import { BasePlat } from "../BasePlat";
 import { WxVideo } from "./WxVideo";
+import { Canvas, Node, UITransform, Vec3 } from "cc";
 
 class Model_wx {
     /**免看广告次数 */
@@ -33,6 +34,9 @@ export class WXManager extends BasePlat {
     _startTime: number;
 
     _lpMgr = null;
+
+    /**微信原生游戏圈按钮 */
+    private _gameClubButton: any = null;
 
     /**分享图片的id */
     shareImgIdArr = [];
@@ -491,6 +495,119 @@ export class WXManager extends BasePlat {
                 failFuc && failFuc();
             }
         });
+    }
+
+    
+    /**
+     * 创建并显示游戏圈按钮，使其覆盖在指定 Cocos 节点上。
+     * 微信原生按钮的坐标以屏幕左上角为原点、单位为像素。
+     */
+    createGameClubButton(node: Node) {
+        console.warn("--------------->创建游戏圈按钮");
+        if (!this.PLAT || !this.PLAT.createGameClubButton) {
+            console.error("创建游戏圈按钮失败：当前微信基础库不支持 createGameClubButton");
+            return;
+        }
+
+        // 游戏圈按钮为微信原生对象，创建一次后只需控制显隐。
+        if (this._gameClubButton) {
+            this._gameClubButton.show();
+            return;
+        }
+
+        if (!node || !node.isValid) {
+            return;
+        }
+
+        const transform = node.getComponent(UITransform);
+        const systemInfo = this.PLAT.getSystemInfoSync();
+        const canvasNode = this.getCanvasNode(node);
+        const canvasTransform = canvasNode?.getComponent(UITransform);
+        const windowWidth = systemInfo.windowWidth || systemInfo.screenWidth;
+        const windowHeight = systemInfo.windowHeight || systemInfo.screenHeight;
+        if (!transform || !canvasTransform || !windowWidth || !windowHeight) {
+            console.warn("创建游戏圈按钮失败：无法获取节点、Canvas 或屏幕尺寸");
+            return;
+        }
+
+        const bottomLeft = transform.convertToWorldSpaceAR(new Vec3(
+            -transform.anchorX * transform.width,
+            -transform.anchorY * transform.height,
+            0,
+        ));
+        const topRight = transform.convertToWorldSpaceAR(new Vec3(
+            (1 - transform.anchorX) * transform.width,
+            (1 - transform.anchorY) * transform.height,
+            0,
+        ));
+        const canvasBottomLeft = canvasTransform.convertToWorldSpaceAR(new Vec3(
+            -canvasTransform.anchorX * canvasTransform.width,
+            -canvasTransform.anchorY * canvasTransform.height,
+            0,
+        ));
+        const canvasTopRight = canvasTransform.convertToWorldSpaceAR(new Vec3(
+            (1 - canvasTransform.anchorX) * canvasTransform.width,
+            (1 - canvasTransform.anchorY) * canvasTransform.height,
+            0,
+        ));
+        const canvasWidth = canvasTopRight.x - canvasBottomLeft.x;
+        const canvasHeight = canvasTopRight.y - canvasBottomLeft.y;
+        if (canvasWidth <= 0 || canvasHeight <= 0) {
+            console.warn("创建游戏圈按钮失败：Canvas 尺寸无效");
+            return;
+        }
+
+        const style = {
+            left: Math.round((bottomLeft.x - canvasBottomLeft.x) / canvasWidth * windowWidth),
+            top: Math.round((canvasTopRight.y - topRight.y) / canvasHeight * windowHeight),
+            width: Math.round((topRight.x - bottomLeft.x) / canvasWidth * windowWidth),
+            height: Math.round((topRight.y - bottomLeft.y) / canvasHeight * windowHeight),
+            // 透明原生点击层，保留 Cocos 节点的美术效果。
+            backgroundColor: "",
+            borderColor: "",
+            borderWidth: 0,
+            color: "",
+        };
+        try {
+            this._gameClubButton = this.PLAT.createGameClubButton({
+                type: "text",
+                text: "",
+                style: style,
+            });
+            if (!this._gameClubButton) {
+                console.error("创建游戏圈按钮失败：微信未返回按钮实例", style);
+                return;
+            }
+
+            this._gameClubButton.show();
+            this._gameClubButton.onTap?.((result) => {
+                if (result?.errMsg && result.errMsg !== "gameClubButton.onTap:ok") {
+                    console.error("打开游戏圈失败", result);
+                }
+            });
+            console.log("游戏圈按钮已创建", style);
+        } catch (error) {
+            console.error("创建游戏圈按钮失败", error, style);
+        }
+    }
+
+    /**获取目标节点所在的 Canvas 节点 */
+    private getCanvasNode(node: Node) {
+        let current: Node = node;
+        while (current) {
+            if (current.getComponent(Canvas)) {
+                return current;
+            }
+            current = current.parent;
+        }
+        return null;
+    }
+
+    /**隐藏游戏圈按钮 */
+    hideGameClubButton() {
+        if (this._gameClubButton) {
+            this._gameClubButton.hide();
+        }
     }
 
     getRandomShareImg() {

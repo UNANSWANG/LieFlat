@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, EventKeyboard, input, Input, KeyCode, Label, Node, NodeEventType, sp, tween, Tween, Vec3 } from 'cc';
+import { _decorator, Button, Component, EventKeyboard, input, Input, KeyCode, Label, Node, NodeEventType, sp, tween, Tween, Vec3, Widget } from 'cc';
 import { gamePath, spinePath, UIPath } from '../manager/pathConfig';
 import { uiMgr } from '../manager/UIManager';
 import { UIBase } from './UIBase';
@@ -86,12 +86,16 @@ export class UIMain extends UIBase {
         this.bindBtn();
         // 设置商店节点
         uiMgr.storeNode = this.storeBtn;
+        this.node.getChildByName("topNode").getComponent(Widget).updateAlignment();
     }
 
     onUI_Open(data?: any): void {
         this.resetStartButton();
         this.addListener();
         this.initData();
+        if (gm.platType == PlatType.wx) {
+            (gm.API as WXManager).createGameClubButton(this.gameCircleBtn);
+        }
         this.startZombieAnim();
         this.playTrainAnim(this.trainXRange[0], this.trainXRange[1]);
     }
@@ -101,6 +105,9 @@ export class UIMain extends UIBase {
         this.unscheduleAllCallbacks();
         this.stopZombieAnim();
         this.removeListener();
+        if (gm.platType == PlatType.wx) {
+            (gm.API as WXManager).hideGameClubButton();
+        }
     }
 
     /**初始化数据 */

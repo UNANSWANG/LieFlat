@@ -6,6 +6,8 @@ import { tipsNotice } from '../UIPage/tips/tipsNotice';
 import { pData } from './playerData';
 import { ccTools } from '../extention/generalTools';
 import { audioMgr } from './audioManager';
+import { gm } from './gm';
+import { GameEvent } from './configData';
 const { ccclass, property } = _decorator;
 
 @ccclass('UIManager')
@@ -226,6 +228,7 @@ export class UIManager {
         pageNode.active = true;
         let uiComp: UIBase = pageNode.getComponent(UIBase);
         uiComp.onUI_Open(data);
+        gm.Event?.emit(GameEvent.uiPageChanged, keyName);
     }
 
     /**将界面加入队列，关闭当前队列界面后依次打开 */
@@ -277,12 +280,28 @@ export class UIManager {
             this.currentQueuePage = null;
             this.openNextQueuePage();
         }
+
+        // 界面关闭后顶层界面可能发生变化，通知相关界面刷新显示状态。
+        gm.Event?.emit(GameEvent.uiPageChanged, keyName);
     }
 
     /**获取界面名称 */
     getUIName(str) {
         let strs = str.split('/');
         return strs[strs.length - 1];
+    }
+
+    /**
+     * 检测指定界面是否位于 UI 节点的最顶层。
+     * @param uiPath 界面路径。
+     */
+    isUIOnTop(uiPath: UIPath): boolean {
+        if (!uiPath || !this.uiPage || !this.uiPage.isValid || this.uiPage.children.length === 0) {
+            return false;
+        }
+
+        const topPage = this.uiPage.children[this.uiPage.children.length - 1];
+        return !!topPage && topPage.isValid && topPage.name === this.getUIName(uiPath);
     }
 
     /**货币动画目标位置(世界坐标) */

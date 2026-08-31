@@ -139,6 +139,7 @@ export class UIMain extends UIBase {
         // 监听刷新红点事件
         gm.Event.on(GameEvent.refreshRed, this.refreshRed, this);
         gm.Event.on(GameEvent.refreshRoleSkin, this.refreshRoleAnim, this);
+        gm.Event.on(GameEvent.uiPageChanged, this.refreshGameClubButtonVisible, this);
     }
 
     /**删除监听 */
@@ -146,6 +147,21 @@ export class UIMain extends UIBase {
         // 监听刷新红点事件
         gm.Event.off(GameEvent.refreshRed, this.refreshRed, this);
         gm.Event.off(GameEvent.refreshRoleSkin, this.refreshRoleAnim, this);
+        gm.Event.off(GameEvent.uiPageChanged, this.refreshGameClubButtonVisible, this);
+    }
+
+    /**界面层级变化时，控制主页游戏圈原生按钮显隐 */
+    private refreshGameClubButtonVisible() {
+        if (gm.platType != PlatType.wx) {
+            return;
+        }
+
+        const wxMgr = gm.API as WXManager;
+        if (uiMgr.isUIOnTop(UIPath.UIMain)) {
+            wxMgr.showGameClubButton();
+        } else {
+            wxMgr.hideGameClubButton();
+        }
     }
 
     /**刷新主页角色皮肤并循环播放待机动画 */

@@ -150,6 +150,8 @@ export const gmConfig = {
 
 /**游戏事件 */
 export enum GameEvent {
+    /**界面层级变化（打开或关闭完成） */
+    uiPageChanged = "uiPageChanged",
     /**游戏暂停 */
     gamePause = "gamePause",
     /**游戏继续 */

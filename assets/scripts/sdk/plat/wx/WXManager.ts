@@ -603,6 +603,13 @@ export class WXManager extends BasePlat {
         return null;
     }
 
+    /**显示游戏圈按钮 */
+    showGameClubButton() {
+        if (this._gameClubButton) {
+            this._gameClubButton.show();
+        }
+    }
+
     /**隐藏游戏圈按钮 */
     hideGameClubButton() {
         if (this._gameClubButton) {
